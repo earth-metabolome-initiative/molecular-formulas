@@ -2,14 +2,16 @@
 name = "molecular_formulas_fuzz"
 version = "0.0.0"
 publish = false
-edition.workspace = true
+edition = "2024"
 
 [package.metadata]
 cargo-fuzz = true
 
 [dependencies]
 honggfuzz = "0.5"
-molecular_formulas = { path = "../../molecular_formulas" }
+serde = "1.0"
+serde_json = "1.0"
+molecular-formulas = { path = "../", features = ["serde"] }
 
 # Prevent this from interfering with workspaces
 [workspace]

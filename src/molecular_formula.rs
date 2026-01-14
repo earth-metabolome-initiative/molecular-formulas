@@ -19,7 +19,6 @@ mod isotopologue_mass;
 mod isotopologue_mass_over_charge;
 mod molar_mass;
 mod noble_gasses;
-mod number_of_bonds;
 mod oxidation_states;
 mod serde;
 mod try_from;
