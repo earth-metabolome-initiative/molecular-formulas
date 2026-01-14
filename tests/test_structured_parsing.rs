@@ -285,16 +285,14 @@ fn test_large_compound1() {
                 .into(),
                 2,
             ),
-            MolecularFormula::Mixture(vec![
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::H.into(), 2),
-                    Element::O.into(),
-                ]),
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::H.into(), 2),
-                    Element::S.into(),
-                    MolecularFormula::Count(Element::O.into(), 4),
-                ]),
+            MolecularFormula::Sequence(vec![
+                MolecularFormula::Count(Element::H.into(), 2),
+                Element::O.into(),
+            ]),
+            MolecularFormula::Sequence(vec![
+                MolecularFormula::Count(Element::H.into(), 2),
+                Element::S.into(),
+                MolecularFormula::Count(Element::O.into(), 4),
             ]),
         ]),
         Some("(C₁₇H₂₃NO₃)₂.H₂O.H₂SO₄"),

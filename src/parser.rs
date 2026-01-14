@@ -96,16 +96,17 @@ impl<I: Iterator<Item = char>> Parser<I> {
                 Some(Ion::from_formula(formula, charge)?.into())
             }
             (Token::Dot, formula) => {
-                let (inner_formula, closing_token) = match (formula.is_some(), self.inner_parse()) {
-                    (_, Ok(result)) => result,
-                    (true, Err(crate::errors::Error::EmptyFormula)) => {
-                        return Ok(Some(MolecularFormula::Radical(
-                            formula.unwrap().into(),
-                            Side::Right,
-                        )));
-                    }
-                    (_, Err(e)) => return Err(e),
-                };
+                let (inner_formula, closing_token): (MolecularFormula, Option<Token>) =
+                    match (formula.is_some(), self.inner_parse()) {
+                        (_, Ok(result)) => result,
+                        (true, Err(crate::errors::Error::EmptyFormula)) => {
+                            return Ok(Some(MolecularFormula::Radical(
+                                formula.unwrap().into(),
+                                Side::Right,
+                            )));
+                        }
+                        (_, Err(e)) => return Err(e),
+                    };
                 if closing_token.is_some() {
                     return Err(crate::errors::Error::ClosingToken {
                         expected: None,
@@ -113,13 +114,28 @@ impl<I: Iterator<Item = char>> Parser<I> {
                     });
                 }
 
-                Some(match formula {
-                    Some(MolecularFormula::Mixture(mut mixture)) => {
-                        mixture.push(inner_formula);
+                println!("Inner formula for dot: {:?} {:?}", formula, inner_formula);
+
+                Some(match (formula, inner_formula) {
+                    (
+                        Some(MolecularFormula::Mixture(mut mixture1)),
+                        MolecularFormula::Mixture(mixture2),
+                    ) => {
+                        mixture1.extend(mixture2);
+                        MolecularFormula::Mixture(mixture1)
+                    }
+                    (Some(MolecularFormula::Mixture(mut mixture)), other) => {
+                        mixture.push(other);
                         MolecularFormula::Mixture(mixture)
                     }
-                    Some(other) => MolecularFormula::Mixture(vec![other, inner_formula]),
-                    None => MolecularFormula::Radical(inner_formula.into(), Side::Left),
+                    (Some(other), MolecularFormula::Mixture(mut mixture)) => {
+                        mixture.insert(0, other);
+                        MolecularFormula::Mixture(mixture)
+                    }
+                    (Some(other1), other2) => MolecularFormula::Mixture(vec![other1, other2]),
+                    (None, inner_formula) => {
+                        MolecularFormula::Radical(inner_formula.into(), Side::Left)
+                    }
                 })
             }
             (Token::OpenRoundBracket | Token::OpenSquareBracket, outer_formula) => {

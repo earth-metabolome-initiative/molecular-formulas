@@ -18,4 +18,43 @@ impl super::MolecularFormula {
             }
         }
     }
+
+    /// Returns the number of mixtures in the molecular formula.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// // Simple mixture: H2O.D2O (2 components)
+    /// let mixture: MolecularFormula = "H2O.D2O".parse().unwrap();
+    /// assert_eq!(mixture.number_of_mixtures(), 2);
+    ///
+    /// // No mixture
+    /// let formula: MolecularFormula = "H2O".parse().unwrap();
+    /// assert_eq!(formula.number_of_mixtures(), 1);
+    ///
+    /// // Mixture with 3 components
+    /// let mixture: MolecularFormula = "H2O.D2O.T2O".parse().unwrap();
+    /// assert_eq!(
+    ///     mixture.number_of_mixtures(),
+    ///     3,
+    ///     "Mixture should have 3 components, but found {}",
+    ///     mixture.mixtures().map(|f| f.to_string()).collect::<Vec<_>>().join(", ")
+    /// );
+    /// ```
+    pub fn number_of_mixtures(&self) -> usize {
+        match self {
+            Self::Mixture(mixture) => mixture.len(),
+            _ => 1,
+        }
+    }
+
+    /// Returns an iterator over the mixtures in the molecular formula.
+    pub fn mixtures(&self) -> Box<dyn Iterator<Item = &Self> + '_> {
+        match self {
+            Self::Mixture(mixture) => Box::new(mixture.iter()),
+            _ => Box::new(std::iter::once(self)),
+        }
+    }
 }
