@@ -8,3 +8,5 @@ pub use ion::Ion;
 pub use molecular_formula::MolecularFormula;
 pub use token::{Token, greek_letters::GreekLetter};
 pub mod errors;
+pub mod is_hill_sorted;
+pub mod iter_elements;
