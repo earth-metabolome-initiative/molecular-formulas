@@ -24,14 +24,9 @@ impl MolecularFormula {
     /// # }
     /// ```
     pub fn get_counted_element(&self, index: usize) -> Option<Element> {
-        let mut count = 0;
-        for element in self.iter_counted_elements() {
-            if count == index {
-                return Some(element);
-            }
-            count += 1;
-        }
-        None
+        self.iter_counted_elements()
+            .enumerate()
+            .find_map(|(i, element)| if i == index { Some(element) } else { None })
     }
 
     /// Returns the element at the specified index in the molecular formula,
@@ -52,14 +47,11 @@ impl MolecularFormula {
     /// # }
     /// ```
     pub fn get_element(&self, index: usize) -> Option<Element> {
-        let mut count = 0;
-        for element in self.iter_elements() {
-            if count == index {
-                return Some(element);
-            }
-            count += 1;
-        }
-        None
+        self.iter_elements().enumerate().find_map(
+            |(i, element)| {
+                if i == index { Some(element) } else { None }
+            },
+        )
     }
 
     /// Returns the element at the specified index in the molecular formula,
@@ -80,17 +72,11 @@ impl MolecularFormula {
     /// # }
     /// ```
     pub fn get_counted_element_ignore_hydrogens(&self, index: usize) -> Option<Element> {
-        let mut count = 0;
-        for element in self.iter_counted_elements() {
-            if element == Element::H {
-                continue;
-            }
-            if count == index {
-                return Some(element);
-            }
-            count += 1;
-        }
-        None
+        self.iter_counted_elements().filter(|&e| e != Element::H).enumerate().find_map(
+            |(i, element)| {
+                if i == index { Some(element) } else { None }
+            },
+        )
     }
 
     /// Returns the element at the specified index in the molecular formula,
@@ -111,16 +97,9 @@ impl MolecularFormula {
     /// # }
     /// ```
     pub fn get_element_ignore_hydrogens(&self, index: usize) -> Option<Element> {
-        let mut count = 0;
-        for element in self.iter_elements() {
-            if element == Element::H {
-                continue;
-            }
-            if count == index {
-                return Some(element);
-            }
-            count += 1;
-        }
-        None
+        self.iter_elements()
+            .filter(|&e| e != Element::H)
+            .enumerate()
+            .find_map(|(i, element)| if i == index { Some(element) } else { None })
     }
 }
