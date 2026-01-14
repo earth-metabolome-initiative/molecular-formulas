@@ -10,3 +10,4 @@ pub use token::{Token, greek_letters::GreekLetter};
 pub mod errors;
 pub mod is_hill_sorted;
 pub mod iter_elements;
+pub mod index;

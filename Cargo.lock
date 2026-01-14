@@ -329,12 +329,13 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 [[package]]
 name = "elements-rs"
 version = "0.1.0"
-source = "git+https://github.com/earth-metabolome-initiative/elements-rs?branch=main#6db581f581d3f23c7d0cb2fd4a9633da6b418b88"
+source = "git+https://github.com/earth-metabolome-initiative/elements-rs?branch=main#8f1029ebbc67a6cb73644936f21db299021a207d"
 dependencies = [
  "multi_ranged",
  "serde",
  "strum",
  "strum_macros",
+ "thiserror",
 ]
 
 [[package]]
