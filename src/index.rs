@@ -12,8 +12,8 @@ impl MolecularFormula {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use molecular_formulas::MolecularFormula;
     /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
     ///
     /// let formula = MolecularFormula::try_from("H2O")?;
     /// assert_eq!(formula.get_counted_element(0), Some(Element::H));
@@ -41,8 +41,8 @@ impl MolecularFormula {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use molecular_formulas::MolecularFormula;
     /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
     ///
     /// let formula = MolecularFormula::try_from("H2O")?;
     /// assert_eq!(formula.get_element(0), Some(Element::H));
@@ -70,8 +70,8 @@ impl MolecularFormula {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use molecular_formulas::MolecularFormula;
     /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
     ///
     /// let formula = MolecularFormula::try_from("H2O")?;
     /// assert_eq!(formula.get_counted_element_ignore_hydrogens(0), Some(Element::O));
@@ -101,8 +101,8 @@ impl MolecularFormula {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use molecular_formulas::MolecularFormula;
     /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
     ///
     /// let formula = MolecularFormula::try_from("H2O")?;
     /// assert_eq!(formula.get_element_ignore_hydrogens(0), Some(Element::O));
