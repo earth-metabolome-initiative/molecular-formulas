@@ -12,6 +12,7 @@ mod contains_residual;
 mod countable;
 mod diatomic;
 mod display;
+mod element_count;
 mod from;
 mod from_str;
 mod homonuclear;
