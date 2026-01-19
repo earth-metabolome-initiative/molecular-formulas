@@ -35,6 +35,8 @@ impl MolecularFormula {
     /// assert!(formula6.is_hill_sorted().unwrap(), "Formula `C6H8O6` should be Hill sorted");
     /// let formula7 = MolecularFormula::from_str("C16H25NS").unwrap();
     /// assert!(formula7.is_hill_sorted().unwrap(), "Formula `C16H25NS` should be Hill sorted");
+    /// let formula8 = MolecularFormula::from_str("C28H23ClO7").unwrap();
+    /// assert!(formula8.is_hill_sorted().unwrap(), "Formula `{formula8}` should be Hill sorted");
     /// let mixture = MolecularFormula::from_str("C32H34N4O4.Ni").unwrap();
     /// assert!(mixture.is_hill_sorted().unwrap(), "Mixture `C32H34N4O4.Ni` should be Hill sorted");
     /// let mixture2 = MolecularFormula::from_str("ClH.Na").unwrap();
@@ -102,11 +104,20 @@ impl MolecularFormula {
                         }
                     }
 
-                    if let Element::H = element
+                    if matches!(element, Element::H)
                         && found_carbon
-                        && previous != Some(Element::C)
+                        && !matches!(previous, Some(Element::C))
                     {
                         return Ok(false);
+                    }
+
+                    // If Carbon is present, we only enforce alphabetical order
+                    // for elements that are NOT Carbon or Hydrogen.
+                    // We skip the check if the previous element was C or H,
+                    // because C and H are placed by rule, not by alphabet.
+                    if found_carbon && matches!(previous, Some(Element::H)) {
+                        previous = Some(element);
+                        continue;
                     }
 
                     // Otherwise, elements must be in alphabetical order
