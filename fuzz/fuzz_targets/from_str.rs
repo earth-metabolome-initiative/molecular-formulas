@@ -29,8 +29,6 @@ fn main() {
                 );
             }
 
-            println!("Parsed formula `{}`", candidate);
-
             // We check that the display works without panicking
             let _ = formula.to_string();
 

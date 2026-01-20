@@ -219,26 +219,12 @@ where
             && next.is_ascii_alphabetic()
         {
             self.chars.next();
-            if let Ok(complex) = Complex::try_from([char, next]) {
-                if let Ok(element) = Element::try_from([char, next]) {
-                    // If both complex and element are valid, we prefer the element!
-                    // This happens for "Ac" (Actinium vs Acetyl) and "Pr" (Praseodymium vs Propyl).
-                    // The user asked "which is the complex group which clashes with an element?",
-                    // indicating concern. Standard chemical formulas prioritize
-                    // elements.
-                    return Ok(element.into());
-                }
-                return Ok(complex.into());
-            }
-
             if let Ok(element) = Element::try_from([char, next]) {
                 return Ok(element.into());
             }
 
-            return Err(crate::errors::Error::InvalidComplexGroupFragment(format!(
-                "{}{}",
-                char, next
-            )));
+            let complex = Complex::try_from([char, next])?;
+            return Ok(complex.into());
         }
 
         // To handle cases like 'D' and 'T', which respectively

@@ -3,28 +3,38 @@
 
 use std::num::TryFromIntError;
 
+use thiserror::Error;
+
 use crate::token::{Token, greek_letters::GreekLetter};
 
-#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Error)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// Enumeration of errors which may occur while parsing a molecular formula.
 pub enum Error {
     /// Error indicating that an unknown element was encountered.
-    Element(elements_rs::errors::Error),
+    #[error("Element error: {0}")]
+    Element(#[from] elements_rs::errors::Error),
     /// Error indicating that a character in the formula is invalid.
+    #[error("Invalid character: {0}")]
     InvalidCharacter(char),
     /// Invalid repeated token in the formula.
+    #[error("Invalid repeated token: {0:?}")]
     InvalidRepeatedToken(Token),
     /// Error indicating that a greek letter in the formula is at an
     /// invalid position.
+    #[error("Invalid greek letter position: {0}")]
     InvalidGreekLetterPosition(GreekLetter),
     /// Error indicating that a number in the formula is invalid.
+    #[error("Invalid number")]
     InvalidNumber,
     /// Error indicating that a number in the formula is invalid.
+    #[error("Empty formula")]
     EmptyFormula,
     /// Error indicating that a formula is invalid.
+    #[error("Invalid formula")]
     InvalidFormula,
     /// Error indicating that the expected closing token was not found.
+    #[error("Expected closing token: {expected:?}, found: {found:?}")]
     ClosingToken {
         /// The expected closing token.
         expected: Option<Token>,
@@ -32,93 +42,44 @@ pub enum Error {
         found: Option<Token>,
     },
     /// Error raised when an uncountable term is being counted.
+    #[error("Counting uncountable term")]
     CountingUncountable,
     /// When the leading token is not a number or an element.
+    #[error("Invalid leading token: {0:?}")]
     InvalidLeadingToken(Token),
     /// When the parser is not completely consumed.
+    #[error("Unconsumed parser")]
     UnconsumedParser,
     /// When an ion has a charge of 0.
+    #[error("Ion has a charge of 0")]
     ZeroCharge,
     /// When a count has a value of 0.
+    #[error("Count has a value of 0")]
     ZeroCount,
     /// When a charge is not at the end of the formula.
+    #[error("Charge is not at the end of the formula")]
     InvalidChargePosition,
     /// When a superscript is at an invalid position.
+    #[error("Superscript is at an invalid position")]
     InvalidSuperscriptPosition,
     /// When an operation is not defined for residuals.
+    #[error("Operation is not defined for residuals")]
     InvalidOperationForResidual,
     /// When an operation is not defined for a mixture.
+    #[error("Operation is not defined for mixtures")]
     InvalidOperationForMixture,
     /// When an operation is only defined for diatomic formulas.
+    #[error("Operation is only defined for diatomic formulas")]
     InvalidOperationForNonDiatomic,
     /// When an oxidation state is invalid.
+    #[error("Oxidation state is invalid: {0}")]
     InvalidOxidationState(i16),
     /// When a provided string is not a valid greek letter.
+    #[error("Provided string is not a valid greek letter: {0}")]
     InvalidGreekLetter(String),
     /// When a provided string is not a valid complex group fragment.
+    #[error("Provided string is not a valid complex group fragment: {0}")]
     InvalidComplexGroupFragment(String),
-}
-
-impl From<elements_rs::errors::Error> for Error {
-    fn from(err: elements_rs::errors::Error) -> Self {
-        Error::Element(err)
-    }
-}
-
-impl core::fmt::Display for Error {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Error::Element(e) => write!(f, "Element error: {e}"),
-            Error::InvalidCharacter(c) => write!(f, "Invalid character: {c}"),
-            Error::InvalidRepeatedToken(token) => {
-                write!(f, "Invalid repeated token: {token:?}")
-            }
-            Error::InvalidGreekLetterPosition(c) => {
-                write!(f, "Invalid greek letter position: {c}")
-            }
-            Error::InvalidNumber => write!(f, "Invalid number"),
-            Error::EmptyFormula => write!(f, "Empty formula"),
-            Error::InvalidFormula => write!(f, "Invalid formula"),
-            Error::ClosingToken { expected, found } => {
-                write!(f, "Expected closing token: {expected:?}, found: {found:?}")
-            }
-            Error::CountingUncountable => write!(f, "Counting uncountable term"),
-            Error::InvalidLeadingToken(token) => {
-                write!(f, "Invalid leading token: {token:?}")
-            }
-            Error::UnconsumedParser => write!(f, "Unconsumed parser"),
-            Error::ZeroCharge => write!(f, "Ion has a charge of 0"),
-            Error::ZeroCount => write!(f, "Count has a value of 0"),
-            Error::InvalidChargePosition => write!(f, "Charge is not at the end of the formula"),
-            Error::InvalidSuperscriptPosition => {
-                write!(f, "Superscript is at an invalid position")
-            }
-            Error::InvalidOperationForResidual => {
-                write!(f, "Operation is not defined for residuals")
-            }
-            Error::InvalidOperationForMixture => {
-                write!(f, "Operation is not defined for mixtures")
-            }
-            Error::InvalidOperationForNonDiatomic => {
-                write!(f, "Operation is only defined for diatomic formulas")
-            }
-            Error::InvalidOxidationState(state) => {
-                write!(f, "Oxidation state is invalid: {state}")
-            }
-            Error::InvalidGreekLetter(greek) => {
-                write!(f, "Provided string is not a valid greek letter: {greek}")
-            }
-            Error::InvalidComplexGroupFragment(fragment) => {
-                write!(f, "Provided string is not a valid complex group fragment: {fragment}")
-            }
-        }
-    }
-}
-
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        None
-    }
 }
 
 impl From<TryFromIntError> for Error {

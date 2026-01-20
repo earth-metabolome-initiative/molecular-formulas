@@ -5,11 +5,7 @@ use molecular_formulas::MolecularFormula;
 #[test]
 fn test_me2_expansion() {
     // Me2O -> (CH3)2O -> C2H6O
-    // Current expected behavior (suspected wrong): C H6 O
-    // Desired behavior: C2 H6 O
     let formula = MolecularFormula::from_str("Me2O").unwrap();
-    // Let's print it to see structure
-    println!("{:?}", formula);
 
     // Check element counts
     let c_count = formula.element_count(elements_rs::Element::C);
@@ -66,8 +62,6 @@ fn test_cyclohexyl() {
 #[test]
 fn test_cyclopentadienyl() {
     // Cp2Fe -> (C5H5)2Fe -> C10H10Fe (Ferrocene)
-    // Note: Cp is usually C5H5^-1, so Cp2Fe is (C5H5-)2 Fe(0) -> -2 charge in
-    // parser logic
     let ferrocene = MolecularFormula::from_str("Cp2Fe").unwrap();
     assert_eq!(ferrocene.element_count(elements_rs::Element::C), 10);
     assert_eq!(ferrocene.element_count(elements_rs::Element::H), 10);

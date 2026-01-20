@@ -120,8 +120,6 @@ impl<I: Iterator<Item = char>> Parser<I> {
                     });
                 }
 
-                println!("Inner formula for dot: {:?} {:?}", formula, inner_formula);
-
                 Some(match (formula, inner_formula) {
                     (
                         Some(MolecularFormula::Mixture(mut mixture1)),
