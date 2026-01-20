@@ -41,6 +41,8 @@ impl MolecularFormula {
     /// assert!(mixture.is_hill_sorted().unwrap(), "Mixture `C32H34N4O4.Ni` should be Hill sorted");
     /// let mixture2 = MolecularFormula::from_str("ClH.Na").unwrap();
     /// assert!(mixture2.is_hill_sorted().unwrap(), "Mixture `ClH.Na` should be Hill sorted");
+    /// let mixture3 = MolecularFormula::from_str("C20H18F3N4O8P.Na").unwrap();
+    /// assert!(mixture3.is_hill_sorted().unwrap(), "Mixture `{mixture3}` should be Hill sorted");
     /// let unsorted_mixture1 = MolecularFormula::from_str("C32H34O4N4.Ni").unwrap();
     /// assert!(
     ///     !unsorted_mixture1.is_hill_sorted().unwrap(),
