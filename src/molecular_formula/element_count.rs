@@ -44,8 +44,14 @@ impl MolecularFormula {
                     0
                 }
             }
-            MolecularFormula::Sequence(formulas) | MolecularFormula::Mixture(formulas) => {
+            MolecularFormula::Sequence(formulas) => {
                 formulas.iter().map(|f| f.element_count_internal(target)).sum()
+            }
+            MolecularFormula::Mixture(formulas) => {
+                formulas
+                    .iter()
+                    .map(|(count, f)| (*count as i32) * f.element_count_internal(target))
+                    .sum()
             }
             MolecularFormula::Ion(ion) => ion.entry.element_count_internal(target),
             MolecularFormula::Count(formula, count) => {
@@ -56,5 +62,33 @@ impl MolecularFormula {
             | MolecularFormula::Radical(formula, _) => formula.element_count_internal(target),
             MolecularFormula::Greek(_) | MolecularFormula::Residual => 0,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use elements_rs::Element;
+
+    use crate::MolecularFormula;
+
+    #[test]
+    fn test_element_count_branches() {
+        let mix = MolecularFormula::from_str("2H2O.NaCl").unwrap();
+        // H: 2*2 = 4
+        // O: 2*1 = 2
+        // Na: 1
+        // Cl: 1
+        assert_eq!(mix.element_count(Element::H), 4);
+        assert_eq!(mix.element_count(Element::O), 2);
+        assert_eq!(mix.element_count(Element::Na), 1);
+
+        // Isotope check
+        let d2o = MolecularFormula::from_str("D2O").unwrap(); // D is H isotope
+        assert_eq!(d2o.element_count(Element::H), 2);
+
+        let residual = MolecularFormula::from_str("R").unwrap();
+        assert_eq!(residual.element_count(Element::C), 0);
     }
 }

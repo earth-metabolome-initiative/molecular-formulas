@@ -8,6 +8,18 @@ impl super::MolecularFormula {
     #[inline]
     /// Returns the viable oxidation states of the molecular formula.
     ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    /// use multi_ranged::MultiRanged;
+    ///
+    /// let formula: MolecularFormula = "H".parse().unwrap();
+    /// let states = formula.oxidation_states().unwrap();
+    /// assert!(states.contains(1));
+    /// assert!(states.contains(-1));
+    /// ```
+    ///
     /// # Errors
     ///
     /// * If the `MolecularFormula` contains Residual, an error is returned as
@@ -29,10 +41,48 @@ impl super::MolecularFormula {
                     .ok_or(crate::errors::Error::InvalidNumber)?
             }
             Self::Ion(ion) => MultiRange::from(ion.charge),
-            Self::Mixture(formulas) | Self::Sequence(formulas) => {
+            Self::Sequence(formulas) => {
                 let mut oxidation_states = formulas.first().unwrap().oxidation_states()?;
                 for formula in &formulas[1..] {
                     let formula_oxidation_states = formula.oxidation_states()?;
+
+                    if formula_oxidation_states.is_dense() && oxidation_states.is_dense() {
+                        oxidation_states = MultiRange::try_from((
+                            formula_oxidation_states.absolute_start().unwrap()
+                                + oxidation_states.absolute_start().unwrap(),
+                            formula_oxidation_states.absolute_end().unwrap().prev()
+                                + oxidation_states.absolute_end().unwrap().prev()
+                                + 1,
+                        ))
+                        .unwrap();
+                        continue;
+                    }
+
+                    for molecular_oxidation_state in oxidation_states.clone() {
+                        for oxidation_state in formula_oxidation_states.clone() {
+                            let _ = oxidation_states
+                                .insert(molecular_oxidation_state + oxidation_state);
+                        }
+                    }
+                }
+                oxidation_states
+            }
+            Self::Mixture(formulas) => {
+                let (count, formula) = formulas.first().unwrap();
+                let mut oxidation_states = formula
+                    .oxidation_states()?
+                    .checked_mul(
+                        i16::try_from(*count).map_err(|_| crate::errors::Error::InvalidNumber)?,
+                    )
+                    .ok_or(crate::errors::Error::InvalidNumber)?;
+                for (count, formula) in &formulas[1..] {
+                    let formula_oxidation_states = formula
+                        .oxidation_states()?
+                        .checked_mul(
+                            i16::try_from(*count)
+                                .map_err(|_| crate::errors::Error::InvalidNumber)?,
+                        )
+                        .ok_or(crate::errors::Error::InvalidNumber)?;
 
                     if formula_oxidation_states.is_dense() && oxidation_states.is_dense() {
                         oxidation_states = MultiRange::try_from((
@@ -90,9 +140,20 @@ impl super::MolecularFormula {
             }
             Self::Greek(_) => Ok(true),
             Self::Ion(ion) => Ok(ion.charge == oxidation_state),
-            Self::Mixture(formulas) | Self::Sequence(formulas) => {
+            Self::Sequence(formulas) => {
                 Ok(
                     if formulas.iter().any(|formula| {
+                        formula.is_valid_oxidation_state(oxidation_state).unwrap_or(false)
+                    }) {
+                        true
+                    } else {
+                        self.oxidation_states()?.contains(oxidation_state)
+                    },
+                )
+            }
+            Self::Mixture(formulas) => {
+                Ok(
+                    if formulas.iter().any(|(_, formula)| {
                         formula.is_valid_oxidation_state(oxidation_state).unwrap_or(false)
                     }) {
                         true

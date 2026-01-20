@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 use elements_rs::{Element, Isotope};
 use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
 
-use crate::token::{Token, greek_letters::GreekLetter};
+use crate::token::{Complex, Token, greek_letters::GreekLetter};
 
 /// Iterator over the `Token`s found in a provided string.
 pub struct TokenIter<I: Iterator<Item = char>> {
@@ -219,12 +219,29 @@ where
             && next.is_ascii_alphabetic()
         {
             self.chars.next();
-            let element = Element::try_from([char, next])?;
+            if let Ok(complex) = Complex::try_from([char, next]) {
+                if let Ok(element) = Element::try_from([char, next]) {
+                    // If both complex and element are valid, we prefer the element!
+                    // This happens for "Ac" (Actinium vs Acetyl) and "Pr" (Praseodymium vs Propyl).
+                    // The user asked "which is the complex group which clashes with an element?",
+                    // indicating concern. Standard chemical formulas prioritize
+                    // elements.
+                    return Ok(element.into());
+                }
+                return Ok(complex.into());
+            }
 
-            return Ok(element.into());
+            if let Ok(element) = Element::try_from([char, next]) {
+                return Ok(element.into());
+            }
+
+            return Err(crate::errors::Error::InvalidComplexGroupFragment(format!(
+                "{}{}",
+                char, next
+            )));
         }
 
-        // To handle cases like 'P', 'D' and 'T', which respectively
+        // To handle cases like 'D' and 'T', which respectively
         // represent Protium, Deuterium and Tritium.
         if let Ok(isotope) = Isotope::try_from(char) {
             Ok(isotope.into())

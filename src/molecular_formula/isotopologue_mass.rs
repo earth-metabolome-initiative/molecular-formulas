@@ -9,6 +9,16 @@ impl MolecularFormula {
     /// Returns the isotopologue mass of the molecular formula, including the
     /// charge.
     ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = "H2O".parse().unwrap();
+    /// let mass = formula.isotopologue_mass_with_charge().unwrap();
+    /// assert!((mass - 18.01056).abs() < 1e-4);
+    /// ```
+    ///
     /// # Errors
     ///
     /// * If the `MolecularFormula` contains Residual.
@@ -27,8 +37,16 @@ impl MolecularFormula {
                     isotopologue_mass_with_charge * f64::from(*count)
                 })
             }
-            Self::Mixture(formulas) | Self::Sequence(formulas) => {
+            Self::Sequence(formulas) => {
                 formulas.iter().map(Self::isotopologue_mass_with_charge).sum()
+            }
+            Self::Mixture(formulas) => {
+                formulas
+                    .iter()
+                    .map(|(count, formula)| {
+                        formula.isotopologue_mass_with_charge().map(|m| m * f64::from(*count))
+                    })
+                    .sum()
             }
             Self::RepeatingUnit(formula) | Self::Complex(formula) | Self::Radical(formula, _) => {
                 formula.isotopologue_mass_with_charge()
@@ -40,6 +58,16 @@ impl MolecularFormula {
 
     /// Returns the isotopologue mass of the molecular formula, excluding the
     /// charge.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = "[Na]+".parse().unwrap();
+    /// // Mass of atomic Na, ignoring the missing electron
+    /// assert!((formula.isotopologue_mass_without_charge().unwrap() - 22.98977).abs() < 1e-4);
+    /// ```
     ///
     /// # Errors
     ///
@@ -54,8 +82,16 @@ impl MolecularFormula {
                     isotopologue_mass_without_charge * f64::from(*count)
                 })
             }
-            Self::Mixture(formulas) | Self::Sequence(formulas) => {
+            Self::Sequence(formulas) => {
                 formulas.iter().map(Self::isotopologue_mass_without_charge).sum()
+            }
+            Self::Mixture(formulas) => {
+                formulas
+                    .iter()
+                    .map(|(count, formula)| {
+                        formula.isotopologue_mass_without_charge().map(|m| m * f64::from(*count))
+                    })
+                    .sum()
             }
             Self::RepeatingUnit(formula) | Self::Complex(formula) | Self::Radical(formula, _) => {
                 formula.isotopologue_mass_without_charge()

@@ -32,3 +32,133 @@ fn parse_mixture2() -> Result<(), Box<dyn std::error::Error>> {
     );
     Ok(())
 }
+
+#[test]
+/// Test parsing a tri-mixture "H2O.2H20".
+fn parse_mixture3() -> Result<(), Box<dyn std::error::Error>> {
+    let formula: molecular_formulas::MolecularFormula = "H2O.2H20".parse()?;
+    assert!(formula.contains_mixture());
+    assert_eq!(formula.number_of_mixtures(), 3, "{:#?}", formula);
+    assert_eq!(
+        formula.mixtures().collect::<Vec<_>>(),
+        &[
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            &molecular_formulas::MolecularFormula::try_from("H20")?,
+            &molecular_formulas::MolecularFormula::try_from("H20")?,
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+/// Test parsing a mixture with hydrate "CuSO4.5H2O".
+fn parse_mixture4() -> Result<(), Box<dyn std::error::Error>> {
+    let formula: molecular_formulas::MolecularFormula = "CuSO4.5H2O".parse()?;
+    assert!(formula.contains_mixture());
+    assert_eq!(formula.number_of_mixtures(), 6, "{:#?}", formula);
+    assert_eq!(
+        formula.mixtures().collect::<Vec<_>>(),
+        &[
+            &molecular_formulas::MolecularFormula::try_from("CuSO4")?,
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn parse_common_hydrates() -> Result<(), Box<dyn std::error::Error>> {
+    let cases =
+        ["MgSO4.7H2O", "CoCl2.6H2O", "Na2CO3.10H2O", "CaCl2.2H2O", "FeCl3.6H2O", "Al2(SO4)3.18H2O"];
+    for formula_str in cases {
+        let formula: molecular_formulas::MolecularFormula = formula_str.parse()?;
+        assert!(formula.contains_mixture(), "Failed to identify mixture in {}", formula_str);
+    }
+    Ok(())
+}
+
+#[test]
+fn parse_ammonia_adducts() -> Result<(), Box<dyn std::error::Error>> {
+    let cases = ["AlCl3.6NH3", "AgNO3.2NH3", "NiCl2.6NH3"];
+    for formula_str in cases {
+        let formula: molecular_formulas::MolecularFormula = formula_str.parse()?;
+        assert!(formula.contains_mixture(), "Failed to identify mixture in {}", formula_str);
+    }
+    Ok(())
+}
+
+#[test]
+fn parse_organic_hydrates() -> Result<(), Box<dyn std::error::Error>> {
+    let formula: molecular_formulas::MolecularFormula = "C7H8N4O2.2H2O".parse()?;
+    assert!(formula.contains_mixture());
+    Ok(())
+}
+
+#[test]
+fn parse_mixture_with_complex_zncl2_2etoh() -> Result<(), Box<dyn std::error::Error>> {
+    use elements_rs::Element;
+    let formula: molecular_formulas::MolecularFormula = "ZnCl2.2EtOH".parse()?;
+    assert!(formula.contains_mixture());
+    assert_eq!(formula.number_of_mixtures(), 3);
+
+    // Check total counts
+    // Zn: 1
+    // Cl: 2
+    // C: 2 * 2 = 4 (EtOH is C2H5OH - C2H6O)
+    // H: 2 * 6 = 12
+    // O: 2 * 1 = 2
+    assert_eq!(formula.element_count(Element::Zn), 1, "Zn count incorrect");
+    assert_eq!(formula.element_count(Element::Cl), 2, "Cl count incorrect");
+    assert_eq!(formula.element_count(Element::C), 4, "C count incorrect");
+    assert_eq!(formula.element_count(Element::H), 12, "H count incorrect");
+    assert_eq!(formula.element_count(Element::O), 2, "O count incorrect");
+
+    Ok(())
+}
+
+#[test]
+fn parse_mixture_with_complex_sncl4_2et2o() -> Result<(), Box<dyn std::error::Error>> {
+    use elements_rs::Element;
+    let formula: molecular_formulas::MolecularFormula = "SnCl4.2Et2O".parse()?;
+    assert_eq!(formula.number_of_mixtures(), 3);
+
+    // SnCl4 + 2 * (C2H5)2O
+    // Et2O -> (C2H5)2O -> C4H10O
+    // Total C: 2 * 4 = 8
+    // Total H: 2 * 10 = 20
+    // Total O: 2 * 1 = 2
+    // Sn: 1
+    // Cl: 4
+
+    assert_eq!(formula.element_count(Element::Sn), 1, "Sn count incorrect");
+    assert_eq!(formula.element_count(Element::Cl), 4, "Cl count incorrect");
+    assert_eq!(formula.element_count(Element::C), 8, "C count incorrect");
+    assert_eq!(formula.element_count(Element::H), 20, "H count incorrect");
+    assert_eq!(formula.element_count(Element::O), 2, "O count incorrect");
+
+    Ok(())
+}
+
+#[test]
+fn parse_mixture_complex_organic() -> Result<(), Box<dyn std::error::Error>> {
+    use elements_rs::Element;
+    let formula: molecular_formulas::MolecularFormula = "C21H23NO5.3EtOH".parse()?;
+    assert_eq!(formula.number_of_mixtures(), 4);
+
+    // C21H23NO5 + 3 * C2H6O
+    // C: 21 + 3*2 = 27
+    // H: 23 + 3*6 = 41
+    // N: 1
+    // O: 5 + 3*1 = 8
+
+    assert_eq!(formula.element_count(Element::C), 27, "C count incorrect");
+    assert_eq!(formula.element_count(Element::H), 41, "H count incorrect");
+    assert_eq!(formula.element_count(Element::N), 1, "N count incorrect");
+    assert_eq!(formula.element_count(Element::O), 8, "O count incorrect");
+
+    Ok(())
+}

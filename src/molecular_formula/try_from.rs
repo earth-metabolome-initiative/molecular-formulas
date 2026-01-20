@@ -66,6 +66,7 @@ impl From<Token> for crate::MolecularFormula {
         match token {
             Token::Element(element) => element.into(),
             Token::Isotope(isotope) => isotope.into(),
+            Token::Complex(complex) => complex.into(),
             Token::Greek(greek_letter) => greek_letter.into(),
             Token::Residual => crate::MolecularFormula::Residual,
             Token::CloseRoundBracket

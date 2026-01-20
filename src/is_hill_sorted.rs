@@ -89,7 +89,7 @@ impl MolecularFormula {
         Ok(match self {
             MolecularFormula::Mixture(mixtures) => {
                 let mut sorted = true;
-                for formula in mixtures {
+                for (_, formula) in mixtures {
                     sorted &= formula.is_hill_sorted()?;
                 }
                 sorted

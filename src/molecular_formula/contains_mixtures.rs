@@ -1,8 +1,22 @@
 //! Submodule providing the `contains_mixture` method for the
 //! `MolecularFormula` struct
 
+use std::iter::empty;
+
 impl super::MolecularFormula {
     /// Checks if the molecular formula contains a mixture.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let h2o = "H2O".parse::<MolecularFormula>().unwrap();
+    /// assert!(!h2o.contains_mixture());
+    ///
+    /// let mixture = "ZnCl2.2EtOH".parse::<MolecularFormula>().unwrap();
+    /// assert!(mixture.contains_mixture());
+    /// ```
     pub fn contains_mixture(&self) -> bool {
         match self {
             Self::Element(_) | Self::Residual | Self::Isotope(_) | Self::Greek(_) => false,
@@ -45,7 +59,7 @@ impl super::MolecularFormula {
     /// ```
     pub fn number_of_mixtures(&self) -> usize {
         match self {
-            Self::Mixture(mixture) => mixture.len(),
+            Self::Mixture(mixture) => mixture.iter().map(|(count, _)| *count as usize).sum(),
             _ => 1,
         }
     }
@@ -53,7 +67,15 @@ impl super::MolecularFormula {
     /// Returns an iterator over the mixtures in the molecular formula.
     pub fn mixtures(&self) -> Box<dyn Iterator<Item = &Self> + '_> {
         match self {
-            Self::Mixture(mixture) => Box::new(mixture.iter()),
+            Self::Mixture(mixture) => {
+                let mut iterator = Box::new(empty()) as Box<dyn Iterator<Item = &Self>>;
+                for (repeats, formula) in mixture {
+                    for _ in 0..*repeats {
+                        iterator = Box::new(iterator.chain(std::iter::once(formula)));
+                    }
+                }
+                iterator
+            }
             _ => Box::new(std::iter::once(self)),
         }
     }

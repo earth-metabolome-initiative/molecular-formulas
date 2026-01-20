@@ -55,6 +55,8 @@ pub enum Error {
     InvalidOxidationState(i16),
     /// When a provided string is not a valid greek letter.
     InvalidGreekLetter(String),
+    /// When a provided string is not a valid complex group fragment.
+    InvalidComplexGroupFragment(String),
 }
 
 impl From<elements_rs::errors::Error> for Error {
@@ -105,6 +107,9 @@ impl core::fmt::Display for Error {
             }
             Error::InvalidGreekLetter(greek) => {
                 write!(f, "Provided string is not a valid greek letter: {greek}")
+            }
+            Error::InvalidComplexGroupFragment(fragment) => {
+                write!(f, "Provided string is not a valid complex group fragment: {fragment}")
             }
         }
     }

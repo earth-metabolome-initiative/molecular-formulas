@@ -46,6 +46,12 @@ impl<I: Iterator<Item = char>> Parser<I> {
                     None => token.into(),
                 })
             }
+            (Token::Complex(complex), previous) => {
+                Some(match previous {
+                    Some(previous) => previous.chain(complex.into()),
+                    None => complex.into(),
+                })
+            }
             (Token::Greek(greek_letter), None) => {
                 let (inner_formula, closing_token) = self.inner_parse()?;
                 if closing_token.is_some() {
@@ -125,14 +131,76 @@ impl<I: Iterator<Item = char>> Parser<I> {
                         MolecularFormula::Mixture(mixture1)
                     }
                     (Some(MolecularFormula::Mixture(mut mixture)), other) => {
-                        mixture.push(other);
+                        let item = match other {
+                            MolecularFormula::Count(f, c)
+                                if !matches!(
+                                    *f,
+                                    MolecularFormula::Element(_) | MolecularFormula::Isotope(_)
+                                ) =>
+                            {
+                                if let MolecularFormula::RepeatingUnit(inner) = *f {
+                                    (c, *inner)
+                                } else {
+                                    (c, *f)
+                                }
+                            }
+                            _ => (1, other),
+                        };
+                        mixture.push(item);
                         MolecularFormula::Mixture(mixture)
                     }
                     (Some(other), MolecularFormula::Mixture(mut mixture)) => {
-                        mixture.insert(0, other);
+                        let item = match other {
+                            MolecularFormula::Count(f, c)
+                                if !matches!(
+                                    *f,
+                                    MolecularFormula::Element(_) | MolecularFormula::Isotope(_)
+                                ) =>
+                            {
+                                if let MolecularFormula::RepeatingUnit(inner) = *f {
+                                    (c, *inner)
+                                } else {
+                                    (c, *f)
+                                }
+                            }
+                            _ => (1, other),
+                        };
+                        mixture.insert(0, item);
                         MolecularFormula::Mixture(mixture)
                     }
-                    (Some(other1), other2) => MolecularFormula::Mixture(vec![other1, other2]),
+                    (Some(other1), other2) => {
+                        let item1 = match other1 {
+                            MolecularFormula::Count(f, c)
+                                if !matches!(
+                                    *f,
+                                    MolecularFormula::Element(_) | MolecularFormula::Isotope(_)
+                                ) =>
+                            {
+                                if let MolecularFormula::RepeatingUnit(inner) = *f {
+                                    (c, *inner)
+                                } else {
+                                    (c, *f)
+                                }
+                            }
+                            _ => (1, other1),
+                        };
+                        let item2 = match other2 {
+                            MolecularFormula::Count(f, c)
+                                if !matches!(
+                                    *f,
+                                    MolecularFormula::Element(_) | MolecularFormula::Isotope(_)
+                                ) =>
+                            {
+                                if let MolecularFormula::RepeatingUnit(inner) = *f {
+                                    (c, *inner)
+                                } else {
+                                    (c, *f)
+                                }
+                            }
+                            _ => (1, other2),
+                        };
+                        MolecularFormula::Mixture(vec![item1, item2])
+                    }
                     (None, inner_formula) => {
                         MolecularFormula::Radical(inner_formula.into(), Side::Left)
                     }

@@ -22,7 +22,17 @@ impl Display for MolecularFormula {
                 write!(
                     f,
                     "{}",
-                    mixture.iter().map(MolecularFormula::to_string).collect::<Vec<_>>().join(".")
+                    mixture
+                        .iter()
+                        .map(|(count, formula)| {
+                            if *count > 1 {
+                                format!("{count}{formula}")
+                            } else {
+                                formula.to_string()
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join(".")
                 )
             }
             Self::Count(formula, count) => {

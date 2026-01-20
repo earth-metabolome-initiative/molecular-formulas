@@ -11,9 +11,18 @@ impl MolecularFormula {
         match self {
             MolecularFormula::Element(element) => Box::new(std::iter::once(*element)),
             MolecularFormula::Isotope(isotope) => Box::new(std::iter::once(isotope.element())),
-            MolecularFormula::Sequence(formulas) | MolecularFormula::Mixture(formulas) => {
+            MolecularFormula::Sequence(formulas) => {
                 Box::new(
                     formulas.iter().flat_map(|f| f.iter_elements()).collect::<Vec<_>>().into_iter(),
+                )
+            }
+            MolecularFormula::Mixture(formulas) => {
+                Box::new(
+                    formulas
+                        .iter()
+                        .flat_map(|(_, formula)| formula.iter_elements())
+                        .collect::<Vec<_>>()
+                        .into_iter(),
                 )
             }
             MolecularFormula::Ion(ion) => Box::new(ion.entry.iter_elements()),
@@ -34,11 +43,28 @@ impl MolecularFormula {
         match self {
             MolecularFormula::Element(element) => Box::new(std::iter::once(*element)),
             MolecularFormula::Isotope(isotope) => Box::new(std::iter::once(isotope.element())),
-            MolecularFormula::Sequence(formulas) | MolecularFormula::Mixture(formulas) => {
+            MolecularFormula::Sequence(formulas) => {
                 Box::new(
                     formulas
                         .iter()
                         .flat_map(|f| f.iter_counted_elements())
+                        .collect::<Vec<_>>()
+                        .into_iter(),
+                )
+            }
+            MolecularFormula::Mixture(mixtures) => {
+                Box::new(
+                    mixtures
+                        .iter()
+                        .flat_map(|(repeats, formula)| {
+                            let mut iterator: Box<dyn Iterator<Item = Element>> =
+                                Box::new(std::iter::empty());
+                            for _ in 0..*repeats {
+                                iterator =
+                                    Box::new(iterator.chain(formula.iter_counted_elements()));
+                            }
+                            iterator
+                        })
                         .collect::<Vec<_>>()
                         .into_iter(),
                 )
@@ -69,7 +95,7 @@ impl MolecularFormula {
     pub fn has_repeated_elements(&self) -> bool {
         match self {
             MolecularFormula::Mixture(formulas) => {
-                for formula in formulas {
+                for (_, formula) in formulas {
                     if formula.has_repeated_elements() {
                         return true;
                     }

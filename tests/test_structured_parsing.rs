@@ -50,8 +50,8 @@ fn test_mixture1() {
     test_parse(
         "C+4.H2",
         MolecularFormula::Mixture(vec![
-            MolecularFormula::Ion(Ion::from_element(Element::C, 4).unwrap().into()),
-            MolecularFormula::Count(Element::H.into(), 2),
+            (1, MolecularFormula::Ion(Ion::from_element(Element::C, 4).unwrap().into())),
+            (1, MolecularFormula::Count(Element::H.into(), 2)),
         ]),
         Some("C⁺⁴.H₂"),
     );
@@ -62,21 +62,27 @@ fn test_mixture2() {
     test_parse(
         "CH+2.CH+2",
         MolecularFormula::Mixture(vec![
-            MolecularFormula::Ion(
-                Ion::from_formula(
-                    MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
-                    2,
-                )
-                .unwrap()
-                .into(),
+            (
+                1,
+                MolecularFormula::Ion(
+                    Ion::from_formula(
+                        MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
+                        2,
+                    )
+                    .unwrap()
+                    .into(),
+                ),
             ),
-            MolecularFormula::Ion(
-                Ion::from_formula(
-                    MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
-                    2,
-                )
-                .unwrap()
-                .into(),
+            (
+                1,
+                MolecularFormula::Ion(
+                    Ion::from_formula(
+                        MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
+                        2,
+                    )
+                    .unwrap()
+                    .into(),
+                ),
             ),
         ]),
         Some("CH⁺².CH⁺²"),
@@ -257,45 +263,56 @@ fn test_large_compound1() {
     test_parse(
         "MgSO4.H2O",
         MolecularFormula::Mixture(vec![
-            MolecularFormula::Sequence(vec![
-                Element::Mg.into(),
-                Element::S.into(),
-                MolecularFormula::Count(Element::O.into(), 4),
-            ]),
-            MolecularFormula::Sequence(vec![
-                MolecularFormula::Count(Element::H.into(), 2),
-                Element::O.into(),
-            ]),
+            (
+                1,
+                MolecularFormula::Sequence(vec![
+                    Element::Mg.into(),
+                    Element::S.into(),
+                    MolecularFormula::Count(Element::O.into(), 4),
+                ]),
+            ),
+            (
+                1,
+                MolecularFormula::Sequence(vec![
+                    MolecularFormula::Count(Element::H.into(), 2),
+                    Element::O.into(),
+                ]),
+            ),
         ]),
         Some("MgSO₄.H₂O"),
     );
     test_parse(
         "2(C17H23NO3).H2O.H2SO4",
         MolecularFormula::Mixture(vec![
-            MolecularFormula::Count(
+            (
+                2,
                 MolecularFormula::RepeatingUnit(
-                    MolecularFormula::Sequence(vec![
+                    vec![
                         MolecularFormula::Count(Element::C.into(), 17),
                         MolecularFormula::Count(Element::H.into(), 23),
                         Element::N.into(),
                         MolecularFormula::Count(Element::O.into(), 3),
-                    ])
+                    ]
                     .into(),
-                )
-                .into(),
-                2,
+                ),
             ),
-            MolecularFormula::Sequence(vec![
-                MolecularFormula::Count(Element::H.into(), 2),
-                Element::O.into(),
-            ]),
-            MolecularFormula::Sequence(vec![
-                MolecularFormula::Count(Element::H.into(), 2),
-                Element::S.into(),
-                MolecularFormula::Count(Element::O.into(), 4),
-            ]),
+            (
+                1,
+                MolecularFormula::Sequence(vec![
+                    MolecularFormula::Count(Element::H.into(), 2),
+                    Element::O.into(),
+                ]),
+            ),
+            (
+                1,
+                MolecularFormula::Sequence(vec![
+                    MolecularFormula::Count(Element::H.into(), 2),
+                    Element::S.into(),
+                    MolecularFormula::Count(Element::O.into(), 4),
+                ]),
+            ),
         ]),
-        Some("(C₁₇H₂₃NO₃)₂.H₂O.H₂SO₄"),
+        Some("2(C₁₇H₂₃NO₃).H₂O.H₂SO₄"),
     );
 }
 

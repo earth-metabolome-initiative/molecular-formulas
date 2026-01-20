@@ -3,7 +3,9 @@
 
 use elements_rs::{Element, Isotope};
 use greek_letters::GreekLetter;
+pub mod complex;
 pub mod greek_letters;
+pub use complex::Complex;
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -13,6 +15,8 @@ pub enum Token {
     Element(Element),
     /// An isotope
     Isotope(Isotope),
+    /// A group fragment, like "Me" for Methyl or "Et" for Ethyl
+    Complex(Complex),
     /// A charge
     Charge(i16),
     /// A subscript number, which may be a count
@@ -80,5 +84,11 @@ impl From<Isotope> for Token {
 impl From<GreekLetter> for Token {
     fn from(greek_letter: GreekLetter) -> Self {
         Token::Greek(greek_letter)
+    }
+}
+
+impl From<Complex> for Token {
+    fn from(complex: Complex) -> Self {
+        Token::Complex(complex)
     }
 }

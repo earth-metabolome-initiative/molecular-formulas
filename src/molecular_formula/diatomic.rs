@@ -38,10 +38,17 @@ impl crate::MolecularFormula {
             Self::Complex(formula) | Self::RepeatingUnit(formula) | Self::Radical(formula, _) => {
                 formula.number_of_elements()?
             }
-            Self::Mixture(formulas) | Self::Sequence(formulas) => {
+            Self::Sequence(formulas) => {
                 let mut total_number_of_elements = 0;
                 for formula in formulas {
                     total_number_of_elements += formula.number_of_elements()?;
+                }
+                total_number_of_elements
+            }
+            Self::Mixture(formulas) => {
+                let mut total_number_of_elements = 0;
+                for (count, formula) in formulas {
+                    total_number_of_elements += (*count as usize) * formula.number_of_elements()?;
                 }
                 total_number_of_elements
             }
@@ -55,6 +62,23 @@ impl crate::MolecularFormula {
     /// Returns whether the formula is diatomic, such as `H2`, `O2`, `N2`,
     /// `H2+`, `O2-`, etc. A mixture is considered diatomic if all of the
     /// sub-formulas are diatomic.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let h2 = MolecularFormula::from_str("H2").unwrap();
+    /// assert!(h2.is_diatomic().unwrap());
+    ///
+    /// let co = MolecularFormula::from_str("CO").unwrap();
+    /// assert!(co.is_diatomic().unwrap());
+    ///
+    /// let h2o = MolecularFormula::from_str("H2O").unwrap();
+    /// assert!(!h2o.is_diatomic().unwrap());
+    /// ```
     ///
     /// # Errors
     ///
@@ -233,5 +257,26 @@ impl crate::MolecularFormula {
                 Some((left.unwrap(), right.unwrap()))
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::MolecularFormula;
+
+    #[test]
+    fn test_number_of_elements_branches() {
+        let mix = MolecularFormula::from_str("H2.O2").unwrap();
+        // 2 + 2 = 4
+        assert_eq!(mix.number_of_elements().unwrap(), 4);
+
+        let mix_count = MolecularFormula::from_str("2H2.O2").unwrap();
+        // 2*2 + 2 = 6
+        assert_eq!(mix_count.number_of_elements().unwrap(), 6);
+
+        let residual = MolecularFormula::from_str("R").unwrap();
+        assert!(residual.number_of_elements().is_err());
     }
 }

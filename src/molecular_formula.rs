@@ -47,8 +47,10 @@ pub enum MolecularFormula {
     Radical(Box<MolecularFormula>, Side),
     /// An ion (element or molecule with charge)
     Ion(Ion<Box<MolecularFormula>>),
-    /// A mixture of molecules
-    Mixture(Vec<MolecularFormula>),
+    /// A mixture of molecules, each with an associated count
+    /// of repetitions, such as in `CuSO4.5H2O`, where `CuSO4` has
+    /// a count of 1 and `H2O` has a count of 5.
+    Mixture(Vec<(u16, MolecularFormula)>),
     /// Number of molecules
     Count(Box<MolecularFormula>, u16),
     /// A sequence of molecular formulas
@@ -92,18 +94,19 @@ impl MolecularFormula {
                 Ok(Self::Radical(Box::new(formula.add_count_to_last_subformula(count)?), side))
             }
             Self::Mixture(mut formulas) => {
-                let last = formulas.pop().unwrap();
-                let last = last.add_count_to_last_subformula(count)?;
-                formulas.push(last);
+                let (last_count, last_formula) = formulas.pop().unwrap();
+                let last = last_formula.add_count_to_last_subformula(count)?;
+                formulas.push((last_count, last));
                 Ok(Self::Mixture(formulas))
             }
             Self::Isotope(_)
             | Self::Element(_)
+            | Self::Count(_, _)
             | Self::Ion(_)
             | Self::Residual
             | Self::Complex(_)
             | Self::RepeatingUnit(_) => Ok(Self::Count(self.into(), count)),
-            Self::Count(_, _) | Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
+            Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
         }
     }
 
@@ -119,19 +122,22 @@ impl MolecularFormula {
                 Ok(Self::Sequence(formulas))
             }
             Self::Mixture(mut formulas) => {
-                let first = formulas.first().unwrap().clone();
-                let first = first.add_count_to_first_subformula(count)?;
-                formulas[0] = first;
+                let (first_count, first_formula) = formulas.first().unwrap().clone();
+                formulas[0] = (
+                    first_count.checked_mul(count).ok_or(crate::errors::Error::InvalidNumber)?,
+                    first_formula,
+                );
                 Ok(Self::Mixture(formulas))
             }
             Self::Isotope(_)
             | Self::Element(_)
+            | Self::Count(_, _)
             | Self::Ion(_)
             | Self::Complex(_)
             | Self::Radical(_, _)
             | Self::Residual
             | Self::RepeatingUnit(_) => Ok(Self::Count(self.into(), count)),
-            Self::Count(_, _) | Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
+            Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
         }
     }
 }

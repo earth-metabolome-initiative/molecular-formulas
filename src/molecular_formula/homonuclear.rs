@@ -82,11 +82,21 @@ impl crate::MolecularFormula {
             | Self::Radical(_, _)
             | Self::Sequence(_) => self.inner_is_homonuclear(None)?.0,
             Self::Mixture(formulas) => {
-                let mut homonuclear = true;
-                for formula in formulas {
-                    homonuclear &= formula.is_homonuclear()?;
+                let mut common_element = None;
+                for (_, formula) in formulas {
+                    let (homonuclear, element) = formula.inner_is_homonuclear(None)?;
+                    if !homonuclear {
+                        return Ok(false);
+                    }
+                    if let Some(ce) = common_element {
+                        if ce != element {
+                            return Ok(false);
+                        }
+                    } else {
+                        common_element = Some(element);
+                    }
                 }
-                homonuclear
+                true
             }
             Self::Greek(_) => {
                 unreachable!("Illegal state: Formula cannot have as root a Greek letter");
@@ -95,5 +105,39 @@ impl crate::MolecularFormula {
                 return Err(crate::errors::Error::InvalidOperationForResidual);
             }
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use crate::MolecularFormula;
+
+    #[test]
+    fn test_homonuclear_branches() {
+        assert!(MolecularFormula::from_str("H2").unwrap().is_homonuclear().unwrap());
+
+        // Ion
+        assert!(MolecularFormula::from_str("[H2]+").unwrap().is_homonuclear().unwrap());
+
+        // Isotope: H vs D. They are same element (Hydrogen), so should be homonuclear.
+        // H = Element::H, D = Isotope(H). inner_is_homonuclear compares Elements.
+        // H has element H. D has element H. They match.
+        // However, standard parser might parse HD as H D (sequence).
+        let hd = MolecularFormula::from_str("HD").unwrap(); // H and D
+        assert!(hd.is_homonuclear().unwrap());
+
+        // Mixture of homonuclear same element?
+        // H2.H2 -> Homonuclear H.
+        let mix_same = MolecularFormula::from_str("H2.H2").unwrap();
+        assert!(mix_same.is_homonuclear().unwrap());
+
+        // Mixture different
+        let mix_diff = MolecularFormula::from_str("H2.O2").unwrap();
+        assert!(!mix_diff.is_homonuclear().unwrap());
+
+        // Residual error
+        assert!(MolecularFormula::from_str("R").unwrap().is_homonuclear().is_err());
     }
 }

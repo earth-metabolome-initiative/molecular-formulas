@@ -49,8 +49,19 @@ impl crate::MolecularFormula {
             Self::Greek(_) => {
                 unreachable!("Greek letters should not be checked for noble gas compounds")
             }
-            Self::Sequence(formulas) | Self::Mixture(formulas) => {
+            Self::Sequence(formulas) => {
                 for formula in formulas {
+                    if matches!(formula, Self::Greek(_)) {
+                        continue;
+                    }
+                    if !formula.is_noble_gas_compound()? {
+                        return Ok(false);
+                    }
+                }
+                true
+            }
+            Self::Mixture(formulas) => {
+                for (_, formula) in formulas {
                     if matches!(formula, Self::Greek(_)) {
                         continue;
                     }

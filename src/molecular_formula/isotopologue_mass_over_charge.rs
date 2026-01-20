@@ -6,6 +6,18 @@ impl super::MolecularFormula {
     /// formula. Equivalent to `isotopologue_mass_with_charge` divided by the
     /// charge.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula = MolecularFormula::from_str("OH-").unwrap();
+    /// let m_z = formula.isotopologue_mass_over_charge().unwrap();
+    /// assert!((m_z - -17.00328823171).abs() < 1e-9);
+    /// ```
+    ///
     /// # Errors
     ///
     /// * If the `MolecularFormula` contains Residual.
