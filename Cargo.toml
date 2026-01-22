@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 serde = { version = "1.0", optional = true }
-elements-rs = {git = "https://github.com/earth-metabolome-initiative/elements-rs", branch = "main"}
+elements_rs = "0.1.1"
 num-traits = "0.2"
 thiserror = "2.0.18"
 

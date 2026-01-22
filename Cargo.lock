@@ -280,9 +280,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
-name = "elements-rs"
-version = "0.1.0"
-source = "git+https://github.com/earth-metabolome-initiative/elements-rs?branch=main#e5f2097b06bfc016a73f55d5abd6ba9453c54914"
+name = "elements_rs"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "13cceee83fc8cd9c01e2764a6d634975c6c242a18b14bce0b239a859b6dc3552"
 dependencies = [
  "serde",
  "strum",
@@ -435,7 +436,7 @@ dependencies = [
  "comfy-table",
  "criterion",
  "csv",
- "elements-rs",
+ "elements_rs",
  "indicatif",
  "num-traits",
  "serde",
