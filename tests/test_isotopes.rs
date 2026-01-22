@@ -64,3 +64,13 @@ fn test_other_bracket_isotopes() {
     let mass = formula.isotopologue_mass_without_charge();
     assert!((mass - 20.015).abs() < 1e-3);
 }
+
+#[test]
+/// Test for the `C[13]` notation
+fn test_c13_notation() {
+    // C[13]H4
+    let formula: MolecularFormula = "C[13]H4".parse().unwrap();
+    let mass = formula.isotopologue_mass_without_charge();
+    // 13.00335 + 4 * 1.007825
+    assert!((mass - 17.03465).abs() < 1e-3);
+}

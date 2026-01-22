@@ -5,8 +5,8 @@ use std::fmt::Display;
 use elements_rs::{Element, ElementVariant, Isotope, MassNumber, isotopes::HydrogenIsotope};
 
 use crate::{
-    Bracket, CharacterMarker, ChargeLike, Complex, CountLike, ParseError, Radical, Residual,
-    SubTokenError, SuperscriptMinus, SuperscriptPlus, Tree,
+    Bracket, CharacterMarker, ChargeLike, Complex, CountLike, ParseError, Radical, SubTokenError,
+    SuperscriptMinus, SuperscriptPlus, Tree,
     molecular_formula::{
         Side,
         parser::{subscript_digits_ltr, superscript_digits_ltr},
@@ -36,17 +36,7 @@ pub enum GenericTree<S: ChargeLike, U: CountLike, Extension = EmptyTree<S, U>> {
     /// A repeating unit wrapped in round brackets
     Unit(Box<Self>, Bracket),
     /// Extension point for future variants
-    Extension(Extension),
-}
-
-impl<S: ChargeLike + TryFrom<U>, U: CountLike, T: TryFrom<Residual, Error = ParseError<S, U>>>
-    TryFrom<Residual> for GenericTree<S, U, T>
-{
-    type Error = ParseError<S, U>;
-
-    fn try_from(residual: Residual) -> Result<Self, Self::Error> {
-        Ok(GenericTree::Extension(T::try_from(residual)?))
-    }
+    Extension(Box<Extension>),
 }
 
 impl<S: ChargeLike + TryFrom<U>, U: CountLike, T: Tree<Unsigned = U, Signed = S>> From<Complex>
@@ -168,15 +158,6 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         self,
         times: Self::Unsigned,
     ) -> Result<Self, ParseError<Self::Signed, Self::Unsigned>> {
-        if times == U::ZERO {
-            return Ok(self);
-        }
-
-        if let Self::Repeat(inner, existing_times) = self {
-            return (*inner)
-                .repeat(existing_times.checked_add(&times).ok_or(SubTokenError::NumericOverflow)?);
-        }
-
         Ok(Self::Repeat(Box::new(self), times))
     }
 
@@ -215,7 +196,7 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
 
     #[inline]
     fn residual() -> Result<Self, ParseError<Self::Signed, Self::Unsigned>> {
-        Ok(Self::Extension(E::residual()?))
+        Ok(Self::Extension(Box::new(E::residual()?)))
     }
 
     #[inline]

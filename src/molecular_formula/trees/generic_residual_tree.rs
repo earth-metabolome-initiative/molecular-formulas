@@ -12,7 +12,7 @@ mod tree_impl;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GenericResidualTree<S: ChargeLike, U: CountLike> {
     /// The tree contains the syntax tree other than residuals.
-    Tree(GenericTree<S, U, Box<Self>>),
+    Tree(GenericTree<S, U, Self>),
     /// The residual marker variant.
     Residual,
 }
@@ -27,7 +27,7 @@ impl<S: ChargeLike, U: CountLike> TryFrom<Residual> for GenericResidualTree<S, U
 }
 
 impl<S: ChargeLike + TryFrom<U>, U: CountLike> From<GenericResidualTree<S, U>>
-    for GenericTree<S, U, Box<GenericResidualTree<S, U>>>
+    for GenericTree<S, U, GenericResidualTree<S, U>>
 {
     #[inline]
     fn from(value: GenericResidualTree<S, U>) -> Self {

@@ -182,3 +182,23 @@ fn test_fuzzing_case19() {
         .into()
     );
 }
+
+#[test]
+fn test_fuzzing_case20() {
+    let formula = "H[]";
+    // We expect this to fail parsing due to unbalanced brackets.
+    assert_eq!(
+        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
+        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
+            Bracket::Square
+        ))
+        .into()
+    );
+    assert_eq!(
+        ResidualFormula::from_str(formula).unwrap_err(),
+        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
+            Bracket::Square
+        ))
+        .into()
+    );
+}

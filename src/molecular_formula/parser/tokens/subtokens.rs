@@ -357,3 +357,74 @@ impl<Signed: ChargeLike + TryFrom<Unsigned>, Unsigned: NumberLike> Iterator
         }))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use elements_rs::{Element, MassNumber};
+
+    use super::*;
+
+    #[test]
+    fn test_subtoken_display() {
+        // We use i32 and u32 as our Signed and Unsigned types.
+        type Token = SubToken<i32, u32>;
+
+        // Element
+        let token: Token = SubToken::Element(Element::C);
+        assert_eq!(token.to_string(), "C");
+
+        // Isotope
+        // Use into_iter to get &Isotope in find
+        if let Some(iso) = Element::C.isotopes().into_iter().find(|i| i.mass_number() == 13) {
+            let token: Token = SubToken::Isotope(iso);
+            assert!(!token.to_string().is_empty());
+        }
+
+        // Complex
+        let token: Token = SubToken::Complex(Complex::Methyl);
+        assert_eq!(token.to_string(), "Me");
+
+        // GreekLetter
+        let token: Token = SubToken::GreekLetter(GreekLetter::Alpha);
+        assert_eq!(token.to_string(), "α");
+
+        // BaselineNumber
+        let token: Token = SubToken::BaselineNumber(42);
+        assert_eq!(token.to_string(), "42");
+
+        // SubscriptNumber
+        let token: Token = SubToken::SubscriptNumber(5);
+        assert_eq!(token.to_string(), "5");
+
+        // SuperscriptNumber
+        let token: Token = SubToken::SuperscriptNumber(9);
+        assert_eq!(token.to_string(), "9");
+
+        // Charge
+        let token: Token = SubToken::Charge(-1);
+        assert_eq!(token.to_string(), "-1");
+        let token: Token = SubToken::Charge(3);
+        assert_eq!(token.to_string(), "3");
+
+        // OpenBracket
+        let token: Token = SubToken::OpenBracket(Bracket::Round);
+        assert_eq!(token.to_string(), "(");
+        let token: Token = SubToken::OpenBracket(Bracket::Square);
+        assert_eq!(token.to_string(), "[");
+
+        // Residual
+        let token: Token = SubToken::Residual;
+        assert_eq!(token.to_string(), "R");
+
+        // Radical
+        let token: Token = SubToken::Radical;
+        assert_eq!(token.to_string(), "•");
+
+        // Terminator
+        let token: Token = SubToken::Terminator(Terminator::Dot);
+        assert_eq!(token.to_string(), ".");
+
+        let token: Token = SubToken::Terminator(Terminator::CloseBracket(Bracket::Round));
+        assert_eq!(token.to_string(), ")");
+    }
+}

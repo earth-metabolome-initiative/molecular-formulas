@@ -9,12 +9,6 @@ use super::{Baseline, CharacterMarker};
 /// Marker for a residual group in a molecular formula.
 pub struct Residual;
 
-impl From<Residual> for char {
-    fn from(_: Residual) -> Self {
-        Residual::CANONICAL
-    }
-}
-
 impl CharacterMarker for Residual {
     type TS = Baseline;
     const CANONICAL: char = 'R';

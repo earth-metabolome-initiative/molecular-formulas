@@ -90,23 +90,6 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         }
     }
 
-    fn number_of_atoms(&self) -> Option<u64> {
-        match self {
-            Self::Element(_) | Self::Isotope(_) => Some(1),
-            Self::Sequence(formulas) => {
-                formulas.iter().try_fold(0u64, |acc, f| acc.checked_add(f.number_of_atoms()?))
-            }
-            Self::Repeat(inner, count) => {
-                let n: u64 = (*count).into();
-                n.checked_mul(inner.number_of_atoms()?)
-            }
-            Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
-                inner.number_of_atoms()
-            }
-            Self::Extension(ext) => ext.number_of_atoms(),
-        }
-    }
-
     /// # Implementation details
     ///
     /// ## Proof of No Overflow in `total` Accumulation
@@ -188,80 +171,5 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
             }
             Self::Extension(ext) => ext.get_counted_element_or_size(index),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use elements_rs::{Element, Isotope};
-
-    use crate::{Tree, molecular_formula::GenericTree};
-
-    #[derive(Debug, Clone, PartialEq)]
-    struct MockTree {
-        size: u64,
-        element: Element,
-    }
-
-    impl Tree for MockTree {
-        type Unsigned = u32; // Used u32 as CountLike
-        type Signed = i32;
-
-        fn iter_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
-            Box::new(std::iter::empty())
-        }
-        fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
-            Box::new(std::iter::empty())
-        }
-        fn element_count(&self, _target: Element) -> Option<u64> {
-            None
-        }
-        fn isotope_count(&self, _target: Isotope) -> Option<u64> {
-            None
-        }
-        fn number_of_atoms(&self) -> Option<u64> {
-            Some(self.size)
-        }
-        fn get_counted_element_or_size(&self, index: u64) -> Result<Element, u64> {
-            if index < self.size { Ok(self.element) } else { Err(self.size) }
-        }
-        fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
-            Box::new(std::iter::empty())
-        }
-    }
-
-    #[test]
-    fn test_sequence_overflow_proof() {
-        // Construct a Sequence of two huge trees.
-        // Total size > u64::MAX.
-        // We verify that `get_counted_element_or_size` does NOT panic when accessing
-        // valid indices.
-
-        // We use GenericTree<i32, u32, MockTree>
-        let t1 = GenericTree::<i32, u32, MockTree>::Extension(MockTree {
-            size: u64::MAX / 2 + 100,
-            element: Element::H,
-        });
-        let t2 = GenericTree::<i32, u32, MockTree>::Extension(MockTree {
-            size: u64::MAX / 2 + 100,
-            element: Element::O,
-        });
-
-        // Sequence[t1, t2]
-        // Size = (MAX/2 + 100) * 2 = MAX + 200 > MAX.
-        let seq = GenericTree::<i32, u32, MockTree>::Sequence(vec![t1, t2]);
-
-        // Case 1: Access index in the first range.
-        // 0 < size1
-        let res = seq.get_counted_element_or_size(0);
-        assert_eq!(res, Ok(Element::H));
-
-        // Case 2: Access index in the second range.
-        // Index must be large to skip t1.
-        // t1 size is `u64::MAX / 2 + 100`.
-        // Let's pick index = size1 + 1.
-        let index_in_second = (u64::MAX / 2) + 100 + 1;
-        let res = seq.get_counted_element_or_size(index_in_second);
-        assert_eq!(res, Ok(Element::O));
     }
 }

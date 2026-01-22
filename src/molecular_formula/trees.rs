@@ -6,7 +6,6 @@ use elements_rs::{Element, ElementMask, Isotope};
 
 use super::parser::{ChargeLike, Complex, CountLike, ParseError};
 
-mod box_tree;
 mod empty_tree;
 mod generic_residual_tree;
 mod generic_tree;
@@ -38,9 +37,6 @@ pub trait Tree: PartialEq + Debug + Clone {
     /// Returns an iterator over all elements in the molecular formula tree,
     /// repeating the repeating units according to their counts.
     fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_>;
-
-    /// Returns the total number of atoms in the tree, accounting for repeats.
-    fn number_of_atoms(&self) -> Option<u64>;
 
     /// Returns the element at the specified index in the tree, counting
     /// repeats.

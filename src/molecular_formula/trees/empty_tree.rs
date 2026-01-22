@@ -49,11 +49,6 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for EmptyTree<S, U> {
     }
 
     #[inline]
-    fn number_of_atoms(&self) -> Option<u64> {
-        Some(0)
-    }
-
-    #[inline]
     fn get_counted_element(&self, _index: u64) -> Option<Element> {
         None
     }
