@@ -59,6 +59,18 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         }
     }
 
+    fn contains_elements(&self) -> bool {
+        match self {
+            Self::Element(_) | Self::Isotope(_) => true,
+            Self::Sequence(formulas) => formulas.iter().any(Tree::contains_elements),
+            Self::Repeat(inner, _)
+            | Self::Charge(inner, _)
+            | Self::Unit(inner, _)
+            | Self::Radical(inner, _) => inner.contains_elements(),
+            Self::Extension(ext) => ext.contains_elements(),
+        }
+    }
+
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
         match self {
             Self::Element(_) => Box::new(std::iter::empty()),
@@ -69,6 +81,18 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
             | Self::Unit(inner, _)
             | Self::Radical(inner, _) => inner.iter_isotopes(),
             Self::Extension(ext) => ext.iter_isotopes(),
+        }
+    }
+    fn contains_isotopes(&self) -> bool {
+        match self {
+            Self::Element(_) => false,
+            Self::Isotope(_) => true,
+            Self::Sequence(formulas) => formulas.iter().any(Tree::contains_isotopes),
+            Self::Repeat(inner, _)
+            | Self::Charge(inner, _)
+            | Self::Unit(inner, _)
+            | Self::Radical(inner, _) => inner.contains_isotopes(),
+            Self::Extension(ext) => ext.contains_isotopes(),
         }
     }
 
@@ -87,6 +111,32 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
                 inner.isotope_count(target)
             }
             Self::Extension(ext) => ext.isotope_count(target),
+        }
+    }
+
+    fn contains_element(&self, element: Element) -> bool {
+        match self {
+            Self::Element(el) => *el == element,
+            Self::Isotope(isotope) => isotope.element() == element,
+            Self::Sequence(formulas) => formulas.iter().any(|f| f.contains_element(element)),
+            Self::Repeat(inner, _)
+            | Self::Charge(inner, _)
+            | Self::Unit(inner, _)
+            | Self::Radical(inner, _) => inner.contains_element(element),
+            Self::Extension(ext) => ext.contains_element(element),
+        }
+    }
+
+    fn contains_isotope(&self, isotope: Isotope) -> bool {
+        match self {
+            Self::Element(_) => false,
+            Self::Isotope(iso) => *iso == isotope,
+            Self::Sequence(formulas) => formulas.iter().any(|f| f.contains_isotope(isotope)),
+            Self::Repeat(inner, _)
+            | Self::Charge(inner, _)
+            | Self::Unit(inner, _)
+            | Self::Radical(inner, _) => inner.contains_isotope(isotope),
+            Self::Extension(ext) => ext.contains_isotope(isotope),
         }
     }
 

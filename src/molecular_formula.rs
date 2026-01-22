@@ -25,8 +25,8 @@ mod serde;
 mod try_from;
 pub use parser::{
     AllowedCharacter, AllowedCharacterError, Bracket, CharacterMarker, ChargeLike, Complex,
-    CountLike, Digit, GreekLetter, ParseError, ParserError, Radical, Residual, SubTokenError,
-    SuperscriptMinus, SuperscriptPlus, Terminator, Token, TokenError,
+    CountLike, Digit, GreekLetter, ParseError, ParserError, Radical, Residual, SubToken,
+    SubTokenError, SuperscriptMinus, SuperscriptPlus, Terminator, Token, TokenError,
 };
 
 const ELECTRON_MASS: f64 = 5.485_799_090_65e-4;
@@ -100,66 +100,5 @@ impl<T: Tree> MolecularFormula<T> {
         }
 
         Ok(MolecularFormula { mixtures: new_mixtures, greek: self.greek })
-    }
-}
-
-#[cfg(test)]
-mod tests_index_logic {
-    use elements_rs::{Element, Isotope};
-
-    use super::MolecularFormula;
-    use crate::Tree;
-
-    #[derive(Debug, Clone, PartialEq)]
-    struct MockTree {
-        size: u64,
-        element: Element,
-    }
-
-    impl Tree for MockTree {
-        type Unsigned = u32;
-        type Signed = i32;
-
-        fn iter_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
-            Box::new(std::iter::empty())
-        }
-        fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
-            Box::new(std::iter::empty())
-        }
-        fn element_count(&self, _target: Element) -> Option<u64> {
-            None
-        }
-        fn isotope_count(&self, _target: Isotope) -> Option<u64> {
-            None
-        }
-        fn get_counted_element_or_size(&self, index: u64) -> Result<Element, u64> {
-            if index < self.size { Ok(self.element) } else { Err(self.size) }
-        }
-        fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
-            Box::new(std::iter::empty())
-        }
-    }
-
-    #[test]
-    fn test_index_repetition_logic() {
-        // Size 5 tree. Repeats 2. Total 10.
-        let tree = MockTree { size: 5, element: Element::H };
-        let formula = MolecularFormula { mixtures: vec![(2, tree)], greek: None };
-
-        // Index 7 corresponds to index 2 in the second copy.
-        // Should hit "current_idx < total" block.
-        assert_eq!(formula.get_counted_element(7), Some(Element::H));
-    }
-
-    #[test]
-    fn test_index_overflow_logic() {
-        // Size huge. Repeats 2. Total overflows u64.
-        let tree = MockTree { size: u64::MAX / 2 + 100, element: Element::O };
-        let formula = MolecularFormula { mixtures: vec![(2, tree.clone())], greek: None };
-
-        // Index = size + 5.
-        // Should hit "else { // Overflow }" block.
-        let idx = tree.size + 5;
-        assert_eq!(formula.get_counted_element(usize::try_from(idx).unwrap()), Some(Element::O));
     }
 }

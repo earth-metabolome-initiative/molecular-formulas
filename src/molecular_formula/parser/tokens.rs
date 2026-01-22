@@ -58,15 +58,15 @@ pub enum TokenError<Signed, Unsigned> {
     /// Unable to assign an atomic count to a token.
     #[error("Unable to assign an isotopic count {0} to a token.")]
     UnableToAssignIsotopicNumber(Unsigned),
-    /// Unexpected charge token after another charge token.
-    #[error("Unexpected token `{0}` after another charge token.")]
-    UnexpectedTokenAfterCharge(SubToken<Signed, Unsigned>),
     /// Unexpected end of input while parsing tokens.
     #[error("Unexpected end of input while parsing tokens.")]
     UnexpectedEndOfInputWhileParsingTokens,
     /// Unexpected terminator while parsing tokens.
     #[error("Unexpected terminator `{0}` while parsing tokens.")]
     UnexpectedTerminatorWhileParsingTokens(Terminator),
+    /// Invalid subsequent tokens
+    #[error("The subtoken `{0}` cannot be followed by the subtoken `{1}`.")]
+    InvalidSuccessor(SubToken<Signed, Unsigned>, SubToken<Signed, Unsigned>),
 }
 
 /// Iterator over the `Token`s found in a provided string.
@@ -127,11 +127,21 @@ where
                     | SubToken::SuperscriptNumber(_)),
                 )) = self.chars.peek().copied()
                 {
-                    return Some(Err(TokenError::UnexpectedTokenAfterCharge(token)));
+                    return Some(Err(TokenError::InvalidSuccessor(
+                        SubToken::Charge(charge),
+                        token,
+                    )));
                 }
                 Token::Charge(charge)
             }
-            SubToken::BaselineNumber(count) | SubToken::SubscriptNumber(count) => {
+            count_token @ (SubToken::SubscriptNumber(count) | SubToken::BaselineNumber(count)) => {
+                if let Some(Ok(
+                    token @ (SubToken::BaselineNumber(_) | SubToken::SubscriptNumber(_)),
+                )) = self.chars.peek().copied()
+                {
+                    return Some(Err(TokenError::InvalidSuccessor(count_token, token)));
+                }
+
                 Token::Repeat(count)
             }
             SubToken::Isotope(isotope) => Token::Isotope(isotope),

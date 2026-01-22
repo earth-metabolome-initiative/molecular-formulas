@@ -27,6 +27,27 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for GenericResidualTree<S, U
         }
     }
 
+    fn contains_elements(&self) -> bool {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.contains_elements(),
+            GenericResidualTree::Residual => false,
+        }
+    }
+
+    fn contains_isotopes(&self) -> bool {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.contains_isotopes(),
+            GenericResidualTree::Residual => false,
+        }
+    }
+
+    fn contains_element(&self, element: elements_rs::Element) -> bool {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.contains_element(element),
+            GenericResidualTree::Residual => false,
+        }
+    }
+
     fn element_count(&self, target: elements_rs::Element) -> Option<u64> {
         match self {
             GenericResidualTree::Tree(tree) => tree.element_count(target),
@@ -38,6 +59,13 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for GenericResidualTree<S, U
         match self {
             GenericResidualTree::Tree(tree) => tree.isotope_count(target),
             GenericResidualTree::Residual => Some(0),
+        }
+    }
+
+    fn contains_isotope(&self, isotope: elements_rs::Isotope) -> bool {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.contains_isotope(isotope),
+            GenericResidualTree::Residual => false,
         }
     }
 

@@ -375,8 +375,8 @@ mod tests {
 
         // Isotope
         // Use into_iter to get &Isotope in find
-        if let Some(iso) = Element::C.isotopes().into_iter().find(|i| i.mass_number() == 13) {
-            let token: Token = SubToken::Isotope(iso);
+        if let Some(iso) = Element::C.isotopes().iter().find(|i| i.mass_number() == 13) {
+            let token: Token = SubToken::Isotope(*iso);
             assert!(!token.to_string().is_empty());
         }
 

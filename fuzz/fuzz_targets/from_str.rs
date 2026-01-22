@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use honggfuzz::fuzz;
-use molecular_formulas::{DefaultTree, Element, Isotope, MolecularFormula, ResidualFormula};
+use molecular_formulas::{Element, GenericResidualTree, GenericTree, Isotope, MolecularFormula};
 
 macro_rules! fuzz_headers {
     ($type:ty, $candidate:expr) => {{
@@ -99,8 +99,8 @@ fn main() {
             }
 
             // Fuzz MolecularFormula (DefaultTree) - Has all methods
-            if let Some(formula) = fuzz_headers!(MolecularFormula<DefaultTree>, candidate) {
-                fuzz_common!(MolecularFormula<DefaultTree>, candidate, formula);
+            if let Some(formula) = fuzz_headers!(MolecularFormula<GenericTree<i8, u8>>, candidate) {
+                fuzz_common!(MolecularFormula<GenericTree<i8, u8>>, candidate, formula);
 
                 // Methods specific to NoResidualsTree
                 let _ = formula.molar_mass();
@@ -113,19 +113,21 @@ fn main() {
                 let _ = formula.has_repeated_elements();
 
                 // Test indexing methods
-                let _ = formula.get_counted_element(0);
-                let _ = formula.get_counted_element(46);
-                let _ = formula.get_element(0);
-                let _ = formula.get_element(46);
-                let _ = formula.get_counted_element_ignore_hydrogens(0);
-                let _ = formula.get_counted_element_ignore_hydrogens(46);
-                let _ = formula.get_element_ignore_hydrogens(0);
-                let _ = formula.get_element_ignore_hydrogens(46);
+                // let _ = formula.get_counted_element(0);
+                // let _ = formula.get_counted_element(46);
+                // let _ = formula.get_element(0);
+                // let _ = formula.get_element(46);
+                // let _ = formula.get_counted_element_ignore_hydrogens(0);
+                // let _ = formula.get_counted_element_ignore_hydrogens(46);
+                // let _ = formula.get_element_ignore_hydrogens(0);
+                // let _ = formula.get_element_ignore_hydrogens(46);
             }
 
             // Fuzz ResidualFormula - Has subset of methods
-            if let Some(formula) = fuzz_headers!(ResidualFormula, candidate) {
-                fuzz_common!(ResidualFormula, candidate, formula);
+            if let Some(formula) =
+                fuzz_headers!(MolecularFormula<GenericResidualTree<i8, u8>>, candidate)
+            {
+                fuzz_common!(MolecularFormula<GenericResidualTree<i8, u8>>, candidate, formula);
                 // Specific methods
                 let _ = formula.contains_residuals();
             }

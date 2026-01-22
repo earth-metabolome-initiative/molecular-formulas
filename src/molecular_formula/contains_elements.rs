@@ -17,7 +17,7 @@ impl<T: Tree> super::MolecularFormula<T> {
     #[must_use]
     #[inline]
     pub fn contains_elements(&self) -> bool {
-        self.iter_elements().next().is_some()
+        self.as_ref().iter().any(|(_, component)| component.contains_elements())
     }
 
     /// Returns whether the molecular formula contains a specific element.
@@ -37,7 +37,7 @@ impl<T: Tree> super::MolecularFormula<T> {
     #[inline]
     pub fn contains_element(&self, element: impl Into<elements_rs::Element>) -> bool {
         let element = element.into();
-        self.iter_elements().any(|el| el == element)
+        self.as_ref().iter().any(|(_, component)| component.contains_element(element))
     }
 }
 

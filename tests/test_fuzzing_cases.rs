@@ -2,8 +2,8 @@
 use std::str::FromStr;
 
 use molecular_formulas::{
-    Bracket, DefaultTree, LargestTree, MolecularFormula, ParseError, ResidualFormula, Terminator,
-    TokenError,
+    Bracket, DefaultTree, LargestTree, MolecularFormula, ParseError, ResidualFormula, SubToken,
+    Terminator, TokenError,
 };
 
 #[test]
@@ -199,6 +199,34 @@ fn test_fuzzing_case20() {
         TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
             Bracket::Square
         ))
+        .into()
+    );
+}
+
+#[test]
+fn test_fuzzing_case21() {
+    let formula = "Se₂64";
+    // We expect this to fail parsing due to invalid count.
+    assert_eq!(
+        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
+        TokenError::InvalidSuccessor(
+            SubToken::SubscriptNumber(2u8.into()),
+            SubToken::BaselineNumber(64u8.into())
+        )
+        .into()
+    );
+}
+
+#[test]
+fn test_fuzzing_case22() {
+    let formula = "Ni134₁";
+    // We expect this to fail parsing due to invalid count.
+    assert_eq!(
+        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
+        TokenError::InvalidSuccessor(
+            SubToken::BaselineNumber(134u8.into()),
+            SubToken::SubscriptNumber(1u8.into())
+        )
         .into()
     );
 }

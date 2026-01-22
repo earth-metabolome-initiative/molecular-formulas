@@ -14,7 +14,7 @@ mod tokens;
 use thiserror::Error;
 pub use tokens::{
     AllowedCharacter, AllowedCharacterError, Bracket, CharacterMarker, ChargeLike, Complex,
-    CountLike, Digit, GreekLetter, Radical, Residual, SubTokenError, SuperscriptMinus,
+    CountLike, Digit, GreekLetter, Radical, Residual, SubToken, SubTokenError, SuperscriptMinus,
     SuperscriptPlus, Terminator, Token, TokenError, Tokens,
 };
 pub(super) use tokens::{subscript_digits_ltr, superscript_digits_ltr};

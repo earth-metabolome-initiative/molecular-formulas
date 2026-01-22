@@ -31,7 +31,7 @@ impl<T: Tree> super::MolecularFormula<T> {
     #[must_use]
     #[inline]
     pub fn contains_isotopes(&self) -> bool {
-        self.iter_isotopes().next().is_some()
+        self.as_ref().iter().any(|(_, component)| component.contains_isotopes())
     }
 
     /// Returns whether the molecular formula contains a specific isotope.
@@ -53,7 +53,7 @@ impl<T: Tree> super::MolecularFormula<T> {
     #[inline]
     pub fn contains_isotope(&self, isotope: impl Into<Isotope>) -> bool {
         let isotope = isotope.into();
-        self.iter_isotopes().any(|iso| iso == isotope)
+        self.as_ref().iter().any(|(_, component)| component.contains_isotope(isotope))
     }
 
     /// Iterates over all isotopic elements in the molecular formula.

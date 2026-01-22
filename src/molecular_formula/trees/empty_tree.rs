@@ -38,6 +38,22 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for EmptyTree<S, U> {
         Box::new(std::iter::empty())
     }
 
+    fn contains_element(&self, _element: Element) -> bool {
+        false
+    }
+
+    fn contains_isotope(&self, _isotope: Isotope) -> bool {
+        false
+    }
+
+    fn contains_elements(&self) -> bool {
+        false
+    }
+
+    fn contains_isotopes(&self) -> bool {
+        false
+    }
+
     #[inline]
     fn element_count(&self, _target: Element) -> Option<u64> {
         Some(0)

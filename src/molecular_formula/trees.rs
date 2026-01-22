@@ -27,12 +27,24 @@ pub trait Tree: PartialEq + Debug + Clone {
     /// tree.
     fn element_count(&self, target: Element) -> Option<u64>;
 
+    /// Returns whether the tree contains any elements.
+    fn contains_elements(&self) -> bool;
+
+    /// Returns whether the tree contains a specific element.
+    fn contains_element(&self, element: Element) -> bool;
+
     /// Returns an iterator over all isotopes in the molecular formula tree.
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_>;
 
     /// Returns the count of the specified isotope in the molecular formula
     /// tree.
     fn isotope_count(&self, target: Isotope) -> Option<u64>;
+
+    /// Returns whether the tree contains any isotopes.
+    fn contains_isotopes(&self) -> bool;
+
+    /// Returns whether the tree contains a specific isotope.
+    fn contains_isotope(&self, isotope: Isotope) -> bool;
 
     /// Returns an iterator over all elements in the molecular formula tree,
     /// repeating the repeating units according to their counts.

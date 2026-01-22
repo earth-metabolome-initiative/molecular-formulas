@@ -6,9 +6,10 @@ mod molecular_formula;
 pub use elements_rs::{Element, ElementVariant, Isotope, MassNumber};
 pub use molecular_formula::{
     AllowedCharacter, AllowedCharacterError, Bracket, CharacterMarker, ChargeLike, Complex,
-    CountLike, DefaultTree, Digit, GreekLetter, InstantiableTree, LargestTree, MolecularFormula,
-    NoResidualsTree, ParseError, ParserError, Radical, Residual, ResidualFormula, SmallestTree,
-    SubTokenError, SuperscriptMinus, SuperscriptPlus, Terminator, Token, TokenError, Tree,
+    CountLike, DefaultTree, Digit, GenericResidualTree, GenericTree, GreekLetter, InstantiableTree,
+    LargestTree, MolecularFormula, NoResidualsTree, ParseError, ParserError, Radical, Residual,
+    ResidualFormula, SmallestTree, SubToken, SubTokenError, SuperscriptMinus, SuperscriptPlus,
+    Terminator, Token, TokenError, Tree,
 };
 pub mod index;
 pub mod is_hill_sorted;
