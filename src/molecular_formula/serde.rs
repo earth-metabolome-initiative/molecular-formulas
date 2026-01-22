@@ -39,7 +39,7 @@ mod tests {
         let formula: MolecularFormula = "H2O".parse().unwrap();
         let serialized = serde_json::to_string(&formula).unwrap();
         // Uses subscript characters in JSON string
-        assert_eq!(serialized, "\"H₂O\""); 
+        assert_eq!(serialized, "\"H₂O\"");
         let deserialized: MolecularFormula = serde_json::from_str(&serialized).unwrap();
         assert_eq!(formula, deserialized);
     }
@@ -52,13 +52,13 @@ mod tests {
         let deserialized: MolecularFormula = serde_json::from_str(&serialized).unwrap();
         assert_eq!(formula, deserialized);
     }
-    
+
     #[test]
     fn test_serde_ion() {
         let formula: MolecularFormula = "SO4-2".parse().unwrap();
         let serialized = serde_json::to_string(&formula).unwrap();
         // Expects something like "SO₄⁻²" or however charge is formatted.
-        // Let's rely on roundtrip equality mainly if we are unsure of exact formatting, 
+        // Let's rely on roundtrip equality mainly if we are unsure of exact formatting,
         // but exact string check is good.
         // Assuming standard display uses superscripts for charge?
         // Let's check display logic or just try roundtrip first.

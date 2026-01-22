@@ -26,4 +26,18 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for GenericResidualTree<S, U
             GenericResidualTree::Residual => Box::new(std::iter::empty()),
         }
     }
+
+    fn element_count(&self, target: elements_rs::Element) -> u64 {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.element_count(target),
+            GenericResidualTree::Residual => 0,
+        }
+    }
+
+    fn isotope_count(&self, target: elements_rs::Isotope) -> u64 {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.isotope_count(target),
+            GenericResidualTree::Residual => 0,
+        }
+    }
 }

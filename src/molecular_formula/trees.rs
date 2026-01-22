@@ -24,8 +24,16 @@ pub trait Tree: PartialEq + Debug + Clone {
     /// Returns an iterator over all elements in the molecular formula tree.
     fn iter_elements(&self) -> Box<dyn Iterator<Item = Element> + '_>;
 
+    /// Returns the count of the specified element in the molecular formula
+    /// tree.
+    fn element_count(&self, target: Element) -> u64;
+
     /// Returns an iterator over all isotopes in the molecular formula tree.
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_>;
+
+    /// Returns the count of the specified isotope in the molecular formula
+    /// tree.
+    fn isotope_count(&self, target: Isotope) -> u64;
 
     /// Returns an iterator over all elements in the molecular formula tree,
     /// repeating the repeating units according to their counts.

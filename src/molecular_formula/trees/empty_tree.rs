@@ -37,6 +37,16 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for EmptyTree<S, U> {
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
         Box::new(std::iter::empty())
     }
+
+    #[inline]
+    fn element_count(&self, _target: Element) -> u64 {
+        0
+    }
+
+    #[inline]
+    fn isotope_count(&self, _target: Isotope) -> u64 {
+        0
+    }
 }
 
 impl<S: ChargeLike + TryFrom<U>, U: CountLike> NoResidualsTree for EmptyTree<S, U> {

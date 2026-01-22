@@ -23,6 +23,14 @@ where
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = elements_rs::Isotope> + '_> {
         (**self).iter_isotopes()
     }
+
+    fn element_count(&self, target: elements_rs::Element) -> u64 {
+        (**self).element_count(target)
+    }
+
+    fn isotope_count(&self, target: elements_rs::Isotope) -> u64 {
+        (**self).isotope_count(target)
+    }
 }
 
 impl<T: NoResidualsTree> NoResidualsTree for Box<T> {

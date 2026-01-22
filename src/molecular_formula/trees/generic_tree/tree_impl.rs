@@ -41,6 +41,34 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         }
     }
 
+    fn element_count(&self, target: Element) -> u64 {
+        match self {
+            Self::Element(element) => {
+                if *element == target {
+                    1
+                } else {
+                    0
+                }
+            }
+            Self::Isotope(isotope) => {
+                if isotope.element() == target {
+                    1
+                } else {
+                    0
+                }
+            }
+            Self::Sequence(formulas) => formulas.iter().map(|f| f.element_count(target)).sum(),
+            Self::Repeat(inner, count) => {
+                let n: u64 = (*count).into();
+                n * inner.element_count(target)
+            }
+            Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
+                inner.element_count(target)
+            }
+            Self::Extension(ext) => ext.element_count(target),
+        }
+    }
+
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
         match self {
             Self::Element(_) => Box::new(std::iter::empty()),
@@ -51,6 +79,28 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
             | Self::Unit(inner, _)
             | Self::Radical(inner, _) => inner.iter_isotopes(),
             Self::Extension(ext) => ext.iter_isotopes(),
+        }
+    }
+
+    fn isotope_count(&self, target: Isotope) -> u64 {
+        match self {
+            Self::Element(_) => 0,
+            Self::Isotope(isotope) => {
+                if *isotope == target {
+                    1
+                } else {
+                    0
+                }
+            }
+            Self::Sequence(formulas) => formulas.iter().map(|f| f.isotope_count(target)).sum(),
+            Self::Repeat(inner, count) => {
+                let n: u64 = (*count).into();
+                n * inner.isotope_count(target)
+            }
+            Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
+                inner.isotope_count(target)
+            }
+            Self::Extension(ext) => ext.isotope_count(target),
         }
     }
 }

@@ -29,7 +29,36 @@ impl<T: Tree> MolecularFormula<T> {
         let mut count = 0;
         for (repeats, tree) in &self.mixtures {
             let n: u64 = (*repeats).into();
-            let c = tree.iter_counted_elements().filter(|&e| e == target).count() as u64;
+            let c = tree.element_count(target);
+            count += n * c;
+        }
+        count
+    }
+
+    /// Returns the number of atoms of the given isotope in the molecular
+    /// formula.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use elements_rs::isotopes::HydrogenIsotope;
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = MolecularFormula::try_from("²H2O")?;
+    /// assert_eq!(formula.isotope_count(HydrogenIsotope::D), 2);
+    /// assert_eq!(formula.isotope_count(HydrogenIsotope::H1), 0);
+    /// assert_eq!(formula.isotope_count(HydrogenIsotope::T), 0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn isotope_count(&self, isotope: impl Into<elements_rs::Isotope>) -> u64 {
+        let target = isotope.into();
+        let mut count = 0;
+        for (repeats, tree) in &self.mixtures {
+            let n: u64 = (*repeats).into();
+            let c = tree.isotope_count(target);
             count += n * c;
         }
         count
