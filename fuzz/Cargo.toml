@@ -13,10 +13,6 @@ serde = "1.0"
 serde_json = "1.0"
 molecular-formulas = { path = "../", features = ["serde"] }
 
-# Prevent this from interfering with workspaces
-[workspace]
-members = ["."]
-
 [profile.release]
 debug = 1
 

@@ -1,28 +1,37 @@
 //! Represents each molecular formula that can be parsed.
 
-use elements_rs::{Element, Isotope};
+use core::fmt::Debug;
 
-use crate::{Ion, token::greek_letters::GreekLetter};
-
+use num_traits::CheckedAdd;
 mod charge;
 mod contains_elements;
 mod contains_isotopes;
 mod contains_mixtures;
 mod contains_residual;
-mod countable;
-mod diatomic;
 mod display;
 mod element_count;
 mod from;
 mod from_str;
-mod homonuclear;
+mod trees;
+pub use trees::{
+    EmptyTree, GenericResidualTree, GenericTree, InstantiableTree, NoResidualsTree, Tree,
+};
 mod isotopologue_mass;
 mod isotopologue_mass_over_charge;
 mod molar_mass;
 mod noble_gasses;
-mod oxidation_states;
+pub mod parser;
 mod serde;
 mod try_from;
+pub use parser::{
+    AllowedCharacter, AllowedCharacterError, Bracket, CharacterMarker, ChargeLike, Complex,
+    CountLike, Digit, GreekLetter, ParseError, ParserError, Radical, Residual, SubTokenError,
+    SuperscriptMinus, SuperscriptPlus, Terminator, Token, TokenError,
+};
+
+const ELECTRON_MASS: f64 = 5.485_799_090_65e-4;
+
+use crate::errors::Error;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 /// Represents the side in a molecular formula.
@@ -33,111 +42,63 @@ pub enum Side {
     Right,
 }
 
-#[cfg_attr(feature = "diesel", derive(diesel::FromSqlRow, diesel::AsExpression))]
-#[cfg_attr(feature = "diesel", diesel(sql_type = crate::molecular_formula::diesel_impls::MolecularFormula))]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// Type alias for the smallest molecular formula tree.
+pub type SmallestTree = GenericTree<i8, u8, EmptyTree<i8, u8>>;
+
+/// Type alias for the default molecular formula.
+pub type DefaultTree = GenericTree<i16, u16, EmptyTree<i16, u16>>;
+
+/// Type alias for the largest molecular formula tree.
+pub type LargestTree = GenericTree<i32, u32, EmptyTree<i32, u32>>;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 /// Represents a molecular formula, which can be an element, an ion, a solvate,
 /// or a count of molecules.
-pub enum MolecularFormula {
-    /// An atom (element)
-    Element(Element),
-    /// An isotope (element with mass number)
-    Isotope(Isotope),
-    /// A left-hand side radical.
-    Radical(Box<MolecularFormula>, Side),
-    /// An ion (element or molecule with charge)
-    Ion(Ion<Box<MolecularFormula>>),
-    /// A mixture of molecules, each with an associated count
-    /// of repetitions, such as in `CuSO4.5H2O`, where `CuSO4` has
-    /// a count of 1 and `H2O` has a count of 5.
-    Mixture(Vec<(u16, MolecularFormula)>),
-    /// Number of molecules
-    Count(Box<MolecularFormula>, u16),
-    /// A sequence of molecular formulas
-    Sequence(Vec<MolecularFormula>),
-    /// A complex wrapped in square brackets
-    Complex(Box<MolecularFormula>),
-    /// A repeating unit wrapped in round brackets
-    RepeatingUnit(Box<MolecularFormula>),
-    /// Residual group
-    Residual,
-    /// A greek letter decorator
-    Greek(GreekLetter),
+pub struct MolecularFormula<T: Tree = DefaultTree> {
+    /// The molecular formula tree.
+    mixtures: Vec<(T::Unsigned, T)>,
+    /// Optional greek letter decorator.
+    greek: Option<GreekLetter>,
 }
 
-impl MolecularFormula {
-    /// Chains the provided molecular formula with the current one.
-    #[must_use]
-    pub fn chain(self, other: MolecularFormula) -> Self {
-        match self {
-            Self::Sequence(mut formulas) => {
-                formulas.push(other);
-                Self::Sequence(formulas)
-            }
-            _ => Self::Sequence(vec![self, other]),
-        }
-    }
+/// Type alias for molecular formulas that can contain residuals.
+pub type ResidualFormula = MolecularFormula<GenericResidualTree<i32, u32>>;
 
-    pub(crate) fn add_count_to_last_subformula(
-        self,
-        count: u16,
-    ) -> Result<Self, crate::errors::Error> {
-        match self {
-            Self::Sequence(mut formulas) => {
-                // TODO! UPDATE THE HANDLE WIKIPEDIA CASE!
-                let last = formulas.pop().unwrap();
-                let last = last.add_count_to_last_subformula(count)?;
-                formulas.push(last);
-                Ok(Self::Sequence(formulas))
-            }
-            Self::Radical(formula, side) => {
-                Ok(Self::Radical(Box::new(formula.add_count_to_last_subformula(count)?), side))
-            }
-            Self::Mixture(mut formulas) => {
-                let (last_count, last_formula) = formulas.pop().unwrap();
-                let last = last_formula.add_count_to_last_subformula(count)?;
-                formulas.push((last_count, last));
-                Ok(Self::Mixture(formulas))
-            }
-            Self::Isotope(_)
-            | Self::Element(_)
-            | Self::Count(_, _)
-            | Self::Ion(_)
-            | Self::Residual
-            | Self::Complex(_)
-            | Self::RepeatingUnit(_) => Ok(Self::Count(self.into(), count)),
-            Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
-        }
+impl<T: Tree> AsRef<[(T::Unsigned, T)]> for MolecularFormula<T> {
+    fn as_ref(&self) -> &[(T::Unsigned, T)] {
+        &self.mixtures
     }
+}
 
-    pub(crate) fn add_count_to_first_subformula(
-        self,
-        count: u16,
-    ) -> Result<Self, crate::errors::Error> {
-        match self {
-            Self::Sequence(mut formulas) => {
-                let first = formulas.first().unwrap().clone();
-                let first = first.add_count_to_first_subformula(count)?;
-                formulas[0] = first;
-                Ok(Self::Sequence(formulas))
-            }
-            Self::Mixture(mut formulas) => {
-                let (first_count, first_formula) = formulas.first().unwrap().clone();
-                formulas[0] = (
-                    first_count.checked_mul(count).ok_or(crate::errors::Error::InvalidNumber)?,
-                    first_formula,
-                );
-                Ok(Self::Mixture(formulas))
-            }
-            Self::Isotope(_)
-            | Self::Element(_)
-            | Self::Count(_, _)
-            | Self::Ion(_)
-            | Self::Complex(_)
-            | Self::Radical(_, _)
-            | Self::Residual
-            | Self::RepeatingUnit(_) => Ok(Self::Count(self.into(), count)),
-            Self::Greek(_) => Err(crate::errors::Error::CountingUncountable),
+impl<T: Tree> MolecularFormula<T> {
+    /// Adds a single mixture to the molecular formula.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the Greek letter is not supported or if the count of
+    /// mixtures overflows the unsigned type.
+    pub fn mix(self, mixture: Self) -> Result<Self, Error<T::Signed, T::Unsigned>> {
+        if mixture.greek.is_some() {
+            return Err(Error::GreekLetterNotSupported);
         }
+
+        let mut new_mixtures = self.mixtures;
+
+        for (repeats, component) in mixture.mixtures {
+            let mut found_duplicate = false;
+            for (existing_repeats, existing_component) in &mut new_mixtures {
+                if *existing_component == component {
+                    found_duplicate = true;
+                    *existing_repeats = existing_repeats
+                        .checked_add(&repeats)
+                        .ok_or(Error::InsufficientUnsignedTypeForCount)?;
+                }
+            }
+            if !found_duplicate {
+                new_mixtures.push((repeats, component));
+            }
+        }
+
+        Ok(MolecularFormula { mixtures: new_mixtures, greek: self.greek })
     }
 }

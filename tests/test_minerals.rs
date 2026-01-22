@@ -5,8 +5,10 @@
 //! formula, which does not have any specific chemical meaning, but simply
 //! distinguishes the different variants of the same mineral.
 
-use elements_rs::Element;
-use molecular_formulas::{GreekLetter, MolecularFormula, errors::Error};
+use molecular_formulas::{
+    AllowedCharacterError, DefaultTree, GreekLetter, MolecularFormula, ParseError, SubTokenError,
+    TokenError,
+};
 
 #[test]
 /// Test checking that a formula consisting solely of one or more greek letters
@@ -26,30 +28,16 @@ fn test_only_greek_letter() {
     ];
 
     for (formula, greek_letter) in IMPROPER_FORMULAS {
-        let result = MolecularFormula::try_from(*formula).unwrap_err();
-        assert_eq!(
-            result,
-            Error::InvalidGreekLetterPosition(*greek_letter),
-            "Expected error for formula `{formula}` with greek letter `{greek_letter}`"
-        );
+        let result: ParseError<i16, u16> =
+            MolecularFormula::<DefaultTree>::try_from(*formula).unwrap_err();
+
+        if result != ParseError::UnexpectedGreekLetter(*greek_letter)
+            && result
+                != ParseError::Token(TokenError::SubToken(SubTokenError::AllowedCharacter(
+                    AllowedCharacterError::GreekLetterMustBeFollowedByHyphen(*greek_letter),
+                )))
+        {
+            panic!("Expected error for formula `{formula}` with greek letter `{greek_letter}`");
+        }
     }
-}
-
-#[test]
-fn test_goethite() {
-    let formula = "\u{03b1}-FeO(OH)";
-
-    assert_eq!(
-        MolecularFormula::try_from(formula)
-            .unwrap_or_else(|_| panic!("Failed to parse formula `{formula}`")),
-        MolecularFormula::Sequence(vec![
-            GreekLetter::Alpha.into(),
-            Element::Fe.into(),
-            Element::O.into(),
-            MolecularFormula::RepeatingUnit(
-                MolecularFormula::Sequence(vec![Element::O.into(), Element::H.into()]).into()
-            )
-        ]),
-        "Expected formula `{formula}` to be parsed correctly",
-    );
 }

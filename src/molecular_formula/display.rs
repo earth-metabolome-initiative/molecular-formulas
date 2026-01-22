@@ -2,68 +2,30 @@
 
 use std::fmt::Display;
 
-use elements_rs::{ElementVariant, MassNumber};
-use fmtastic::{Subscript, Superscript};
+use num_traits::ConstOne;
 
-use super::{MolecularFormula, Side};
+use super::MolecularFormula;
+use crate::Tree;
 
-impl Display for MolecularFormula {
+impl<T: Tree + Display> Display for MolecularFormula<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Element(element) => {
-                write!(f, "{element}",)
-            }
-            Self::Isotope(isotope) => {
-                let atomic_mass = Superscript(isotope.mass_number());
-                write!(f, "{atomic_mass}{}", isotope.element())
-            }
-            Self::Ion(ion) => write!(f, "{ion}"),
-            Self::Mixture(mixture) => {
-                write!(
-                    f,
-                    "{}",
-                    mixture
-                        .iter()
-                        .map(|(count, formula)| {
-                            if *count > 1 {
-                                format!("{count}{formula}")
-                            } else {
-                                formula.to_string()
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join(".")
-                )
-            }
-            Self::Count(formula, count) => {
-                let count = Subscript(*count);
-                write!(f, "{formula}{count}")
-            }
-            Self::Sequence(formulas) => {
-                assert!(!formulas.is_empty(), "Empty sequence");
-                for formula in formulas {
-                    write!(f, "{formula}")?;
-                }
-                Ok(())
-            }
-            Self::RepeatingUnit(formula) => {
-                write!(f, "({formula})")
-            }
-            Self::Complex(formula) => {
-                write!(f, "[{formula}]")
-            }
-            Self::Residual => {
-                write!(f, "R")
-            }
-            Self::Greek(greek) => {
-                write!(f, "{greek}-")
-            }
-            Self::Radical(formula, side) => {
-                match side {
-                    Side::Left => write!(f, "•{formula}"),
-                    Side::Right => write!(f, "{formula}•"),
-                }
-            }
+        // If the formula has a greek letter, print it first
+        if let Some(greek) = &self.greek {
+            write!(f, "{greek}-")?;
         }
+
+        let mut first = true;
+        for (count, mixture) in &self.mixtures {
+            if !first {
+                write!(f, ".")?;
+            }
+            if count != &<T::Unsigned as ConstOne>::ONE {
+                write!(f, "{count}")?;
+            }
+            first = false;
+            write!(f, "{mixture}")?;
+        }
+
+        Ok(())
     }
 }

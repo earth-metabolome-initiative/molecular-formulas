@@ -1,7 +1,7 @@
 //! Test submodule to avoid timeout regressions identified via fuzzing.
 use std::str::FromStr;
 
-use molecular_formulas::MolecularFormula;
+use molecular_formulas::{MolecularFormula, errors::Error};
 
 /// This function tests the timeout behavior of the `MolecularFormula::from_str`
 /// method.
@@ -15,23 +15,24 @@ use molecular_formulas::MolecularFormula;
 ///
 /// * If the parsing of the formula takes longer than 0.5 seconds, it will panic
 ///   with a message indicating the time taken.
-fn timeout_test(formula: &str) {
+fn timeout_test(formula: &str) -> Result<(), Error<i16, u16>> {
     let start_time = std::time::Instant::now();
-    let _ = MolecularFormula::from_str(formula);
+    let formula: MolecularFormula = MolecularFormula::from_str(formula)?;
     let elapsed = start_time.elapsed();
     assert!(
         elapsed.as_secs_f64() <= 0.5,
         "Parsing candidate `{formula}` took too long: {} seconds",
         elapsed.as_secs_f64()
     );
+    Ok(())
 }
 
 #[test]
 fn test_timeout_case1() {
-    timeout_test("6Re427-851");
+    timeout_test("6Re427-851").expect("Failed to parse formula");
 }
 
 #[test]
 fn test_timeout_case2() {
-    timeout_test("Cm586P-");
+    timeout_test("Cm586P-").expect("Failed to parse formula");
 }

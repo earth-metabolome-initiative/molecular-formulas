@@ -3,7 +3,9 @@
 
 use elements_rs::BondsNumber;
 
-impl crate::MolecularFormula {
+use crate::NoResidualsTree;
+
+impl<T: NoResidualsTree> crate::MolecularFormula<T> {
     /// Returns whether the formula solely contains noble gasses.
     ///
     /// # Example
@@ -12,22 +14,22 @@ impl crate::MolecularFormula {
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// use molecular_formulas::MolecularFormula;
     ///
-    /// let helium = MolecularFormula::try_from("He")?;
-    /// assert!(helium.is_noble_gas_compound()?);
+    /// let helium: MolecularFormula = MolecularFormula::try_from("He")?;
+    /// assert!(helium.is_noble_gas_compound());
     ///
-    /// let argon = MolecularFormula::try_from("Ar")?;
-    /// assert!(argon.is_noble_gas_compound()?);
+    /// let argon: MolecularFormula = MolecularFormula::try_from("Ar")?;
+    /// assert!(argon.is_noble_gas_compound());
     ///
-    /// let water = MolecularFormula::try_from("H2O")?;
-    /// assert!(!water.is_noble_gas_compound()?);
+    /// let water: MolecularFormula = MolecularFormula::try_from("H2O")?;
+    /// assert!(!water.is_noble_gas_compound());
     ///
     /// // A mixture of noble gasses is considered a noble gas compound
-    /// let noble_gas_mixture = MolecularFormula::try_from("HeAr")?;
-    /// assert!(noble_gas_mixture.is_noble_gas_compound()?);
+    /// let noble_gas_mixture: MolecularFormula = MolecularFormula::try_from("HeAr")?;
+    /// assert!(noble_gas_mixture.is_noble_gas_compound());
     ///
     /// // Xenon tetrafluoride contains Fluorine, so it is not solely composed of noble gasses
-    /// let xenon_tetrafluoride = MolecularFormula::try_from("XeF4")?;
-    /// assert!(!xenon_tetrafluoride.is_noble_gas_compound()?);
+    /// let xenon_tetrafluoride: MolecularFormula = MolecularFormula::try_from("XeF4")?;
+    /// assert!(!xenon_tetrafluoride.is_noble_gas_compound());
     ///
     /// # Ok(())
     /// # }
@@ -36,41 +38,9 @@ impl crate::MolecularFormula {
     /// # Errors
     ///
     /// * If the formula contains a non-element, such as a `Residual`.
-    pub fn is_noble_gas_compound(&self) -> Result<bool, crate::errors::Error> {
-        Ok(match self {
-            Self::Residual => return Err(crate::errors::Error::InvalidOperationForResidual),
-            Self::Element(element) => element.is_noble_gas(),
-            Self::Isotope(isotope) => isotope.is_noble_gas(),
-            Self::Ion(ion) => ion.entry.is_noble_gas_compound()?,
-            Self::Count(formula, _) => formula.is_noble_gas_compound()?,
-            Self::Complex(formula) | Self::RepeatingUnit(formula) | Self::Radical(formula, _) => {
-                formula.is_noble_gas_compound()?
-            }
-            Self::Greek(_) => {
-                unreachable!("Greek letters should not be checked for noble gas compounds")
-            }
-            Self::Sequence(formulas) => {
-                for formula in formulas {
-                    if matches!(formula, Self::Greek(_)) {
-                        continue;
-                    }
-                    if !formula.is_noble_gas_compound()? {
-                        return Ok(false);
-                    }
-                }
-                true
-            }
-            Self::Mixture(formulas) => {
-                for (_, formula) in formulas {
-                    if matches!(formula, Self::Greek(_)) {
-                        continue;
-                    }
-                    if !formula.is_noble_gas_compound()? {
-                        return Ok(false);
-                    }
-                }
-                true
-            }
-        })
+    #[must_use]
+    #[inline]
+    pub fn is_noble_gas_compound(&self) -> bool {
+        self.iter_elements().all(|element| element.is_noble_gas())
     }
 }

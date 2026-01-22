@@ -1,6 +1,6 @@
 use super::MolecularFormula;
-
-impl MolecularFormula {
+use crate::NoResidualsTree;
+impl<T: NoResidualsTree> MolecularFormula<T> {
     /// Returns the overall charge of the molecular formula.
     /// The charge is calculated by summing the charges of all components.
     ///
@@ -10,47 +10,30 @@ impl MolecularFormula {
     /// use molecular_formulas::MolecularFormula;
     ///
     /// let formula: MolecularFormula = "H2O".parse().unwrap();
-    /// assert_eq!(formula.charge().unwrap(), 0);
+    /// assert_eq!(formula.charge(), 0.0);
     ///
     /// let formula: MolecularFormula = "[Na]+".parse().unwrap();
-    /// assert_eq!(formula.charge().unwrap(), 1);
+    /// assert_eq!(formula.charge(), 1.0);
     ///
     /// let formula: MolecularFormula = "[SO4]-2".parse().unwrap();
-    /// assert_eq!(formula.charge().unwrap(), -2);
+    /// assert_eq!(formula.charge(), -2.0);
     /// ```
     ///
     /// # Errors
     ///
     /// * If the `MolecularFormula` contains Residual.
-    pub fn charge(&self) -> Result<i16, crate::errors::Error> {
-        Ok(match self {
-            Self::Ion(ion) => ion.charge,
-            Self::Element(_) | Self::Isotope(_) | Self::Greek(_) => 0,
-            Self::Count(formula, count) => {
-                formula.charge()?
-                    * i16::try_from(*count).map_err(|_| crate::errors::Error::InvalidNumber)?
-            }
-            Self::Sequence(formulas) => {
-                let mut charge = 0;
-                for formula in formulas {
-                    charge += formula.charge()?;
-                }
-                charge
-            }
-            Self::Mixture(formulas) => {
-                let mut charge = 0;
-                for (repeats, formula) in formulas {
-                    charge += i16::try_from(*repeats)
-                        .map_err(|_| crate::errors::Error::InvalidNumber)?
-                        * formula.charge()?;
-                }
-                charge
-            }
-            Self::Radical(formula, _) | Self::RepeatingUnit(formula) | Self::Complex(formula) => {
-                formula.charge()?
-            }
-            Self::Residual => return Err(crate::errors::Error::InvalidOperationForResidual),
-        })
+    #[must_use]
+    #[inline]
+    pub fn charge(&self) -> f64 {
+        let mut total_charge: f64 = 0.0;
+
+        for (repeats, component) in &self.mixtures {
+            let n: f64 = (*repeats).into();
+            let component_charge = component.total_charge();
+            total_charge += component_charge * n;
+        }
+
+        total_charge
     }
 }
 
@@ -69,22 +52,13 @@ mod tests {
         // Assuming dot separator works for mixtures of ions if implemented.
         // If not, we test components.
 
-        let na_plus = MolecularFormula::from_str("[Na]+").unwrap();
-        let so4_2minus = MolecularFormula::from_str("[SO4]-2").unwrap();
+        let na_plus: MolecularFormula = MolecularFormula::from_str("2[Na]+").unwrap();
+        let so4_2minus: MolecularFormula = MolecularFormula::from_str("[SO4]-2").unwrap();
 
         // Manual mixture construction since string parsing of charged mixtures
         // might be tricky with dots and charges.
-        let mixture = MolecularFormula::Mixture(vec![(2, na_plus), (1, so4_2minus)]);
+        let mixture = na_plus.mix(so4_2minus).unwrap();
 
-        assert_eq!(mixture.charge().unwrap(), 0);
-    }
-
-    #[test]
-    fn test_residual_error() {
-        let residual = MolecularFormula::from_str("R").unwrap(); // R is residual
-        assert!(residual.charge().is_err());
-
-        let complex_residual = MolecularFormula::from_str("PhR").unwrap(); // Phenyl + Residual
-        assert!(complex_residual.charge().is_err());
+        assert!((mixture.charge() - 0.0).abs() < f64::EPSILON);
     }
 }

@@ -23,6 +23,7 @@ impl MolecularFormula {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
     pub fn get_counted_element(&self, index: usize) -> Option<Element> {
         self.iter_counted_elements()
             .enumerate()
@@ -46,6 +47,7 @@ impl MolecularFormula {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
     pub fn get_element(&self, index: usize) -> Option<Element> {
         self.iter_elements().enumerate().find_map(
             |(i, element)| {
@@ -71,6 +73,7 @@ impl MolecularFormula {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
     pub fn get_counted_element_ignore_hydrogens(&self, index: usize) -> Option<Element> {
         self.iter_counted_elements().filter(|&e| e != Element::H).enumerate().find_map(
             |(i, element)| {
@@ -96,6 +99,7 @@ impl MolecularFormula {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
     pub fn get_element_ignore_hydrogens(&self, index: usize) -> Option<Element> {
         self.iter_elements()
             .filter(|&e| e != Element::H)

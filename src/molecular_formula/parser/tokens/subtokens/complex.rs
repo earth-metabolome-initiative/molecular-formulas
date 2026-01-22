@@ -1,6 +1,6 @@
 //! Submodules for tokens representing complex groups.
 
-use std::str::FromStr;
+use std::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -22,25 +22,23 @@ pub enum Complex {
     Cyclopentadienyl,
 }
 
-impl FromStr for Complex {
-    type Err = crate::errors::Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "Me" => Ok(Complex::Methyl),
-            "Et" => Ok(Complex::Ethyl),
-            "Bu" => Ok(Complex::Butyl),
-            "Ph" => Ok(Complex::Phenyl),
-            "Bn" => Ok(Complex::Benzyl),
-            "Cy" => Ok(Complex::Cyclohexyl),
-            "Cp" => Ok(Complex::Cyclopentadienyl),
-            _ => Err(crate::errors::Error::InvalidComplexGroupFragment(s.to_string())),
-        }
+impl Display for Complex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Complex::Methyl => "Me",
+            Complex::Ethyl => "Et",
+            Complex::Butyl => "Bu",
+            Complex::Phenyl => "Ph",
+            Complex::Benzyl => "Bn",
+            Complex::Cyclohexyl => "Cy",
+            Complex::Cyclopentadienyl => "Cp",
+        };
+        write!(f, "{s}")
     }
 }
 
 impl TryFrom<[char; 2]> for Complex {
-    type Error = crate::errors::Error;
+    type Error = ();
 
     fn try_from(value: [char; 2]) -> Result<Self, Self::Error> {
         match value {
@@ -51,29 +49,13 @@ impl TryFrom<[char; 2]> for Complex {
             ['B', 'n'] => Ok(Complex::Benzyl),
             ['C', 'y'] => Ok(Complex::Cyclohexyl),
             ['C', 'p'] => Ok(Complex::Cyclopentadienyl),
-            _ => Err(crate::errors::Error::InvalidComplexGroupFragment(value.iter().collect())),
+            _ => Err(()),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_complex_from_str() {
-        use std::str::FromStr;
-
-        use super::Complex;
-
-        assert_eq!(Complex::from_str("Me").unwrap(), Complex::Methyl);
-        assert_eq!(Complex::from_str("Et").unwrap(), Complex::Ethyl);
-        assert_eq!(Complex::from_str("Bu").unwrap(), Complex::Butyl);
-        assert_eq!(Complex::from_str("Ph").unwrap(), Complex::Phenyl);
-        assert_eq!(Complex::from_str("Bn").unwrap(), Complex::Benzyl);
-        assert_eq!(Complex::from_str("Cy").unwrap(), Complex::Cyclohexyl);
-        assert_eq!(Complex::from_str("Cp").unwrap(), Complex::Cyclopentadienyl);
-        assert!(Complex::from_str("Xx").is_err());
-    }
-
     #[test]
     fn test_complex_try_from_char_array() {
         use std::convert::TryFrom;

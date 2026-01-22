@@ -1,113 +1,91 @@
 //! Submodule providing the `iter_elements` method for the `MolecularFormula`
 //! struct.
 
-use elements_rs::{Element, ElementMask, ElementVariant};
+use elements_rs::Element;
 
-use crate::MolecularFormula;
+use crate::{MolecularFormula, NoResidualsTree, molecular_formula::Tree};
 
-impl MolecularFormula {
+impl<T: Tree> MolecularFormula<T> {
     /// Returns an iterator over all elements in the molecular formula.
-    pub fn iter_elements(&self) -> Box<dyn Iterator<Item = Element>> {
-        match self {
-            MolecularFormula::Element(element) => Box::new(std::iter::once(*element)),
-            MolecularFormula::Isotope(isotope) => Box::new(std::iter::once(isotope.element())),
-            MolecularFormula::Sequence(formulas) => {
-                Box::new(
-                    formulas.iter().flat_map(|f| f.iter_elements()).collect::<Vec<_>>().into_iter(),
-                )
-            }
-            MolecularFormula::Mixture(formulas) => {
-                Box::new(
-                    formulas
-                        .iter()
-                        .flat_map(|(_, formula)| formula.iter_elements())
-                        .collect::<Vec<_>>()
-                        .into_iter(),
-                )
-            }
-            MolecularFormula::Ion(ion) => Box::new(ion.entry.iter_elements()),
-            MolecularFormula::Count(formula, _)
-            | MolecularFormula::Complex(formula)
-            | MolecularFormula::RepeatingUnit(formula)
-            | MolecularFormula::Radical(formula, _) => Box::new(formula.iter_elements()),
-            MolecularFormula::Greek(_) | MolecularFormula::Residual => {
-                // These types do not contain elements
-                Box::new(std::iter::empty())
-            }
-        }
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = MolecularFormula::from_str("C2H5OH").unwrap();
+    /// let elements: Vec<Element> = formula.iter_elements().collect();
+    ///
+    /// // Yields elements as they appear in the parsed structure components.
+    /// // C2 -> C
+    /// // H5 -> H
+    /// // O  -> O
+    /// // H  -> H
+    /// assert_eq!(elements, vec![Element::C, Element::H, Element::O, Element::H]);
+    /// ```
+    #[must_use]
+    pub fn iter_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
+        Box::new(self.as_ref().iter().flat_map(|(_, component)| component.iter_elements()))
     }
 
     /// Returns an iterator over all elements in the molecular formula,
     /// repeating the repeating units according to their counts.
-    pub fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element>> {
-        match self {
-            MolecularFormula::Element(element) => Box::new(std::iter::once(*element)),
-            MolecularFormula::Isotope(isotope) => Box::new(std::iter::once(isotope.element())),
-            MolecularFormula::Sequence(formulas) => {
-                Box::new(
-                    formulas
-                        .iter()
-                        .flat_map(|f| f.iter_counted_elements())
-                        .collect::<Vec<_>>()
-                        .into_iter(),
-                )
-            }
-            MolecularFormula::Mixture(mixtures) => {
-                Box::new(
-                    mixtures
-                        .iter()
-                        .flat_map(|(repeats, formula)| {
-                            let mut iterator: Box<dyn Iterator<Item = Element>> =
-                                Box::new(std::iter::empty());
-                            for _ in 0..*repeats {
-                                iterator =
-                                    Box::new(iterator.chain(formula.iter_counted_elements()));
-                            }
-                            iterator
-                        })
-                        .collect::<Vec<_>>()
-                        .into_iter(),
-                )
-            }
-            MolecularFormula::Ion(ion) => Box::new(ion.entry.iter_counted_elements()),
-            MolecularFormula::Count(formula, repeats) => {
-                let mut iterator: Box<dyn Iterator<Item = Element>> = Box::new(std::iter::empty());
-                for _ in 0..*repeats {
-                    iterator = Box::new(iterator.chain(formula.iter_counted_elements()));
-                }
-                iterator
-            }
-            MolecularFormula::Complex(formula)
-            | MolecularFormula::RepeatingUnit(formula)
-            | MolecularFormula::Radical(formula, _) => Box::new(formula.iter_counted_elements()),
-            MolecularFormula::Greek(_) | MolecularFormula::Residual => {
-                // These types do not contain elements
-                Box::new(std::iter::empty())
-            }
-        }
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = MolecularFormula::from_str("H2O").unwrap();
+    ///
+    /// // H2 -> H, H
+    /// // O  -> O
+    /// let elements: Vec<Element> = formula.iter_counted_elements().collect();
+    /// assert_eq!(elements, vec![Element::H, Element::H, Element::O]);
+    /// ```
+    #[must_use]
+    pub fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
+        Box::new(self.as_ref().iter().flat_map(|(repeats, component)| {
+            let n: u64 = (*repeats).into();
+            (0..n).flat_map(move |_| component.iter_counted_elements())
+        }))
     }
+}
 
+impl<T: NoResidualsTree> MolecularFormula<T> {
+    #[must_use]
     /// Returns whether the molecular formula has repeated elements.
     ///
     /// Grouped elements are those that are represented as Element/Isotope
     /// plus a count, e.g., C6, H12, O6 in C6H12O6, and not
     /// `CCHHHHHHHHHHHOOOOOO`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let sugar: MolecularFormula = MolecularFormula::from_str("C6H12O6").unwrap();
+    /// assert!(!sugar.has_repeated_elements());
+    ///
+    /// let sugar: MolecularFormula = MolecularFormula::from_str("CCCCCCH12O6").unwrap();
+    /// assert!(sugar.has_repeated_elements());
+    ///
+    /// let simple: MolecularFormula = MolecularFormula::from_str("NaCl").unwrap();
+    /// assert!(!simple.has_repeated_elements());
+    /// ```
     pub fn has_repeated_elements(&self) -> bool {
-        match self {
-            MolecularFormula::Mixture(formulas) => {
-                for (_, formula) in formulas {
-                    if formula.has_repeated_elements() {
-                        return true;
-                    }
-                }
-            }
-            _ => {
-                let mut element_mask = ElementMask::default();
-                for element in self.iter_elements() {
-                    if !element_mask.insert(element) {
-                        return true;
-                    }
-                }
+        for (_, component) in self.as_ref() {
+            if component.has_repeated_elements() {
+                return true;
             }
         }
         false

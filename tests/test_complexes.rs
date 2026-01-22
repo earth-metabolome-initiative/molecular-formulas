@@ -1,11 +1,14 @@
+//! Tests for molecular formulas with common complex groups like Me, Et, Ph, Bn,
+//! Cy, Cp, etc.
 use std::str::FromStr;
 
 use molecular_formulas::MolecularFormula;
 
 #[test]
+/// Test expansion of Me2O to C2H6O
 fn test_me2_expansion() {
     // Me2O -> (CH3)2O -> C2H6O
-    let formula = MolecularFormula::from_str("Me2O").unwrap();
+    let formula: MolecularFormula = MolecularFormula::from_str("Me2O").unwrap();
 
     // Check element counts
     let c_count = formula.element_count(elements_rs::Element::C);
@@ -18,55 +21,60 @@ fn test_me2_expansion() {
 }
 
 #[test]
+/// Test expansion of Et2O to C4H10O
 fn test_ethyl_compound() {
     // Et2O -> (C2H5)2O -> C4H10O
-    let formula = MolecularFormula::from_str("Et2O").unwrap();
+    let formula: MolecularFormula = MolecularFormula::from_str("Et2O").unwrap();
     assert_eq!(formula.element_count(elements_rs::Element::C), 4);
     assert_eq!(formula.element_count(elements_rs::Element::H), 10);
     assert_eq!(formula.element_count(elements_rs::Element::O), 1);
 }
 
 #[test]
+/// Test expansion of phenyl compounds like PhOH and PhCOOH
 fn test_phenyl_compounds() {
     // PhOH -> C6H5OH -> C6H6O
-    let phenol = MolecularFormula::from_str("PhOH").unwrap();
+    let phenol: MolecularFormula = MolecularFormula::from_str("PhOH").unwrap();
     assert_eq!(phenol.element_count(elements_rs::Element::C), 6);
     assert_eq!(phenol.element_count(elements_rs::Element::H), 6);
     assert_eq!(phenol.element_count(elements_rs::Element::O), 1);
 
     // PhCOOH -> C6H5COOH -> C7H6O2
-    let benzoic_acid = MolecularFormula::from_str("PhCOOH").unwrap();
+    let benzoic_acid: MolecularFormula = MolecularFormula::from_str("PhCOOH").unwrap();
     assert_eq!(benzoic_acid.element_count(elements_rs::Element::C), 7);
     assert_eq!(benzoic_acid.element_count(elements_rs::Element::H), 6);
     assert_eq!(benzoic_acid.element_count(elements_rs::Element::O), 2);
 }
 
 #[test]
+/// Test expansion of benzyl compounds like BnBr
 fn test_benzyl_compounds() {
     // BnBr -> C7H7Br
-    let benzyl_bromide = MolecularFormula::from_str("BnBr").unwrap();
+    let benzyl_bromide: MolecularFormula = MolecularFormula::from_str("BnBr").unwrap();
     assert_eq!(benzyl_bromide.element_count(elements_rs::Element::C), 7);
     assert_eq!(benzyl_bromide.element_count(elements_rs::Element::H), 7);
     assert_eq!(benzyl_bromide.element_count(elements_rs::Element::Br), 1);
 }
 
 #[test]
+/// Test expansion of cyclohexyl compounds like CyOH
 fn test_cyclohexyl() {
     // CyOH -> C6H11OH -> C6H12O
-    let cyclohexanol = MolecularFormula::from_str("CyOH").unwrap();
+    let cyclohexanol: MolecularFormula = MolecularFormula::from_str("CyOH").unwrap();
     assert_eq!(cyclohexanol.element_count(elements_rs::Element::C), 6);
     assert_eq!(cyclohexanol.element_count(elements_rs::Element::H), 12);
     assert_eq!(cyclohexanol.element_count(elements_rs::Element::O), 1);
 }
 
 #[test]
+/// Test expansion of cyclopentadienyl compounds like Cp2Fe
 fn test_cyclopentadienyl() {
     // Cp2Fe -> (C5H5)2Fe -> C10H10Fe (Ferrocene)
-    let ferrocene = MolecularFormula::from_str("Cp2Fe").unwrap();
+    let ferrocene: MolecularFormula = MolecularFormula::from_str("Cp2Fe").unwrap();
     assert_eq!(ferrocene.element_count(elements_rs::Element::C), 10);
     assert_eq!(ferrocene.element_count(elements_rs::Element::H), 10);
     assert_eq!(ferrocene.element_count(elements_rs::Element::Fe), 1);
 
     // Check charge: 2 * Cp(-1) + Fe(0) = -2
-    assert_eq!(ferrocene.charge().unwrap(), -2);
+    assert!((ferrocene.charge() - -2.0).abs() < f64::EPSILON);
 }

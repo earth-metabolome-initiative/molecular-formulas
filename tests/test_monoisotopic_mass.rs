@@ -29,8 +29,8 @@ const MONOISOTOPIC_MASSES_WITH_CHARGE: &[(&str, f64)] = &[
 /// Test to check that the `monoisotopic_mass` method works as expected
 fn test_isotopologue_mass_without_charge() {
     for (formula, expected_monoisotopic_mass) in MONOISOTOPIC_MASSES_WITHOUT_CHARGE {
-        let formula = MolecularFormula::from_str(formula).unwrap();
-        let monoisotopic_mass = formula.isotopologue_mass_without_charge().unwrap();
+        let formula: MolecularFormula = MolecularFormula::from_str(formula).unwrap();
+        let monoisotopic_mass = formula.isotopologue_mass_without_charge();
 
         // We round the exact mass to 11 decimal places to avoid floating point
         // precision issues
@@ -47,8 +47,8 @@ fn test_isotopologue_mass_without_charge() {
 /// Test to check that the `monoisotopic_mass` method works as expected
 fn test_isotopologue_mass_with_charge() {
     for (formula, expected_monoisotopic_mass) in MONOISOTOPIC_MASSES_WITH_CHARGE {
-        let formula = MolecularFormula::from_str(formula).unwrap();
-        let monoisotopic_mass = formula.isotopologue_mass_with_charge().unwrap();
+        let formula: MolecularFormula = MolecularFormula::from_str(formula).unwrap();
+        let monoisotopic_mass = formula.isotopologue_mass_with_charge();
 
         // We round the exact mass to 11 decimal places to avoid floating point
         // precision issues

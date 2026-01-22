@@ -1,38 +1,11 @@
 //! Submodule providing the `contains_mixture` method for the
 //! `MolecularFormula` struct
 
-use std::iter::empty;
+use std::iter::repeat_n;
 
-impl super::MolecularFormula {
-    /// Checks if the molecular formula contains a mixture.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use molecular_formulas::MolecularFormula;
-    ///
-    /// let h2o = "H2O".parse::<MolecularFormula>().unwrap();
-    /// assert!(!h2o.contains_mixture());
-    ///
-    /// let mixture = "ZnCl2.2EtOH".parse::<MolecularFormula>().unwrap();
-    /// assert!(mixture.contains_mixture());
-    /// ```
-    pub fn contains_mixture(&self) -> bool {
-        match self {
-            Self::Element(_) | Self::Residual | Self::Isotope(_) | Self::Greek(_) => false,
-            Self::Ion(ion) => ion.entry.contains_mixture(),
-            Self::Mixture(_) => true,
-            Self::Sequence(formulas) => formulas.iter().any(Self::contains_mixture),
-            Self::Count(formula, _) | Self::RepeatingUnit(formula) | Self::Complex(formula) => {
-                formula.contains_mixture()
-            }
-            Self::Radical(formula, _) => {
-                debug_assert!(!formula.contains_mixture(), "Radical should not contain mixtures");
-                false
-            }
-        }
-    }
+use crate::Tree;
 
+impl<T: Tree> super::MolecularFormula<T> {
     /// Returns the number of mixtures in the molecular formula.
     ///
     /// # Examples
@@ -57,26 +30,58 @@ impl super::MolecularFormula {
     ///     mixture.mixtures().map(|f| f.to_string()).collect::<Vec<_>>().join(", ")
     /// );
     /// ```
-    pub fn number_of_mixtures(&self) -> usize {
-        match self {
-            Self::Mixture(mixture) => mixture.iter().map(|(count, _)| *count as usize).sum(),
-            _ => 1,
-        }
+    #[must_use]
+    #[inline]
+    pub fn number_of_mixtures(&self) -> u64 {
+        self.as_ref()
+            .iter()
+            .map(|(repeats, _)| {
+                let n: u64 = (*repeats).into();
+                n
+            })
+            .sum()
     }
 
     /// Returns an iterator over the mixtures in the molecular formula.
-    pub fn mixtures(&self) -> Box<dyn Iterator<Item = &Self> + '_> {
-        match self {
-            Self::Mixture(mixture) => {
-                let mut iterator = Box::new(empty()) as Box<dyn Iterator<Item = &Self>>;
-                for (repeats, formula) in mixture {
-                    for _ in 0..*repeats {
-                        iterator = Box::new(iterator.chain(std::iter::once(formula)));
-                    }
-                }
-                iterator
-            }
-            _ => Box::new(std::iter::once(self)),
-        }
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let mixture: MolecularFormula = "H2O.D2O".parse().unwrap();
+    /// let components: Vec<String> = mixture.mixtures().map(|t| format!("{t:?}")).collect();
+    ///
+    /// assert_eq!(components.len(), 2);
+    /// ```
+    #[inline]
+    pub fn mixtures(&self) -> impl Iterator<Item = &T> + '_ {
+        self.as_ref().iter().flat_map(|(repeats, component)| {
+            let repeats: u64 = (*repeats).into();
+            repeat_n(component, usize::try_from(repeats).unwrap_or(usize::MAX))
+        })
+    }
+
+    /// Returns an iterator over the mixtures in the molecular formula, as
+    /// sub-formulas.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let mixture: MolecularFormula = "H2O.NaCl".parse().unwrap();
+    /// let subformulas: Vec<MolecularFormula> = mixture.subformulas().collect();
+    ///
+    /// assert_eq!(subformulas[0].to_string(), "H₂O");
+    /// assert_eq!(subformulas[1].to_string(), "NaCl");
+    /// ```
+    #[inline]
+    pub fn subformulas(&self) -> impl Iterator<Item = Self> + '_ {
+        self.as_ref().iter().flat_map(|(repeats, component)| {
+            let repeats: u64 = (*repeats).into();
+            repeat_n(component, usize::try_from(repeats).unwrap_or(usize::MAX))
+                .map(|c| c.clone().into())
+        })
     }
 }

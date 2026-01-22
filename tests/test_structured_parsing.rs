@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use elements_rs::{Element, Isotope};
-use molecular_formulas::{Ion, MolecularFormula};
+use molecular_formulas::{Bracket, DefaultTree, InstantiableTree, MolecularFormula};
 
 fn test_parse<M: Into<MolecularFormula>>(formula: &str, expected: M, simmetric: Option<&str>) {
     let expected = expected.into();
@@ -13,7 +13,7 @@ fn test_parse<M: Into<MolecularFormula>>(formula: &str, expected: M, simmetric: 
     });
     assert_eq!(
         parsed_formula, expected,
-        "Failed to parse formula to the expected output `{formula:#?}`, got `{parsed_formula:#?}`"
+        "Failed to parse formula `{parsed_formula}` to the expected `{expected}` output `{formula:#?}`, got `{parsed_formula:#?}`"
     );
     assert_eq!(
         simmetric,
@@ -23,12 +23,11 @@ fn test_parse<M: Into<MolecularFormula>>(formula: &str, expected: M, simmetric: 
 }
 
 #[test]
-/// Test to check that the `MolecularFormula` struct can be parsed correctly
 fn test_h2o() {
     test_parse(
         "H2O",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Count(Element::H.into(), 2),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Repeat(Box::new(Element::H.into()), 2),
             Element::O.into(),
         ]),
         Some("H₂O"),
@@ -36,134 +35,88 @@ fn test_h2o() {
 }
 
 #[test]
-/// Test that the `NaCl` formula is parsed correctly
 fn test_nacl() {
-    test_parse(
-        "NaCl",
-        MolecularFormula::Sequence(vec![Element::Na.into(), Element::Cl.into()]),
-        None,
-    );
+    test_parse("NaCl", DefaultTree::Sequence(vec![Element::Na.into(), Element::Cl.into()]), None);
 }
 
 #[test]
 fn test_mixture1() {
-    test_parse(
-        "C+4.H2",
-        MolecularFormula::Mixture(vec![
-            (1, MolecularFormula::Ion(Ion::from_element(Element::C, 4).unwrap().into())),
-            (1, MolecularFormula::Count(Element::H.into(), 2)),
-        ]),
-        Some("C⁺⁴.H₂"),
-    );
+    let p1 = DefaultTree::element(Element::C).charge(4).unwrap();
+    let p2 = DefaultTree::element(Element::H).repeat(2).unwrap();
+    let expected = MolecularFormula::from(p1).mix(p2.into()).unwrap();
+
+    test_parse("C+4.H2", expected, Some("C⁴⁺.H₂"));
 }
 
 #[test]
-fn test_mixture2() {
-    test_parse(
-        "CH+2.CH+2",
-        MolecularFormula::Mixture(vec![
-            (
-                1,
-                MolecularFormula::Ion(
-                    Ion::from_formula(
-                        MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
-                        2,
-                    )
-                    .unwrap()
-                    .into(),
-                ),
-            ),
-            (
-                1,
-                MolecularFormula::Ion(
-                    Ion::from_formula(
-                        MolecularFormula::Sequence(vec![Element::C.into(), Element::H.into()]),
-                        2,
-                    )
-                    .unwrap()
-                    .into(),
-                ),
-            ),
-        ]),
-        Some("CH⁺².CH⁺²"),
-    );
-}
-
-#[test]
-/// Test that the `C12H22O11` formula is parsed correctly
 fn test_c12h22o11() {
     test_parse(
         "C12H22O11",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Count(Element::C.into(), 12),
-            MolecularFormula::Count(Element::H.into(), 22),
-            MolecularFormula::Count(Element::O.into(), 11),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Repeat(Box::new(Element::C.into()), 12),
+            DefaultTree::Repeat(Box::new(Element::H.into()), 22),
+            DefaultTree::Repeat(Box::new(Element::O.into()), 11),
         ]),
         Some("C₁₂H₂₂O₁₁"),
     );
 }
 
 #[test]
-/// Test that the `CH4+3` formula is parsed correctly
 fn test_ch4_plus_3() {
     test_parse(
         "CH4+3",
-        Ion::from_formula(
-            MolecularFormula::Sequence(vec![
+        DefaultTree::Charge(
+            Box::new(DefaultTree::Sequence(vec![
                 Element::C.into(),
-                MolecularFormula::Count(Element::H.into(), 4),
-            ]),
+                DefaultTree::Repeat(Box::new(Element::H.into()), 4),
+            ])),
             3,
-        )
-        .unwrap(),
-        Some("CH₄⁺³"),
+        ),
+        Some("CH₄³⁺"),
     );
 }
 
 #[test]
 fn test_ion_h() {
-    test_parse(
-        "H+",
-        MolecularFormula::Ion(Ion::from_element(Element::H, 1).unwrap().into()),
-        Some("H⁺"),
-    );
-    test_parse(
-        "H-",
-        MolecularFormula::Ion(Ion::from_element(Element::H, -1).unwrap().into()),
-        Some("H⁻"),
-    );
+    test_parse("H+", DefaultTree::Charge(Box::new(Element::H.into()), 1), Some("H⁺"));
+    test_parse("H-", DefaultTree::Charge(Box::new(Element::H.into()), -1), Some("H⁻"));
 }
 
 #[test]
 fn test_molecular_hydrogen() {
-    test_parse("H2", MolecularFormula::Count(Element::H.into(), 2), Some("H₂"));
+    test_parse("H2", DefaultTree::Repeat(Box::new(Element::H.into()), 2), Some("H₂"));
 }
 
 #[test]
 fn test_hydrogen_molecular_ion() {
     test_parse(
         "H2+",
-        Ion::from_formula(MolecularFormula::Count(Element::H.into(), 2), 1).unwrap(),
+        DefaultTree::Charge(Box::new(DefaultTree::Repeat(Box::new(Element::H.into()), 2)), 1),
         Some("H₂⁺"),
     );
 }
 
 #[test]
 fn test_triatomic_hidrogen() {
-    test_parse("H3", MolecularFormula::Count(Element::H.into(), 3), Some("H₃"));
+    test_parse("H3", DefaultTree::Repeat(Box::new(Element::H.into()), 3), Some("H₃"));
 }
 
 #[test]
 fn test_formula_including_isotopes() {
+    let c12 = Isotope::try_from((Element::C, 12u16)).unwrap();
+    let h1 = Isotope::try_from((Element::H, 1u16)).unwrap();
+    let pd106 = Isotope::try_from((Element::Pd, 106u16)).unwrap();
+    let cl35 = Isotope::try_from((Element::Cl, 35u16)).unwrap();
+
     test_parse(
         "¹²C18¹H18¹⁰⁶Pd2³⁵Cl2",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Count(Isotope::try_from((Element::C, 12)).unwrap().into(), 18), /* Isotope with mass number 18 */
-            MolecularFormula::Count(Isotope::try_from((Element::H, 1)).unwrap().into(), 18), /* Isotope with mass number 18 */
-            MolecularFormula::Count(Isotope::try_from((Element::Pd, 106)).unwrap().into(), 2), /* Isotope with mass number 106 */
-            MolecularFormula::Count(Isotope::try_from((Element::Cl, 35)).unwrap().into(), 2), /* Isotope with mass number 35 */
+        DefaultTree::Sequence(vec![
+            DefaultTree::Repeat(c12.into(), 18),
+            DefaultTree::Repeat(h1.into(), 18),
+            DefaultTree::Repeat(pd106.into(), 2),
+            DefaultTree::Repeat(cl35.into(), 2),
         ]),
-        Some("¹²C₁₈¹H₁₈¹⁰⁶Pd₂³⁵Cl₂"),
+        Some("[¹²C]₁₈[¹H]₁₈[¹⁰⁶Pd]₂[³⁵Cl]₂"),
     );
 }
 
@@ -171,11 +124,11 @@ fn test_formula_including_isotopes() {
 fn test_irregular_ion_position1() {
     test_parse(
         "C+4H4",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Ion(Ion::from_element(Element::C, 4).unwrap().into()),
-            MolecularFormula::Count(Element::H.into(), 4),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Charge(Box::new(Element::C.into()), 4),
+            DefaultTree::Repeat(Box::new(Element::H.into()), 4),
         ]),
-        Some("C⁺⁴H₄"),
+        Some("C⁴⁺H₄"),
     );
 }
 
@@ -183,11 +136,11 @@ fn test_irregular_ion_position1() {
 fn test_irregular_ion_position2() {
     test_parse(
         "C²⁺H4",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Ion(Ion::from_element(Element::C, 2).unwrap().into()),
-            MolecularFormula::Count(Element::H.into(), 4),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Charge(Element::C.into(), 2),
+            DefaultTree::Repeat(Element::H.into(), 4),
         ]),
-        Some("C⁺²H₄"),
+        Some("C²⁺H₄"),
     );
 }
 
@@ -195,36 +148,35 @@ fn test_irregular_ion_position2() {
 fn test_irregular_ion_position3() {
     test_parse(
         "C²⁻H4",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Ion(Ion::from_element(Element::C, -2).unwrap().into()),
-            MolecularFormula::Count(Element::H.into(), 4),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Charge(Element::C.into(), -2),
+            DefaultTree::Repeat(Element::H.into(), 4),
         ]),
-        Some("C⁻²H₄"),
+        Some("C²⁻H₄"),
     );
 }
 
 #[test]
 fn test_ion1() {
-    test_parse("C²⁻", Ion::from_element(Element::C, -2).unwrap(), Some("C⁻²"));
+    test_parse("C²⁻", DefaultTree::Charge(Box::new(Element::C.into()), -2), Some("C²⁻"));
 }
 
 #[test]
 fn test_ion2() {
-    test_parse("C²⁺", Ion::from_element(Element::C, 2).unwrap(), Some("C⁺²"));
+    test_parse("C²⁺", DefaultTree::Charge(Box::new(Element::C.into()), 2), Some("C²⁺"));
 }
 
 #[test]
 fn test_methanion() {
     test_parse(
         "CH5+",
-        Ion::from_formula(
-            MolecularFormula::Sequence(vec![
+        DefaultTree::Charge(
+            Box::new(DefaultTree::Sequence(vec![
                 Element::C.into(),
-                MolecularFormula::Count(Element::H.into(), 5),
-            ]),
+                DefaultTree::Repeat(Box::new(Element::H.into()), 5),
+            ])),
             1,
-        )
-        .unwrap(),
+        ),
         Some("CH₅⁺"),
     );
 }
@@ -233,14 +185,13 @@ fn test_methanion() {
 fn test_methane_cation() {
     test_parse(
         "CH4+",
-        Ion::from_formula(
-            MolecularFormula::Sequence(vec![
+        DefaultTree::Charge(
+            Box::new(DefaultTree::Sequence(vec![
                 Element::C.into(),
-                MolecularFormula::Count(Element::H.into(), 4),
-            ]),
+                DefaultTree::Repeat(Box::new(Element::H.into()), 4),
+            ])),
             1,
-        )
-        .unwrap(),
+        ),
         Some("CH₄⁺"),
     );
 }
@@ -249,10 +200,10 @@ fn test_methane_cation() {
 fn test_h2so4() {
     test_parse(
         "H2SO4",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Count(Element::H.into(), 2),
+        DefaultTree::Sequence(vec![
+            DefaultTree::Repeat(Box::new(Element::H.into()), 2),
             Element::S.into(),
-            MolecularFormula::Count(Element::O.into(), 4),
+            DefaultTree::Repeat(Box::new(Element::O.into()), 4),
         ]),
         Some("H₂SO₄"),
     );
@@ -260,141 +211,108 @@ fn test_h2so4() {
 
 #[test]
 fn test_large_compound1() {
-    test_parse(
-        "MgSO4.H2O",
-        MolecularFormula::Mixture(vec![
-            (
-                1,
-                MolecularFormula::Sequence(vec![
-                    Element::Mg.into(),
-                    Element::S.into(),
-                    MolecularFormula::Count(Element::O.into(), 4),
-                ]),
-            ),
-            (
-                1,
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::H.into(), 2),
-                    Element::O.into(),
-                ]),
-            ),
-        ]),
-        Some("MgSO₄.H₂O"),
+    let mgso4 = DefaultTree::Sequence(vec![
+        Element::Mg.into(),
+        Element::S.into(),
+        DefaultTree::Repeat(Box::new(Element::O.into()), 4),
+    ]);
+    let h2o = DefaultTree::Sequence(vec![
+        DefaultTree::Repeat(Box::new(Element::H.into()), 2),
+        Element::O.into(),
+    ]);
+
+    let expected = MolecularFormula::from(mgso4).mix(h2o.into()).unwrap();
+
+    test_parse("MgSO4.H2O", expected, Some("MgSO₄.H₂O"));
+
+    let part1_inner = DefaultTree::Unit(
+        Box::new(DefaultTree::Sequence(vec![
+            DefaultTree::Repeat(Box::new(Element::C.into()), 17),
+            DefaultTree::Repeat(Box::new(Element::H.into()), 23),
+            Element::N.into(),
+            DefaultTree::Repeat(Box::new(Element::O.into()), 3),
+        ])),
+        Bracket::Round,
     );
-    test_parse(
-        "2(C17H23NO3).H2O.H2SO4",
-        MolecularFormula::Mixture(vec![
-            (
-                2,
-                MolecularFormula::RepeatingUnit(
-                    vec![
-                        MolecularFormula::Count(Element::C.into(), 17),
-                        MolecularFormula::Count(Element::H.into(), 23),
-                        Element::N.into(),
-                        MolecularFormula::Count(Element::O.into(), 3),
-                    ]
-                    .into(),
-                ),
-            ),
-            (
-                1,
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::H.into(), 2),
-                    Element::O.into(),
-                ]),
-            ),
-            (
-                1,
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::H.into(), 2),
-                    Element::S.into(),
-                    MolecularFormula::Count(Element::O.into(), 4),
-                ]),
-            ),
-        ]),
-        Some("2(C₁₇H₂₃NO₃).H₂O.H₂SO₄"),
-    );
+
+    let part1_mf = MolecularFormula::from(part1_inner.clone());
+    let part1_mf_2 = part1_mf.clone().mix(part1_mf).unwrap();
+
+    let h2o_val = DefaultTree::Sequence(vec![
+        DefaultTree::Repeat(Box::new(Element::H.into()), 2),
+        Element::O.into(),
+    ]);
+    let h2o_mf = MolecularFormula::from(h2o_val);
+
+    let h2so4_val = DefaultTree::Sequence(vec![
+        DefaultTree::Repeat(Box::new(Element::H.into()), 2),
+        Element::S.into(),
+        DefaultTree::Repeat(Box::new(Element::O.into()), 4),
+    ]);
+    let h2so4_mf = MolecularFormula::from(h2so4_val);
+
+    let expected_big = part1_mf_2.mix(h2o_mf).unwrap().mix(h2so4_mf).unwrap();
+
+    test_parse("2(C17H23NO3).H2O.H2SO4", expected_big, Some("2(C₁₇H₂₃NO₃).H₂O.H₂SO₄"));
 }
 
 #[test]
 fn test_atropine() {
-    test_parse(
-        "C17H23NO3",
-        MolecularFormula::Sequence(vec![
-            MolecularFormula::Count(Element::C.into(), 17),
-            MolecularFormula::Count(Element::H.into(), 23),
-            Element::N.into(),
-            MolecularFormula::Count(Element::O.into(), 3),
-        ]),
-        Some("C₁₇H₂₃NO₃"),
-    );
+    let inner = DefaultTree::Sequence(vec![
+        DefaultTree::Repeat(Box::new(Element::C.into()), 17),
+        DefaultTree::Repeat(Box::new(Element::H.into()), 23),
+        Element::N.into(),
+        DefaultTree::Repeat(Box::new(Element::O.into()), 3),
+    ]);
+
+    test_parse("C17H23NO3", inner.clone(), Some("C₁₇H₂₃NO₃"));
 
     test_parse(
         "(C17H23NO3)",
-        MolecularFormula::RepeatingUnit(
-            MolecularFormula::Sequence(vec![
-                MolecularFormula::Count(Element::C.into(), 17),
-                MolecularFormula::Count(Element::H.into(), 23),
-                Element::N.into(),
-                MolecularFormula::Count(Element::O.into(), 3),
-            ])
-            .into(),
-        ),
+        DefaultTree::Unit(Box::new(inner.clone()), Bracket::Round),
         Some("(C₁₇H₂₃NO₃)"),
     );
 
-    test_parse(
-        "2(C17H23NO3)",
-        MolecularFormula::Count(
-            MolecularFormula::RepeatingUnit(
-                MolecularFormula::Sequence(vec![
-                    MolecularFormula::Count(Element::C.into(), 17),
-                    MolecularFormula::Count(Element::H.into(), 23),
-                    Element::N.into(),
-                    MolecularFormula::Count(Element::O.into(), 3),
-                ])
-                .into(),
-            )
-            .into(),
-            2,
-        ),
-        Some("(C₁₇H₂₃NO₃)₂"),
-    );
+    {
+        let unit = DefaultTree::Unit(Box::new(inner.clone()), Bracket::Round);
+        let mf = MolecularFormula::from(unit.clone()).mix(MolecularFormula::from(unit)).unwrap();
+
+        test_parse("2(C17H23NO3)", mf, Some("2(C₁₇H₂₃NO₃)"));
+    }
 }
 
 #[test]
 fn test_hexaamminecobalt_iii_chloride() {
     test_parse(
         "[Co(NH3)6]+3(Cl−)3",
-        MolecularFormula::Sequence(vec![
-            Ion::from_formula(
-                MolecularFormula::Complex(
-                    MolecularFormula::Sequence(vec![
+        DefaultTree::Sequence(vec![
+            DefaultTree::Charge(
+                Box::new(DefaultTree::Unit(
+                    Box::new(DefaultTree::Sequence(vec![
                         Element::Co.into(),
-                        MolecularFormula::Count(
-                            MolecularFormula::RepeatingUnit(
-                                MolecularFormula::Sequence(vec![
+                        DefaultTree::Repeat(
+                            Box::new(DefaultTree::Unit(
+                                Box::new(DefaultTree::Sequence(vec![
                                     Element::N.into(),
-                                    MolecularFormula::Count(Element::H.into(), 3),
-                                ])
-                                .into(),
-                            )
-                            .into(),
+                                    DefaultTree::Repeat(Box::new(Element::H.into()), 3),
+                                ])),
+                                Bracket::Round,
+                            )),
                             6,
                         ),
-                    ])
-                    .into(),
-                ),
+                    ])),
+                    Bracket::Square,
+                )),
                 3,
-            )
-            .unwrap()
-            .into(),
-            MolecularFormula::Count(
-                MolecularFormula::RepeatingUnit(Ion::from_element(Element::Cl, -1).unwrap().into())
-                    .into(),
+            ),
+            DefaultTree::Repeat(
+                Box::new(DefaultTree::Unit(
+                    Box::new(DefaultTree::Charge(Box::new(Element::Cl.into()), -1)),
+                    Bracket::Round,
+                )),
                 3,
             ),
         ]),
-        Some("[Co(NH₃)₆]⁺³(Cl⁻)₃"),
+        Some("[Co(NH₃)₆]³⁺(Cl⁻)₃"),
     );
 }

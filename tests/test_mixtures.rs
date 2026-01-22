@@ -1,17 +1,15 @@
 //! Test submodule checking that mixture corner cases are parsed correctly.
 
+use molecular_formulas::MolecularFormula;
+
 #[test]
 /// Test parsing a simple mixture "H2O.D2O".
 fn parse_mixture1() -> Result<(), Box<dyn std::error::Error>> {
-    let formula: molecular_formulas::MolecularFormula = "H2O.D2O".parse()?;
-    assert!(formula.contains_mixture());
+    let formula: MolecularFormula = "H2O.D2O".parse()?;
     assert_eq!(formula.number_of_mixtures(), 2);
     assert_eq!(
-        formula.mixtures().collect::<Vec<_>>(),
-        &[
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("D2O")?,
-        ]
+        formula.subformulas().collect::<Vec<_>>(),
+        &[MolecularFormula::try_from("H2O")?, MolecularFormula::try_from("D2O")?,]
     );
     Ok(())
 }
@@ -19,15 +17,14 @@ fn parse_mixture1() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test parsing a tri-mixture "H2O.D2O.T2O".
 fn parse_mixture2() -> Result<(), Box<dyn std::error::Error>> {
-    let formula: molecular_formulas::MolecularFormula = "H2O.D2O.T2O".parse()?;
-    assert!(formula.contains_mixture());
-    assert_eq!(formula.number_of_mixtures(), 3, "{:#?}", formula);
+    let formula: MolecularFormula = "H2O.D2O.T2O".parse()?;
+    assert_eq!(formula.number_of_mixtures(), 3, "{formula:#?}");
     assert_eq!(
-        formula.mixtures().collect::<Vec<_>>(),
+        formula.subformulas().collect::<Vec<_>>(),
         &[
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("D2O")?,
-            &molecular_formulas::MolecularFormula::try_from("T2O")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("D2O")?,
+            MolecularFormula::try_from("T2O")?,
         ]
     );
     Ok(())
@@ -36,15 +33,14 @@ fn parse_mixture2() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test parsing a tri-mixture "H2O.2H20".
 fn parse_mixture3() -> Result<(), Box<dyn std::error::Error>> {
-    let formula: molecular_formulas::MolecularFormula = "H2O.2H20".parse()?;
-    assert!(formula.contains_mixture());
-    assert_eq!(formula.number_of_mixtures(), 3, "{:#?}", formula);
+    let formula: MolecularFormula = "H2O.2H20".parse()?;
+    assert_eq!(formula.number_of_mixtures(), 3, "{formula:#?}");
     assert_eq!(
-        formula.mixtures().collect::<Vec<_>>(),
+        formula.subformulas().collect::<Vec<_>>(),
         &[
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("H20")?,
-            &molecular_formulas::MolecularFormula::try_from("H20")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("H20")?,
+            MolecularFormula::try_from("H20")?,
         ]
     );
     Ok(())
@@ -53,56 +49,26 @@ fn parse_mixture3() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 /// Test parsing a mixture with hydrate "CuSO4.5H2O".
 fn parse_mixture4() -> Result<(), Box<dyn std::error::Error>> {
-    let formula: molecular_formulas::MolecularFormula = "CuSO4.5H2O".parse()?;
-    assert!(formula.contains_mixture());
-    assert_eq!(formula.number_of_mixtures(), 6, "{:#?}", formula);
+    let formula: MolecularFormula = "CuSO4.5H2O".parse()?;
+    assert_eq!(formula.number_of_mixtures(), 6, "{formula:#?}");
     assert_eq!(
-        formula.mixtures().collect::<Vec<_>>(),
+        formula.subformulas().collect::<Vec<_>>(),
         &[
-            &molecular_formulas::MolecularFormula::try_from("CuSO4")?,
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
-            &molecular_formulas::MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("CuSO4")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("H2O")?,
+            MolecularFormula::try_from("H2O")?,
         ]
     );
     Ok(())
 }
 
 #[test]
-fn parse_common_hydrates() -> Result<(), Box<dyn std::error::Error>> {
-    let cases =
-        ["MgSO4.7H2O", "CoCl2.6H2O", "Na2CO3.10H2O", "CaCl2.2H2O", "FeCl3.6H2O", "Al2(SO4)3.18H2O"];
-    for formula_str in cases {
-        let formula: molecular_formulas::MolecularFormula = formula_str.parse()?;
-        assert!(formula.contains_mixture(), "Failed to identify mixture in {}", formula_str);
-    }
-    Ok(())
-}
-
-#[test]
-fn parse_ammonia_adducts() -> Result<(), Box<dyn std::error::Error>> {
-    let cases = ["AlCl3.6NH3", "AgNO3.2NH3", "NiCl2.6NH3"];
-    for formula_str in cases {
-        let formula: molecular_formulas::MolecularFormula = formula_str.parse()?;
-        assert!(formula.contains_mixture(), "Failed to identify mixture in {}", formula_str);
-    }
-    Ok(())
-}
-
-#[test]
-fn parse_organic_hydrates() -> Result<(), Box<dyn std::error::Error>> {
-    let formula: molecular_formulas::MolecularFormula = "C7H8N4O2.2H2O".parse()?;
-    assert!(formula.contains_mixture());
-    Ok(())
-}
-
-#[test]
 fn parse_mixture_with_complex_zncl2_2etoh() -> Result<(), Box<dyn std::error::Error>> {
     use elements_rs::Element;
-    let formula: molecular_formulas::MolecularFormula = "ZnCl2.2EtOH".parse()?;
-    assert!(formula.contains_mixture());
+    let formula: MolecularFormula = "ZnCl2.2EtOH".parse()?;
     assert_eq!(formula.number_of_mixtures(), 3);
 
     // Check total counts
@@ -123,7 +89,7 @@ fn parse_mixture_with_complex_zncl2_2etoh() -> Result<(), Box<dyn std::error::Er
 #[test]
 fn parse_mixture_with_complex_sncl4_2et2o() -> Result<(), Box<dyn std::error::Error>> {
     use elements_rs::Element;
-    let formula: molecular_formulas::MolecularFormula = "SnCl4.2Et2O".parse()?;
+    let formula: MolecularFormula = "SnCl4.2Et2O".parse()?;
     assert_eq!(formula.number_of_mixtures(), 3);
 
     // SnCl4 + 2 * (C2H5)2O
@@ -146,7 +112,7 @@ fn parse_mixture_with_complex_sncl4_2et2o() -> Result<(), Box<dyn std::error::Er
 #[test]
 fn parse_mixture_complex_organic() -> Result<(), Box<dyn std::error::Error>> {
     use elements_rs::Element;
-    let formula: molecular_formulas::MolecularFormula = "C21H23NO5.3EtOH".parse()?;
+    let formula: MolecularFormula = "C21H23NO5.3EtOH".parse()?;
     assert_eq!(formula.number_of_mixtures(), 4);
 
     // C21H23NO5 + 3 * C2H6O

@@ -1,33 +1,25 @@
-//! Submodule providing the `contains_residual` method for the
+//! Submodule providing the `contains_residuals` method for the
 //! `MolecularFormula` struct
 
-impl super::MolecularFormula {
+use crate::molecular_formula::trees::ResidualTree;
+
+impl<T: ResidualTree> super::MolecularFormula<T> {
     /// Checks if the molecular formula contains a residual.
     ///
     /// # Examples
     ///
-    /// ```
-    /// use molecular_formulas::MolecularFormula;
+    /// ```rust
+    /// use molecular_formulas::ResidualFormula;
     ///
-    /// let formula: MolecularFormula = "H2O".parse().unwrap();
-    /// assert!(!formula.contains_residual());
-    /// let formula_with_residual: MolecularFormula = "C6H5R".parse().unwrap();
-    /// assert!(formula_with_residual.contains_residual());
+    /// let formula: ResidualFormula = "H2O".parse().unwrap();
+    /// assert!(!formula.contains_residuals());
+    /// let formula_with_residual: ResidualFormula = "C6H5R".parse().unwrap();
+    /// assert!(formula_with_residual.contains_residuals());
     /// ```
-    pub fn contains_residual(&self) -> bool {
-        match self {
-            Self::Element(_) | Self::Isotope(_) | Self::Greek(_) => false,
-            Self::Ion(ion) => ion.entry.contains_residual(),
-            Self::Mixture(formulas) => {
-                formulas.iter().any(|(_, formula)| formula.contains_residual())
-            }
-            Self::Sequence(formulas) => formulas.iter().any(Self::contains_residual),
-            Self::Count(formula, _) | Self::RepeatingUnit(formula) | Self::Complex(formula) => {
-                formula.contains_residual()
-            }
-            Self::Residual => true,
-            Self::Radical(formula, _) => formula.contains_residual(),
-        }
+    #[must_use]
+    #[inline]
+    pub fn contains_residuals(&self) -> bool {
+        self.as_ref().iter().any(|(_, component)| component.contains_residuals())
     }
 }
 
@@ -35,19 +27,19 @@ impl super::MolecularFormula {
 mod tests {
     use std::str::FromStr;
 
-    use crate::MolecularFormula;
+    use crate::ResidualFormula;
 
     #[test]
-    fn test_contains_residual_branches() {
-        assert!(!MolecularFormula::from_str("H").unwrap().contains_residual());
-        assert!(MolecularFormula::from_str("R").unwrap().contains_residual());
+    fn test_contains_residuals_branches() {
+        assert!(!ResidualFormula::from_str("H").unwrap().contains_residuals());
+        assert!(ResidualFormula::from_str("R").unwrap().contains_residuals());
 
         // Mixture with residual
-        let mix = MolecularFormula::from_str("H2O.R").unwrap();
-        assert!(mix.contains_residual());
+        let mix = ResidualFormula::from_str("H2O.R").unwrap();
+        assert!(mix.contains_residuals());
 
         // Nested in complex/radical
-        let rad = MolecularFormula::from_str("R·").unwrap(); // Radical
-        assert!(rad.contains_residual());
+        let rad = ResidualFormula::from_str("R·").unwrap(); // Radical
+        assert!(rad.contains_residuals());
     }
 }
