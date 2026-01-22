@@ -26,18 +26,39 @@ pub trait Tree: PartialEq + Debug + Clone {
 
     /// Returns the count of the specified element in the molecular formula
     /// tree.
-    fn element_count(&self, target: Element) -> u64;
+    fn element_count(&self, target: Element) -> Option<u64>;
 
     /// Returns an iterator over all isotopes in the molecular formula tree.
     fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_>;
 
     /// Returns the count of the specified isotope in the molecular formula
     /// tree.
-    fn isotope_count(&self, target: Isotope) -> u64;
+    fn isotope_count(&self, target: Isotope) -> Option<u64>;
 
     /// Returns an iterator over all elements in the molecular formula tree,
     /// repeating the repeating units according to their counts.
     fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_>;
+
+    /// Returns the total number of atoms in the tree, accounting for repeats.
+    fn number_of_atoms(&self) -> Option<u64>;
+
+    /// Returns the element at the specified index in the tree, counting
+    /// repeats.
+    fn get_counted_element(&self, index: u64) -> Option<Element> {
+        self.get_counted_element_or_size(index).ok()
+    }
+
+    /// Returns the element at the specified index, or the total size of the
+    /// tree if the index is out of bounds.
+    ///
+    /// This method allows optimizing traversal by avoiding a separate
+    /// `number_of_atoms` call when searching.
+    ///
+    /// # Errors
+    ///
+    /// If the index is out of bounds, returns the total number of atoms in the
+    /// tree.
+    fn get_counted_element_or_size(&self, index: u64) -> Result<Element, u64>;
 }
 
 /// A trait for molecular formula trees.

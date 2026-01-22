@@ -39,13 +39,28 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for EmptyTree<S, U> {
     }
 
     #[inline]
-    fn element_count(&self, _target: Element) -> u64 {
-        0
+    fn element_count(&self, _target: Element) -> Option<u64> {
+        Some(0)
     }
 
     #[inline]
-    fn isotope_count(&self, _target: Isotope) -> u64 {
-        0
+    fn isotope_count(&self, _target: Isotope) -> Option<u64> {
+        Some(0)
+    }
+
+    #[inline]
+    fn number_of_atoms(&self) -> Option<u64> {
+        Some(0)
+    }
+
+    #[inline]
+    fn get_counted_element(&self, _index: u64) -> Option<Element> {
+        None
+    }
+
+    #[inline]
+    fn get_counted_element_or_size(&self, _index: u64) -> Result<Element, u64> {
+        Err(0)
     }
 }
 

@@ -41,26 +41,16 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         }
     }
 
-    fn element_count(&self, target: Element) -> u64 {
+    fn element_count(&self, target: Element) -> Option<u64> {
         match self {
-            Self::Element(element) => {
-                if *element == target {
-                    1
-                } else {
-                    0
-                }
+            Self::Element(element) => Some(u64::from(*element == target)),
+            Self::Isotope(isotope) => Some(u64::from(isotope.element() == target)),
+            Self::Sequence(formulas) => {
+                formulas.iter().try_fold(0u64, |acc, f| acc.checked_add(f.element_count(target)?))
             }
-            Self::Isotope(isotope) => {
-                if isotope.element() == target {
-                    1
-                } else {
-                    0
-                }
-            }
-            Self::Sequence(formulas) => formulas.iter().map(|f| f.element_count(target)).sum(),
             Self::Repeat(inner, count) => {
                 let n: u64 = (*count).into();
-                n * inner.element_count(target)
+                n.checked_mul(inner.element_count(target)?)
             }
             Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
                 inner.element_count(target)
@@ -82,25 +72,196 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike, E: Tree<Unsigned = U, Signed = S>
         }
     }
 
-    fn isotope_count(&self, target: Isotope) -> u64 {
+    fn isotope_count(&self, target: Isotope) -> Option<u64> {
         match self {
-            Self::Element(_) => 0,
-            Self::Isotope(isotope) => {
-                if *isotope == target {
-                    1
-                } else {
-                    0
-                }
+            Self::Element(_) => Some(0),
+            Self::Isotope(isotope) => Some(u64::from(*isotope == target)),
+            Self::Sequence(formulas) => {
+                formulas.iter().try_fold(0u64, |acc, f| acc.checked_add(f.isotope_count(target)?))
             }
-            Self::Sequence(formulas) => formulas.iter().map(|f| f.isotope_count(target)).sum(),
             Self::Repeat(inner, count) => {
                 let n: u64 = (*count).into();
-                n * inner.isotope_count(target)
+                n.checked_mul(inner.isotope_count(target)?)
             }
             Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
                 inner.isotope_count(target)
             }
             Self::Extension(ext) => ext.isotope_count(target),
         }
+    }
+
+    fn number_of_atoms(&self) -> Option<u64> {
+        match self {
+            Self::Element(_) | Self::Isotope(_) => Some(1),
+            Self::Sequence(formulas) => {
+                formulas.iter().try_fold(0u64, |acc, f| acc.checked_add(f.number_of_atoms()?))
+            }
+            Self::Repeat(inner, count) => {
+                let n: u64 = (*count).into();
+                n.checked_mul(inner.number_of_atoms()?)
+            }
+            Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
+                inner.number_of_atoms()
+            }
+            Self::Extension(ext) => ext.number_of_atoms(),
+        }
+    }
+
+    /// # Implementation details
+    ///
+    /// ## Proof of No Overflow in `total` Accumulation
+    ///
+    /// **Proposition**: The `total` variable in the `Sequence` branch cannot
+    /// overflow `u64` while we are still looping.
+    ///
+    /// **Proof**:
+    /// 1. Let $I_0$ be the initial `index` value (of type `u64`).
+    /// 2. Let $T_k$ be the value of `total` after processing $k$ sub-formulas.
+    /// 3. Let $I_k$ be the value of `index` after processing $k$ sub-formulas.
+    /// 4. **Invariant**: $I_0 = T_k + I_k$ at every step.
+    ///     * Base case ($k=0$): $T_0 = 0$, $I_k = I_0$. Holds.
+    ///     * Step: When we advance past a formula of size $S$, it implies $I_k
+    ///       \ge S$. We update: $I_{k+1} = I_k - S$ and $T_{k+1} = T_k + S$.
+    ///     * Check: $T_{k+1} + I_{k+1} = (T_k + S) + (I_k - S) = T_k + I_k =
+    ///       I_0$.
+    /// 5. **Contradiction**:
+    ///     * Assume `total` overflows `u64`. Then $T_k > \text{u64::MAX}$.
+    ///     * Since $I_k$ is unsigned, $I_k \ge 0$.
+    ///     * From invariant: $I_0 = T_k + I_k \ge T_k > \text{u64::MAX}$.
+    ///     * This implies $I_0 > \text{u64::MAX}$, which is impossible since
+    ///       $I_0$ is a `u64`.
+    /// 6. **Conclusion**: `total` never exceeds `u64::MAX` inside the loop.
+    fn get_counted_element_or_size(&self, mut index: u64) -> Result<Element, u64> {
+        match self {
+            Self::Element(element) => {
+                if index == 0 {
+                    Ok(*element)
+                } else {
+                    Err(1)
+                }
+            }
+            Self::Isotope(isotope) => {
+                if index == 0 {
+                    Ok(isotope.element())
+                } else {
+                    Err(1)
+                }
+            }
+            Self::Sequence(formulas) => {
+                let mut total: u64 = 0;
+                for f in formulas {
+                    match f.get_counted_element_or_size(index) {
+                        Ok(element) => return Ok(element),
+                        Err(count) => {
+                            // Check subtract just in case logic is flawed elsewhere.
+                            index = index.checked_sub(count).unwrap();
+                            total = total.checked_add(count).expect("Tree size overflowed u64");
+                        }
+                    }
+                }
+                Err(total)
+            }
+            Self::Repeat(inner, count) => {
+                let n: u64 = (*count).into();
+                match inner.get_counted_element_or_size(index) {
+                    Ok(element) => Ok(element),
+                    Err(inner_size) => {
+                        let total_opt = n.checked_mul(inner_size);
+                        if let Some(total) = total_opt {
+                            if index < total {
+                                let inner_index = index % inner_size;
+                                inner.get_counted_element(inner_index).ok_or(total)
+                            } else {
+                                Err(total)
+                            }
+                        } else {
+                            // Overflow. index < total implied.
+                            let inner_index = index % inner_size;
+                            // We return u64::MAX as error if somehow not found? Impossible.
+                            inner.get_counted_element(inner_index).ok_or(u64::MAX)
+                        }
+                    }
+                }
+            }
+            Self::Charge(inner, _) | Self::Unit(inner, _) | Self::Radical(inner, _) => {
+                inner.get_counted_element_or_size(index)
+            }
+            Self::Extension(ext) => ext.get_counted_element_or_size(index),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use elements_rs::{Element, Isotope};
+
+    use crate::{Tree, molecular_formula::GenericTree};
+
+    #[derive(Debug, Clone, PartialEq)]
+    struct MockTree {
+        size: u64,
+        element: Element,
+    }
+
+    impl Tree for MockTree {
+        type Unsigned = u32; // Used u32 as CountLike
+        type Signed = i32;
+
+        fn iter_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
+            Box::new(std::iter::empty())
+        }
+        fn iter_counted_elements(&self) -> Box<dyn Iterator<Item = Element> + '_> {
+            Box::new(std::iter::empty())
+        }
+        fn element_count(&self, _target: Element) -> Option<u64> {
+            None
+        }
+        fn isotope_count(&self, _target: Isotope) -> Option<u64> {
+            None
+        }
+        fn number_of_atoms(&self) -> Option<u64> {
+            Some(self.size)
+        }
+        fn get_counted_element_or_size(&self, index: u64) -> Result<Element, u64> {
+            if index < self.size { Ok(self.element) } else { Err(self.size) }
+        }
+        fn iter_isotopes(&self) -> Box<dyn Iterator<Item = Isotope> + '_> {
+            Box::new(std::iter::empty())
+        }
+    }
+
+    #[test]
+    fn test_sequence_overflow_proof() {
+        // Construct a Sequence of two huge trees.
+        // Total size > u64::MAX.
+        // We verify that `get_counted_element_or_size` does NOT panic when accessing
+        // valid indices.
+
+        // We use GenericTree<i32, u32, MockTree>
+        let t1 = GenericTree::<i32, u32, MockTree>::Extension(MockTree {
+            size: u64::MAX / 2 + 100,
+            element: Element::H,
+        });
+        let t2 = GenericTree::<i32, u32, MockTree>::Extension(MockTree {
+            size: u64::MAX / 2 + 100,
+            element: Element::O,
+        });
+
+        // Sequence[t1, t2]
+        // Size = (MAX/2 + 100) * 2 = MAX + 200 > MAX.
+        let seq = GenericTree::<i32, u32, MockTree>::Sequence(vec![t1, t2]);
+
+        // Case 1: Access index in the first range.
+        // 0 < size1
+        let res = seq.get_counted_element_or_size(0);
+        assert_eq!(res, Ok(Element::H));
+
+        // Case 2: Access index in the second range.
+        // Index must be large to skip t1.
+        // t1 size is `u64::MAX / 2 + 100`.
+        // Let's pick index = size1 + 1.
+        let index_in_second = (u64::MAX / 2) + 100 + 1;
+        let res = seq.get_counted_element_or_size(index_in_second);
+        assert_eq!(res, Ok(Element::O));
     }
 }

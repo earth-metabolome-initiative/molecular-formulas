@@ -114,9 +114,13 @@ fn main() {
 
                 // Test indexing methods
                 let _ = formula.get_counted_element(0);
+                let _ = formula.get_counted_element(46);
                 let _ = formula.get_element(0);
+                let _ = formula.get_element(46);
                 let _ = formula.get_counted_element_ignore_hydrogens(0);
+                let _ = formula.get_counted_element_ignore_hydrogens(46);
                 let _ = formula.get_element_ignore_hydrogens(0);
+                let _ = formula.get_element_ignore_hydrogens(46);
             }
 
             // Fuzz ResidualFormula - Has subset of methods

@@ -24,12 +24,24 @@ where
         (**self).iter_isotopes()
     }
 
-    fn element_count(&self, target: elements_rs::Element) -> u64 {
+    fn element_count(&self, target: elements_rs::Element) -> Option<u64> {
         (**self).element_count(target)
     }
 
-    fn isotope_count(&self, target: elements_rs::Isotope) -> u64 {
+    fn isotope_count(&self, target: elements_rs::Isotope) -> Option<u64> {
         (**self).isotope_count(target)
+    }
+
+    fn number_of_atoms(&self) -> Option<u64> {
+        (**self).number_of_atoms()
+    }
+
+    fn get_counted_element(&self, index: u64) -> Option<elements_rs::Element> {
+        (**self).get_counted_element(index)
+    }
+
+    fn get_counted_element_or_size(&self, index: u64) -> Result<elements_rs::Element, u64> {
+        (**self).get_counted_element_or_size(index)
     }
 }
 

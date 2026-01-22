@@ -27,17 +27,38 @@ impl<S: ChargeLike + TryFrom<U>, U: CountLike> Tree for GenericResidualTree<S, U
         }
     }
 
-    fn element_count(&self, target: elements_rs::Element) -> u64 {
+    fn element_count(&self, target: elements_rs::Element) -> Option<u64> {
         match self {
             GenericResidualTree::Tree(tree) => tree.element_count(target),
-            GenericResidualTree::Residual => 0,
+            GenericResidualTree::Residual => Some(0),
         }
     }
 
-    fn isotope_count(&self, target: elements_rs::Isotope) -> u64 {
+    fn isotope_count(&self, target: elements_rs::Isotope) -> Option<u64> {
         match self {
             GenericResidualTree::Tree(tree) => tree.isotope_count(target),
-            GenericResidualTree::Residual => 0,
+            GenericResidualTree::Residual => Some(0),
+        }
+    }
+
+    fn number_of_atoms(&self) -> Option<u64> {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.number_of_atoms(),
+            GenericResidualTree::Residual => Some(0),
+        }
+    }
+
+    fn get_counted_element(&self, index: u64) -> Option<elements_rs::Element> {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.get_counted_element(index),
+            GenericResidualTree::Residual => None,
+        }
+    }
+
+    fn get_counted_element_or_size(&self, index: u64) -> Result<elements_rs::Element, u64> {
+        match self {
+            GenericResidualTree::Tree(tree) => tree.get_counted_element_or_size(index),
+            GenericResidualTree::Residual => Err(0),
         }
     }
 }

@@ -16,7 +16,7 @@ fn test_all_elements() -> Result<(), Box<dyn std::error::Error>> {
         assert!(formula.contains_elements(), "Formula {formula_str} does not contain elements");
         assert_eq!(
             formula.element_count(element),
-            2,
+            Some(2),
             "Formula {formula_str} has incorrect count for element {element:?}"
         );
     }
@@ -27,7 +27,7 @@ fn test_all_elements() -> Result<(), Box<dyn std::error::Error>> {
 /// Test that all elements from the periodic table are parsed correctly.
 fn test_all_isotopes() -> Result<(), Box<dyn std::error::Error>> {
     for isotope in HydrogenIsotope::iter() {
-        let formula_str = format!("[{}{}]2", isotope.mass_number(), isotope.element().to_string());
+        let formula_str = format!("[{}{}]2", isotope.mass_number(), isotope.element());
         let formula = MolecularFormula::<DefaultTree>::from_str(&formula_str)?;
         assert!(formula.contains_isotopes(), "Formula {formula_str} does not contain isotopes");
         assert!(formula.contains_elements(), "Formula {formula_str} does not contain elements");
@@ -41,7 +41,7 @@ fn test_all_isotopes() -> Result<(), Box<dyn std::error::Error>> {
         );
         assert_eq!(
             formula.element_count(isotope.element()),
-            2,
+            Some(2),
             "Formula {formula_str} has incorrect count for element {isotope:?}"
         );
     }
