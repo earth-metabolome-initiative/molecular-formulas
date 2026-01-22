@@ -114,7 +114,7 @@ let parts: Vec<String> = system.subformulas()
     .map(|f| f.to_string())
     .collect();
 
-assert_eq!(parts, vec!["CuSO₄", "H₂O"]);
+assert_eq!(parts, vec!["CuSO₄", "H₂O", "H₂O", "H₂O", "H₂O", "H₂O"]);
 assert_eq!(system.number_of_mixtures(), 6); // 1 CuSO4 + 5 H2O
 ```
 
