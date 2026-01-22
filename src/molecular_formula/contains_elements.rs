@@ -19,6 +19,26 @@ impl<T: Tree> super::MolecularFormula<T> {
     pub fn contains_elements(&self) -> bool {
         self.iter_elements().next().is_some()
     }
+
+    /// Returns whether the molecular formula contains a specific element.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use elements_rs::Element;
+    /// use molecular_formulas::MolecularFormula;
+    ///
+    /// let formula: MolecularFormula = "C6H12O6".parse().unwrap();
+    /// assert!(formula.contains_element(Element::C));
+    /// assert!(formula.contains_element(Element::H));
+    /// assert!(formula.contains_element(Element::O));
+    /// assert!(!formula.contains_element(Element::N));
+    /// ```
+    #[inline]
+    pub fn contains_element(&self, element: impl Into<elements_rs::Element>) -> bool {
+        let element = element.into();
+        self.iter_elements().any(|el| el == element)
+    }
 }
 
 #[cfg(test)]

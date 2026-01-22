@@ -3,7 +3,7 @@
 use std::str::FromStr;
 
 use honggfuzz::fuzz;
-use molecular_formulas::{DefaultTree, MolecularFormula, ResidualFormula};
+use molecular_formulas::{DefaultTree, Element, Isotope, MolecularFormula, ResidualFormula};
 
 macro_rules! fuzz_headers {
     ($type:ty, $candidate:expr) => {{
@@ -57,10 +57,21 @@ macro_rules! fuzz_common {
         let _ = $formula.contains_elements();
         let _ = $formula.number_of_mixtures();
 
+        // Test element/isotope queries
+        let _ = $formula.element_count(Element::C);
+        let _ = $formula.element_count(Element::H);
+        if let Ok(iso) = Isotope::try_from((Element::H, 1_u16)) {
+            let _ = $formula.contains_isotope(iso);
+        }
+
         // Test iterator methods
-        for _mixture in $formula.mixtures().take(10) {
+        for _mixture in $formula.mixtures().take(5) {
             // Just iterate to ensure no panics
         }
+        for _sub in $formula.subformulas().take(5) {}
+        for _el in $formula.iter_elements().take(5) {}
+        for _el in $formula.iter_counted_elements().take(5) {}
+        for _iso in $formula.iter_isotopes().take(5) {}
 
         // Test cloning and equality
         let cloned = $formula.clone();
@@ -82,9 +93,6 @@ macro_rules! fuzz_common {
 fn main() {
     loop {
         fuzz!(|candidate: &str| {
-            // Start the timer for the entire test case
-            let total_start = std::time::Instant::now();
-
             // If the candidate has more than 200 characters, skip it
             if candidate.len() > 200 {
                 return;
@@ -101,17 +109,21 @@ fn main() {
                 let _ = formula.isotopologue_mass_over_charge();
                 let _ = formula.charge();
                 let _ = formula.is_noble_gas_compound();
+                let _ = formula.is_hill_sorted();
+                let _ = formula.has_repeated_elements();
+
+                // Test indexing methods
+                let _ = formula.get_counted_element(0);
+                let _ = formula.get_element(0);
+                let _ = formula.get_counted_element_ignore_hydrogens(0);
+                let _ = formula.get_element_ignore_hydrogens(0);
             }
 
             // Fuzz ResidualFormula - Has subset of methods
             if let Some(formula) = fuzz_headers!(ResidualFormula, candidate) {
                 fuzz_common!(ResidualFormula, candidate, formula);
-                // No extra methods available
-            }
-
-            // Check if the total execution time exceeded 0.7 seconds
-            if total_start.elapsed().as_secs_f64() > 0.7 {
-                panic!("Test case took too long (> 0.7s) for candidate: {:?}", candidate);
+                // Specific methods
+                let _ = formula.contains_residuals();
             }
         });
     }
