@@ -128,3 +128,16 @@ fn parse_mixture_complex_organic() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
+
+#[test]
+fn test_mix_with_greek_letter_fails() {
+    use molecular_formulas::errors::Error;
+    let water: MolecularFormula = "H2O".parse().expect("Failed to parse H2O");
+    // Using \u{03b1} for alpha, and it must be followed by hyphen
+    let alpha_water: MolecularFormula = "\u{03b1}-H2O".parse().expect("Failed to parse alpha-H2O");
+
+    let result = water.mix(alpha_water);
+
+    assert!(result.is_err(), "Expected mix to fail with Greek letter");
+    assert!(matches!(result.unwrap_err(), Error::GreekLetterNotSupported));
+}

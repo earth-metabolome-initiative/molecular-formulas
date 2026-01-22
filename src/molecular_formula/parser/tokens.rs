@@ -15,8 +15,8 @@ pub use subtokens::{
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// Represents a token in a molecular formula. The primary difference
 /// between a `Token` and a `SubToken` is that in a `SubToken` the handling
-/// of the Isotopes is not yet fully completes, as some [`SubToken::Element`]
-/// may be prefixed by some [`SubToken::BaselineNumber`] tokens. Still, this
+/// of the Isotopes is not yet fully completes, as some `SubToken::Element`
+/// may be prefixed by some `SubToken::BaselineNumber` tokens. Still, this
 /// parsing will not take into account corner cases like `[13]C` or `C[13]`,
 /// where the parsing would require a memory of the previous or next token to
 /// correctly parse the isotope, and this aspect is taken care of in the upper

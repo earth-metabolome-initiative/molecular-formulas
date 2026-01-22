@@ -8,8 +8,6 @@ A Rust crate for parsing, manipulating, and analyzing molecular formulas.
 
 It validates correctly against **123,455,852** compounds from [PubChem](https://pubchem.ncbi.nlm.nih.gov/) (99.46% mass accuracy, **~475 ns/compound**) and is **fuzzed** for over **1 billion iterations** (see the [`fuzz`](https://github.com/earth-metabolome-initiative/molecular-formulas/tree/main/fuzz) crate) to ensure we handle all sorts of textual input.
 
-We have **high test coverage** and aim to provide doctests examples for all methods to ensure the documentation is always up-to-date and working.
-
 ## Features
 
 - **Standard Parsing**: Supports nested groups (e.g., `C6H5(CH2)2OH`), hydrates, salts, isotopes (e.g., `[13C]H4` or `¹³CH₄`), and flexible charge notation (e.g., `SO4^2-`, `Fe+3`, `[OH]-`).
@@ -26,7 +24,10 @@ We have **high test coverage** and aim to provide doctests examples for all meth
   - **Average Molar Mass**.
   - **Mass over Charge** (m/z) ratio.
 - **Validation**: Tested against the entire [PubChem](https://pubchem.ncbi.nlm.nih.gov/) compound database (123M+ entries).
-- **Integration**: Optional features for [`serde`](https://crates.io/crates/serde) serialization.
+- **Ecosystem**:
+  - Built on [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs) for accurate element and isotope data.
+  - Uses [`thiserror`](https://crates.io/crates/thiserror) for ergonomic error handling.
+  - Optional [`serde`](https://crates.io/crates/serde) support for serialization.
 
 ## Installation
 
@@ -195,7 +196,7 @@ cargo test --release --test test_pubchem_validation -- --ignored --nocapture
 
 *Note: The remaining ~0.5% mismatches are largely attributed to inconsistencies or errors in the source PubChem records rather than parsing errors.*
 
-You can find a report of the worst mismatches in [worst_mismatches.md](worst_mismatches.md).
+You can find a report of the worst mismatches in [worst_mismatches.md](https://github.com/earth-metabolome-initiative/molecular-formulas/blob/main/worst_mismatches.md).
 
 ## Error Handling
 
@@ -211,4 +212,4 @@ assert!(result.is_err());
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/earth-metabolome-initiative/molecular-formulas/blob/main/LICENSE) file for details.
