@@ -2,6 +2,16 @@
 
 This directory contains fuzzing harnesses to test the robustness and correctness of the `molecular_formulas` crate using [honggfuzz](https://github.com/google/honggfuzz).
 
+## What is Fuzzing?
+
+Fuzzing (or fuzz testing) is an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program.
+
+For a parser like `molecular_formulas`, fuzzing is critical because:
+
+1. **Edge Case Discovery**: Human developers may miss obscure combinations of characters (e.g., deeply nested brackets like `((H)2)3`) that can cause crashes.
+2. **Security**: Ensure that malicious or malformed input cannot cause heavy resource consumption (Denial of Service) or panics.
+3. **Correctness**: By generating random valid inputs and checking properties (like round-trip consistency: `parse -> to_string -> parse`), we can verify logic across millions of generated formulas.
+
 ## Prerequisites
 
 To run the fuzzers, you need a Linux system (WSL works too) and the following dependencies:
