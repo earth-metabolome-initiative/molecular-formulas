@@ -105,8 +105,8 @@ fn test_largest_formula() {
     let serialized = serde_json::to_string(&largest_chemical).unwrap();
     let deserialized: MineralFormula = serde_json::from_str(&serialized).unwrap();
     assert_eq!(largest_chemical, deserialized);
-    test_all_molecular_trait_method1(&largest_chemical);
-    test_all_charged_molecular_trait_method1(&largest_chemical);
+    test_all_molecular_trait_method2(&largest_chemical);
+    test_all_charged_molecular_trait_method2(&largest_chemical);
 
     let largest_chemical: ResidualFormula = ResidualFormula::from_str(mixture).unwrap();
     let serialized = serde_json::to_string(&largest_chemical).unwrap();

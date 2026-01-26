@@ -188,20 +188,11 @@ Current benchmarks cover:
 - **InChIFormula**: Parsing a large mixture string with 76 components (**~3.75 µs**).
 - **ChemicalFormula**: Parsing a complex formula with unicode subscripts, charges, and multiple elements (`C₃₉₀H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂³⁻`) (**~801 ns**).
 
-## Error Handling
-
-The parser includes detailed error detection for invalid formulas and provides descriptive error messages, distinguishing between tokenization errors, invalid valences (where applicable), and structure mismatches.
-
 ## Current Limitations
 
 At this time, the parser does not support and might support in the future:
 
 - Fractional counts (e.g., `C1.5H3`).
-
-## Resources
-
-- [**PubChem**](https://pubchem.ncbi.nlm.nih.gov/): The source of the massive dataset used to validate this crate.
-- [**elements-rs**](https://github.com/earth-metabolome-initiative/elements-rs): The underlying crate providing periodic table and isotope data.
 
 ## License
 
