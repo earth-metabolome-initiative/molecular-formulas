@@ -36,8 +36,10 @@ impl<Count: CountLike, Charge: ChargeLike> AddAssign for ChemicalFormula<Count, 
         for (other_count, other_tree) in other.mixtures {
             let mut found = false;
             for (self_count, self_tree) in &mut self.mixtures {
-                if *self_tree == other_tree {
-                    *self_count = (*self_count) + other_count;
+                if *self_tree == other_tree
+                    && let Some(new_count) = self_count.checked_add(&other_count)
+                {
+                    *self_count = new_count;
                     found = true;
                     break;
                 }
@@ -109,5 +111,82 @@ impl<Count: CountLike, Charge: ChargeLike> Display for ChemicalFormula<Count, Ch
             write!(f, "{tree}")?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+    use core::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn test_add_same_molecules() {
+        let f1 = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
+        let f2 = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
+        let sum = f1 + f2;
+        assert_eq!(sum.to_string(), "2H₂O");
+    }
+
+    #[test]
+    fn test_add_different_molecules() {
+        let f1 = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
+        let f2 = ChemicalFormula::<u32, i32>::from_str("NaCl").unwrap();
+        let sum = f1 + f2;
+        // The implementation appends new mixtures to the end
+        assert_eq!(sum.to_string(), "H₂O.NaCl");
+    }
+
+    #[test]
+    fn test_add_assign_mixture() {
+        let mut f1 = ChemicalFormula::<u32, i32>::from_str("2H2O").unwrap();
+        let f2 = ChemicalFormula::<u32, i32>::from_str("3H2O.NaCl").unwrap();
+
+        f1 += f2;
+        // 2H2O + (3H2O + NaCl) -> (2+3)H2O + NaCl -> 5H2O.NaCl
+        assert_eq!(f1.to_string(), "5H₂O.NaCl");
+    }
+
+    #[test]
+    fn test_add_complex() {
+        let f1 = ChemicalFormula::<u32, i32>::from_str("C6H12O6").unwrap();
+        let f2 = ChemicalFormula::<u32, i32>::from_str("6O2").unwrap();
+        let sum = f1 + f2;
+        assert_eq!(sum.to_string(), "C₆H₁₂O₆.6O₂");
+    }
+
+    #[test]
+    fn test_charge_summation() {
+        use crate::ChargedMolecularFormula;
+        let f1 = ChemicalFormula::<u32, i32>::from_str("Na+").unwrap();
+        assert!((f1.charge() - 1.0).abs() < f64::EPSILON);
+
+        let f2 = ChemicalFormula::<u32, i32>::from_str("2Na+").unwrap();
+        assert!(
+            (f2.charge() - 2.0).abs() < f64::EPSILON,
+            "Charge of 2Na+ should be 2.0, got {}",
+            f2.charge()
+        );
+
+        let f3 = f1 + f2;
+        assert_eq!(f3.to_string(), "3Na⁺");
+        assert!(
+            (f3.charge() - 3.0).abs() < f64::EPSILON,
+            "Charge of 3Na+ should be 3.0, got {}",
+            f3.charge()
+        );
+    }
+
+    #[test]
+    fn test_add_overflow_chains() {
+        // Use u8 for count to easily trigger overflow
+        let f1 = ChemicalFormula::<u8, i16>::from_str("250H2O").unwrap();
+        let f2 = ChemicalFormula::<u8, i16>::from_str("10H2O").unwrap();
+
+        // 250 + 10 = 260 (overflow u8 which is max 255)
+        // Should result in 250H2O.10H2O
+        let sum = f1 + f2;
+        assert_eq!(sum.to_string(), "250H₂O.10H₂O");
     }
 }

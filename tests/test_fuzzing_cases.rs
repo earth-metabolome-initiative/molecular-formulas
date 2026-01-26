@@ -328,3 +328,17 @@ fn test_fuzzing_case32() {
         ParserError::UnexpectedCharacter(')')
     );
 }
+
+#[test]
+fn test_fuzzing_case33() {
+    // Overflow when adding counts 3932139065 + 3932139065 for mixture Rh[¹H] +
+    // Rh[¹H]
+    let left_formula = "Rh[¹H]";
+    let right_formula = "Rh[¹H]";
+    let left: ChemicalFormula<u32, i32> =
+        ChemicalFormula::from_str(left_formula).expect("Failed to parse formula");
+    let right: ChemicalFormula<u32, i32> =
+        ChemicalFormula::from_str(right_formula).expect("Failed to parse formula");
+    let sum = left + right;
+    assert_eq!(sum.to_string(), "2Rh[¹H]");
+}

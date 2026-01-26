@@ -253,7 +253,12 @@ pub trait ChargedMolecularFormula:
     ///
     /// Returns None if the provided data type C cannot represent the charge.
     fn charge(&self) -> f64 {
-        self.mixtures().map(|(_, tree)| tree.charge()).sum()
+        self.mixtures()
+            .map(|(count, tree)| {
+                let count: f64 = count.into();
+                count * tree.charge()
+            })
+            .sum()
     }
 
     /// Returns the isotopologue mass with charge considered.

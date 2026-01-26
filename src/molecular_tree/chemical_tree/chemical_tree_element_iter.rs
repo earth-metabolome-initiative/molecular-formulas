@@ -2,6 +2,7 @@
 //! tree.
 
 use alloc::boxed::Box;
+use core::iter::Empty;
 
 use elements_rs::{Element, Isotope};
 
@@ -11,12 +12,8 @@ use crate::{
 };
 
 #[allow(clippy::type_complexity)]
-pub enum ChemicalTreeElementIter<
-    'a,
-    Count: CountLike + 'a,
-    Charge: ChargeLike + 'a,
-    Extension: MolecularTree<Count> + 'a,
-> {
+pub enum ChemicalTreeElementIter<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: 'a>
+{
     /// An atom (element)
     Element(<Element as MolecularTree<Count>>::ElementIter<'a>),
     /// An isotope (element with mass number)
@@ -32,10 +29,10 @@ pub enum ChemicalTreeElementIter<
     /// A repeating unit wrapped in round brackets
     Unit(Box<<BracketNode<Box<ChemicalTree<Count, Charge, Extension>>> as MolecularTree<Count>>::ElementIter<'a>>),
     /// An extension node for arbitrary extensions
-    Extension(<Extension as MolecularTree<Count>>::ElementIter<'a>),
+    Extension(Empty<Element>),
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: MolecularTree<Count> + 'a>
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension>
     From<&'a ChemicalTree<Count, Charge, Extension>>
     for ChemicalTreeElementIter<'a, Count, Charge, Extension>
 {
@@ -54,15 +51,13 @@ impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: MolecularTre
             ChemicalTree::Repeat(r) => ChemicalTreeElementIter::Repeat(Box::new(r.elements())),
             ChemicalTree::Sequence(s) => ChemicalTreeElementIter::Sequence(Box::new(s.elements())),
             ChemicalTree::Unit(b) => ChemicalTreeElementIter::Unit(Box::new(b.elements())),
-            ChemicalTree::Extension(extension) => {
-                ChemicalTreeElementIter::Extension(extension.elements())
-            }
+            ChemicalTree::Extension(_) => ChemicalTreeElementIter::Extension(core::iter::empty()),
         }
     }
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: MolecularTree<Count> + 'a>
-    Iterator for ChemicalTreeElementIter<'a, Count, Charge, Extension>
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: 'a> Iterator
+    for ChemicalTreeElementIter<'a, Count, Charge, Extension>
 {
     type Item = Element;
 

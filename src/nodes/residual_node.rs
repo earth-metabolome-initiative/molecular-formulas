@@ -21,12 +21,6 @@ impl Display for Residual {
     }
 }
 
-impl From<Residual> for char {
-    fn from(_: Residual) -> Self {
-        'R'
-    }
-}
-
 impl TryFrom<char> for Residual {
     type Error = ();
 

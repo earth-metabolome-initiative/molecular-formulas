@@ -242,7 +242,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> ChemicalTree<Count, Charge
     }
 }
 
-impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> MolecularTree<Count>
+impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
     for ChemicalTree<Count, Charge, Extension>
 {
     type ElementIter<'a>
@@ -263,7 +263,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.contains_elements(),
             Self::Sequence(s) => s.contains_elements(),
             Self::Unit(b) => b.contains_elements(),
-            Self::Extension(e) => e.contains_elements(),
+            Self::Extension(_) => false, // Empty node has no elements
         }
     }
 
@@ -276,7 +276,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.contains_isotopes(),
             Self::Sequence(s) => s.contains_isotopes(),
             Self::Unit(b) => b.contains_isotopes(),
-            Self::Extension(e) => e.contains_isotopes(),
+            Self::Extension(_) => false, // Empty node has no isotopes
         }
     }
 
@@ -289,7 +289,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.contains_element(element),
             Self::Sequence(s) => s.contains_element(element),
             Self::Unit(b) => b.contains_element(element),
-            Self::Extension(e) => e.contains_element(element),
+            Self::Extension(_) => false, // Empty node has no elements
         }
     }
 
@@ -302,7 +302,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.contains_isotope(isotope),
             Self::Sequence(s) => s.contains_isotope(isotope),
             Self::Unit(b) => b.contains_isotope(isotope),
-            Self::Extension(e) => e.contains_isotope(isotope),
+            Self::Extension(_) => false, // Empty node has no isotopes
         }
     }
 
@@ -327,7 +327,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.count_of_element::<C>(element),
             Self::Sequence(s) => s.count_of_element::<C>(element),
             Self::Unit(b) => b.count_of_element::<C>(element),
-            Self::Extension(e) => e.count_of_element::<C>(element),
+            Self::Extension(_) => None,
         }
     }
 
@@ -352,7 +352,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.count_of_isotope::<C>(isotope),
             Self::Sequence(s) => s.count_of_isotope::<C>(isotope),
             Self::Unit(b) => b.count_of_isotope::<C>(isotope),
-            Self::Extension(e) => e.count_of_isotope::<C>(isotope),
+            Self::Extension(_) => None,
         }
     }
 
@@ -365,7 +365,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.isotopologue_mass(),
             Self::Sequence(s) => s.isotopologue_mass(),
             Self::Unit(b) => b.isotopologue_mass(),
-            Self::Extension(e) => e.isotopologue_mass(),
+            Self::Extension(_) => 0.0,
         }
     }
 
@@ -378,7 +378,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: MolecularTree<Count>> Mole
             Self::Repeat(r) => r.is_noble_gas_compound(),
             Self::Sequence(s) => s.is_noble_gas_compound(),
             Self::Unit(b) => b.is_noble_gas_compound(),
-            Self::Extension(e) => e.is_noble_gas_compound(),
+            Self::Extension(_) => false, // Empty node has no noble gas compounds
         }
     }
 }
@@ -400,8 +400,8 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Display> Display
     }
 }
 
-impl<Count: CountLike, Charge: ChargeLike, Extension: ChargedMolecularTree<Count, Charge>>
-    ChargedMolecularTree<Count, Charge> for ChemicalTree<Count, Charge, Extension>
+impl<Count: CountLike, Charge: ChargeLike, Extension> ChargedMolecularTree<Count, Charge>
+    for ChemicalTree<Count, Charge, Extension>
 {
     fn charge(&self) -> f64 {
         match self {
@@ -412,7 +412,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: ChargedMolecularTree<Count
             Self::Repeat(r) => r.charge(),
             Self::Sequence(s) => s.charge(),
             Self::Unit(b) => b.charge(),
-            Self::Extension(e) => e.charge(),
+            Self::Extension(_) => 0.0,
         }
     }
 
@@ -429,7 +429,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: ChargedMolecularTree<Count
             Self::Repeat(r) => r.isotopologue_mass_with_charge(),
             Self::Sequence(s) => s.isotopologue_mass_with_charge(),
             Self::Unit(b) => b.isotopologue_mass_with_charge(),
-            Self::Extension(e) => e.isotopologue_mass_with_charge(),
+            Self::Extension(_) => 0.0,
         }
     }
 
@@ -442,7 +442,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: ChargedMolecularTree<Count
             Self::Repeat(r) => r.molar_mass(),
             Self::Sequence(s) => s.molar_mass(),
             Self::Unit(b) => b.molar_mass(),
-            Self::Extension(e) => e.molar_mass(),
+            Self::Extension(_) => 0.0,
         }
     }
 }
