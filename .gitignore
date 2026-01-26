@@ -24,3 +24,4 @@ CID-Mass
 CID-Mass.gz
 CID-InChI-Key
 CID-InChI-Key.gz
+build_rs_cov.profraw

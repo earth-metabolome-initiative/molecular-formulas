@@ -32,7 +32,7 @@ pub enum ParserError {
     UnexpectedCharacter(char),
     /// The formula is not compliant with the Hill system ordering.
     #[error("The formula is not compliant with the Hill system ordering.")]
-    NonHillOrdered,
+    NotHillOrdered,
     /// An error encountered from the elements-rs crate.
     #[error("Element error: {0}")]
     Element(#[from] elements_rs::errors::Error),

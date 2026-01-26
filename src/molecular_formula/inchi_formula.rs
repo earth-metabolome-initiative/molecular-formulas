@@ -50,7 +50,7 @@ impl<Count: CountLike> ParsableFormula for InChIFormula<Count> {
         let inchi = InChIFormula { mixtures };
 
         if !inchi.is_hill_sorted() {
-            return Err(crate::errors::ParserError::NonHillOrdered);
+            return Err(crate::errors::ParserError::NotHillOrdered);
         }
 
         Ok(inchi)

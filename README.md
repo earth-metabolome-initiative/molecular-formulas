@@ -28,6 +28,7 @@ It validates correctly against **123,455,852** compounds from [PubChem](https://
   - Built on [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs) for accurate element and isotope data.
   - Uses [`thiserror`](https://crates.io/crates/thiserror) for ergonomic error handling.
   - Optional [`serde`](https://crates.io/crates/serde) support for serialization/deserialization.
+- **Embedded Compatible**: `#![no_std]` capable (requires `alloc`), making it suitable for WASM and embedded applications.
 
 ## Installation
 
@@ -48,18 +49,14 @@ Here are some examples of how to use the library:
 use std::str::FromStr;
 use molecular_formulas::prelude::*;
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    // efficient u16 counters and i16 charge
-    // Note: You can use u32 or u64 for larger molecules.
-    let formula = ChemicalFormula::from_str("C6H12O6")?;
+// efficient u16 counters and i16 charge
+// Note: You can use u32 or u64 for larger molecules.
+let formula: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
 
-    println!("Formula: {}", formula);
-    println!("Monoisotopic Mass: {} Da", formula.monoisotopic_mass().unwrap());
-    println!("Average Mass: {} Da", formula.average_weight().unwrap());
-    println!("Charge: {}", formula.charge());
-
-    Ok(())
-}
+println!("Formula: {}", formula);
+println!("Monoisotopic Mass: {} Da", formula.isotopologue_mass());
+println!("Average Mass: {} Da", formula.molar_mass());
+println!("Charge: {}", formula.charge());
 ```
 
 ### Complex Formulas, Hydrates and Ions
@@ -70,18 +67,16 @@ The parser handles parentheses, brackets, hydrates (dots), and charges with ease
 use std::str::FromStr;
 use molecular_formulas::prelude::*;
 
-fn main() {
-    // Copper(II) sulfate pentahydrate
-    let hydrate = ChemicalFormula::from_str("CuSO4.5H2O").unwrap();
-    assert_eq!(hydrate.to_string(), "CuSO4.5H2O");
-    
-    // An ion with unicode charge notation
-    let ion = ChemicalFormula::from_str("SO₄²⁻").unwrap();
-    assert_eq!(ion.charge(), -2);
-    
-    // Recursively nested groups
-    let complex = ChemicalFormula::from_str("[Co(NH3)5Cl]Cl2").unwrap();
-}
+// Copper(II) sulfate pentahydrate
+let hydrate: ChemicalFormula = ChemicalFormula::from_str("CuSO4.5H2O").unwrap();
+assert_eq!(hydrate.to_string(), "CuSO₄.5H₂O");
+
+// An ion with unicode charge notation
+let ion: ChemicalFormula = ChemicalFormula::from_str("SO₄²⁻").unwrap();
+assert_eq!(ion.charge(), -2.0);
+
+// Recursively nested groups
+let complex: ChemicalFormula = ChemicalFormula::from_str("[Co(NH3)5Cl]Cl2").unwrap();
 ```
 
 ### Isotopes
@@ -92,17 +87,16 @@ You can specify isotopes using standard notation (superscripts or square bracket
 use std::str::FromStr;
 use molecular_formulas::prelude::*;
 
-fn main() {
-    // Carbon-13 labeled methane
-    let labeled = ChemicalFormula::from_str("[13C]H4").unwrap();
-    // or
-    let labeled_unicode = ChemicalFormula::from_str("¹³CH₄").unwrap();
-    
-    assert_eq!(labeled, labeled_unicode);
-    
-    // Check if it contains specific isotopes
-    assert!(labeled.contains_isotope(Isotope::Carbon13));
-}
+// Carbon-13 labeled methane
+let labeled: ChemicalFormula = ChemicalFormula::from_str("[13C]H4").unwrap();
+// or
+let labeled_unicode: ChemicalFormula = ChemicalFormula::from_str("¹³CH₄").unwrap();
+
+assert_eq!(labeled, labeled_unicode);
+
+// Check if it contains specific isotopes
+let c13 = Isotope::try_from((Element::C, 13_u16)).unwrap();
+assert!(labeled.contains_isotope(c13));
 ```
 
 ### OCR-Resistant Parsing
@@ -113,19 +107,34 @@ The parser is designed to be robust against common OCR errors and unicode variat
 use std::str::FromStr;
 use molecular_formulas::prelude::*;
 
-fn main() {
-    // Standard notation
-    let f1 = ChemicalFormula::from_str("CuSO4.5H2O").unwrap();
-    // OCR error: '｡' (Halfwidth Ideographic Full Stop) instead of '.'
-    let f2 = ChemicalFormula::from_str("CuSO4｡5H2O").unwrap();
-    assert_eq!(f1, f2);
+// Standard notation
+let f1: ChemicalFormula = ChemicalFormula::from_str("CuSO4.5H2O").unwrap();
+// OCR error: '｡' (Halfwidth Ideographic Full Stop) instead of '.'
+let f2: ChemicalFormula = ChemicalFormula::from_str("CuSO4｡5H2O").unwrap();
+assert_eq!(f1, f2);
 
-    // Standard charge
-    let c1 = ChemicalFormula::from_str("SO4-2").unwrap();
-    // OCR error: Using En Dash '–' instead of Minus '-'
-    let c2 = ChemicalFormula::from_str("SO4–2").unwrap();
-    assert_eq!(c1, c2);
-}
+// Standard charge
+let c1: ChemicalFormula = ChemicalFormula::from_str("SO4-2").unwrap();
+// OCR error: Using En Dash '–' instead of Minus '-'
+let c2: ChemicalFormula = ChemicalFormula::from_str("SO4–2").unwrap();
+assert_eq!(c1, c2);
+```
+
+### InChI Formula Validation
+
+The library supports strictly validated InChI-style formulas, which enforce Hill notation sorting (C first, H second, then alphabetical).
+
+```rust
+use std::str::FromStr;
+use molecular_formulas::errors::ParserError;
+use molecular_formulas::prelude::*;
+
+// Valid Hill-sorted formula
+let valid: InChIFormula = InChIFormula::from_str("C2H5O").unwrap();
+
+// Invalid: Not Hill-sorted (O comes before H)
+let invalid: Result<InChIFormula, _> = InChIFormula::from_str("C2OH5");
+assert_eq!(invalid.unwrap_err(), ParserError::NotHillOrdered);
 ```
 
 ## Validation against PubChem
