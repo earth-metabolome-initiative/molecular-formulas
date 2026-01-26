@@ -44,26 +44,21 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
         assert!(!count.is_zero());
         assert!(m.contains_element(element));
     }
-    assert!(!m.contains_isotopes());
+    assert!(m.contains_isotopes());
     assert!(m.contains_elements());
     assert!(
-        (m.isotopologue_mass() - 8680.878204617129).abs() < f64::EPSILON,
+        (m.isotopologue_mass() - 9492.200799867811).abs() < f64::EPSILON,
         "Found mass: {}",
         m.isotopologue_mass()
     );
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
-
-    for isotope in HydrogenIsotope::iter() {
-        assert!(!m.contains_isotope(isotope.into()));
-        assert_eq!(m.count_of_isotope::<M::Count>(isotope.into()), Some(M::Count::zero()));
-    }
 }
 
 fn test_all_charged_molecular_trait_method2<M: ChargedMolecularFormula>(m: &M) {
     assert!((m.charge() + 3.0).abs() < f64::EPSILON, "Found charge: {}", m.charge());
     assert!(
-        (m.isotopologue_mass_with_charge() - 8680.879850356856).abs() < f64::EPSILON,
+        (m.isotopologue_mass_with_charge() - 9492.202445607538).abs() < f64::EPSILON,
         "Found mass: {}",
         m.isotopologue_mass_with_charge()
     );
@@ -105,7 +100,7 @@ fn test_largest_inchi() {
 
 #[test]
 fn test_largest_formula() {
-    let mixture = "C₃₉₀H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂³⁻";
+    let mixture = "•([C₃₉₀³H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂³⁻•])";
     let largest_chemical: ChemicalFormula = ChemicalFormula::from_str(mixture).unwrap();
     let serialized = serde_json::to_string(&largest_chemical).unwrap();
     let deserialized: ChemicalFormula = serde_json::from_str(&serialized).unwrap();
