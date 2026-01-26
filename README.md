@@ -185,7 +185,7 @@ cargo bench
 
 Current benchmarks cover:
 
-- **InChIFormula**: Parsing a large mixture string with ~60 components (**~3.75 µs**).
+- **InChIFormula**: Parsing a large mixture string with 76 components (**~3.75 µs**).
 - **ChemicalFormula**: Parsing a complex formula with unicode subscripts, charges, and multiple elements (`C₃₉₀H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂³⁻`) (**~801 ns**).
 
 ## Error Handling
