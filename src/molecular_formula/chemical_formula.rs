@@ -3,13 +3,16 @@
 //! than InChI, allowing for a wider variety of notations.
 
 use alloc::vec::Vec;
-use core::{fmt::Display, ops::AddAssign};
-use core::ops::Add;
+use core::{
+    fmt::Display,
+    ops::{Add, AddAssign},
+};
 
 use elements_rs::Isotope;
 
 use crate::{
-    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, prelude::ChemicalTree
+    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, MolecularFormula,
+    MolecularFormulaMetadata, ParsableFormula, prelude::ChemicalTree,
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
@@ -45,7 +48,6 @@ impl<Count: CountLike, Charge: ChargeLike> AddAssign for ChemicalFormula<Count, 
         }
     }
 }
-
 
 impl<Count: CountLike, Charge: ChargeLike> MolecularFormulaMetadata
     for ChemicalFormula<Count, Charge>

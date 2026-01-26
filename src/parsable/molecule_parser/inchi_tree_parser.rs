@@ -10,7 +10,8 @@ use crate::{
     },
 };
 
-impl<I: Iterator<Item = char>, Count: CountLike> MolecularTreeParser<Count, SequenceNode<InChITree<Count>>>
+impl<I: Iterator<Item = char>, Count: CountLike>
+    MolecularTreeParser<Count, SequenceNode<InChITree<Count>>>
     for MoleculeParser<I, InChIFormula<Count>>
 {
     fn extend_tree(

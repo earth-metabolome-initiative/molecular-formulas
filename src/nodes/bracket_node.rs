@@ -95,7 +95,7 @@ impl<Count, T: crate::MolecularTree<Count>> crate::MolecularTree<Count> for Brac
     fn isotopologue_mass(&self) -> f64 {
         self.tree.isotopologue_mass()
     }
-    
+
     fn is_noble_gas_compound(&self) -> bool {
         self.tree.is_noble_gas_compound()
     }

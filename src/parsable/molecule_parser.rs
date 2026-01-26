@@ -58,9 +58,7 @@ where
         &mut self,
     ) -> Result<Option<<M::Tree as ParsableMolecularTree<M::Count>>::Token>, ParserError> {
         match self.tokens.peek().copied() {
-            Some(Ok(token)) => {
-                Ok(Some(token))
-            }
+            Some(Ok(token)) => Ok(Some(token)),
             Some(Err(e)) => Err(e),
             None => Ok(None),
         }
@@ -71,9 +69,7 @@ where
         &mut self,
     ) -> Result<<M::Tree as ParsableMolecularTree<M::Count>>::Token, ParserError> {
         match self.tokens.next() {
-            Some(Ok(token)) => {
-                Ok(token)
-            }
+            Some(Ok(token)) => Ok(token),
             Some(Err(e)) => Err(e),
             None => Err(ParserError::UnexpectedEndOfInput),
         }
@@ -83,7 +79,11 @@ where
     fn consume_mixture_separator(&mut self) -> Result<bool, ParserError> {
         match self.tokens.next() {
             Some(Ok(token)) => {
-                if token.is_mixture_separator() { Ok(true) } else { Ok(false) }
+                if token.is_mixture_separator() {
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
             }
             Some(Err(e)) => Err(e),
             None => Ok(true), // End of input is also a valid mixture separator

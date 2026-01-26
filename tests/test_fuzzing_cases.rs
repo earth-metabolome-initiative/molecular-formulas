@@ -212,3 +212,39 @@ fn test_fuzzing_case22() {
         ParserError::UnexpectedCharacter('₁')
     );
 }
+
+#[test]
+fn test_fuzzing_case23() {
+    let formula = "[²⁶⁷Hs]⁻³²⁷⁶⁷⁻";
+    // We expect this to fail parsing due to invalid charge.
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter('⁻')
+    );
+}
+
+#[test]
+fn test_fuzzing_case24() {
+    let formula = "[²⁶⁷Hs]BuCp³²⁷⁶⁷⁻";
+    // We expect this to succeed parsing and
+    // create a formula with a charge of `-32767`.
+    let parsed: ChemicalFormula<u16, i16> =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+
+    assert!(
+        (parsed.charge() + 32768.0).abs() < f64::EPSILON,
+        "Parsed formula had a charge of {}",
+        parsed.charge()
+    );
+    assert_eq!(
+        parsed.to_string(),
+        "[²⁶⁷Hs](C₄H₉)(C₅H₅)³²⁷⁶⁸⁻",
+        "Parsed formula was {parsed:?} with a charge of {}",
+        parsed.charge()
+    );
+
+    // We ensure we can round-trip the formula string.
+    let reparsed: ChemicalFormula<u16, i16> =
+        ChemicalFormula::from_str(&parsed.to_string()).expect("Failed to reparse formula");
+    assert_eq!(parsed, reparsed, "Reparsed formula did not match original");
+}

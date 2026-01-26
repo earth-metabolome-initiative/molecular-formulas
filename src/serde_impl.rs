@@ -1,11 +1,11 @@
 #![cfg(feature = "serde")]
 
+use alloc::string::{String, ToString};
 use core::str::FromStr;
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::{ChargeLike, ChemicalFormula, CountLike, MineralFormula, errors::ParserError};
-use alloc::string::{String, ToString};
 
 impl<Count: CountLike, Charge: ChargeLike> Serialize for ChemicalFormula<Count, Charge> {
     #[inline]

@@ -47,7 +47,8 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     fn number_of_mixtures(&self) -> usize {
         self.mixtures()
             .map(|(count, _)| {
-                let count: usize = count.into();
+                let count: usize =
+                    count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?");
                 count
             })
             .sum()
@@ -55,8 +56,9 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
 
     /// Iterates over the elements in the molecular formula.
     fn elements(&self) -> impl Iterator<Item = Element> {
-        self.mixtures()
-            .flat_map(|(count, tree)| repeat_n(tree, count.into()).flat_map(MolecularTree::elements))
+        self.mixtures().flat_map(|(count, tree)| {
+            repeat_n(tree, count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?")).flat_map(MolecularTree::elements)
+        })
     }
 
     /// Returns whether the molecular formula contains any elements.

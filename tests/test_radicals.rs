@@ -5,20 +5,11 @@ use molecular_formulas::{errors::ParserError, prelude::*};
 #[test]
 /// Test to validate that the appropriate error is raised for invalid radicals.
 fn test_invalid_radicals() {
-    assert_eq!(
-        ChemicalFormula::<u16, i16>::try_from("·"),
-        Err(ParserError::EmptyMolecularTree)
-    );
+    assert_eq!(ChemicalFormula::<u16, i16>::try_from("·"), Err(ParserError::EmptyMolecularTree));
 
-    assert_eq!(
-        ChemicalFormula::<u16, i16>::try_from("·+"),
-        Err(ParserError::EmptyMolecularTree)
-    );
+    assert_eq!(ChemicalFormula::<u16, i16>::try_from("·+"), Err(ParserError::EmptyMolecularTree));
 
-    assert_eq!(
-        ChemicalFormula::<u16, i16>::try_from("-·"),
-        Err(ParserError::EmptyMolecularTree)
-    );
+    assert_eq!(ChemicalFormula::<u16, i16>::try_from("-·"), Err(ParserError::EmptyMolecularTree));
 
     assert_eq!(
         ChemicalFormula::<u16, i16>::try_from("H2O··"),

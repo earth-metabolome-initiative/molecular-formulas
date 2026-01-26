@@ -68,8 +68,13 @@ impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: MolecularTre
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            ChemicalTreeElementIter::Element(iter) | ChemicalTreeElementIter::Isotope(iter) => iter.next(),
-            ChemicalTreeElementIter::Radical(iter) | ChemicalTreeElementIter::Charge(iter) | ChemicalTreeElementIter::Repeat(iter) | ChemicalTreeElementIter::Unit(iter) => iter.next(),
+            ChemicalTreeElementIter::Element(iter) | ChemicalTreeElementIter::Isotope(iter) => {
+                iter.next()
+            }
+            ChemicalTreeElementIter::Radical(iter)
+            | ChemicalTreeElementIter::Charge(iter)
+            | ChemicalTreeElementIter::Repeat(iter)
+            | ChemicalTreeElementIter::Unit(iter) => iter.next(),
             ChemicalTreeElementIter::Sequence(iter) => iter.next(),
             ChemicalTreeElementIter::Extension(iter) => iter.next(),
         }

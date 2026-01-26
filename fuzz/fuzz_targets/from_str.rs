@@ -30,7 +30,8 @@ fn parse<M: FromStr>(candidate: &str) -> Option<M> {
     }
 }
 
-fn round_trip<M: Display + FromStr<Err: Debug> + Eq + Debug + Serialize + DeserializeOwned>(
+fn round_trip<M: Display + FromStr<Err: Display> + Eq + Debug + Serialize + DeserializeOwned>(
+    candidate: &str,
     formula: &M,
 ) {
     // We check that the display works without panicking
@@ -42,14 +43,12 @@ fn round_trip<M: Display + FromStr<Err: Debug> + Eq + Debug + Serialize + Deseri
         Ok(reparsed_formula) => {
             assert_eq!(
                 formula, &reparsed_formula,
-                "Round trip failed. Original: {}, Display: {}, Re-parsed: `{}`",
-                formula, display_string, reparsed_formula
+                "Round trip failed of {candidate}. Original: {formula}, Display: {display_string}, Re-parsed: `{reparsed_formula}`"
             )
         }
         Err(err) => {
             panic!(
-                "Failed to re-parse display string. Original: {:?}, Display: {:?}, Error: {:?}",
-                formula, display_string, err
+                "Failed to re-parse display string of {candidate}. Original: {formula}, Display: {display_string}, Error: {err}"
             )
         }
     }
@@ -96,29 +95,35 @@ fn fuzz_charged_molecular_formula<M: ChargedMolecularFormula>(formula: &M) {
     let _ = formula.charge();
 }
 
+/// We need to use an `u16` count type to ensure that all possible Isotope
+/// values can be represented (some isotopes have mass numbers > 255).
+type CountType = u16;
+/// We use the smallest possible charge type.
+type ChargeType = i8;
+
 fn main() {
     loop {
-        fuzz!(|data: FuzzFormula<u16, i16, Residual>| {
-            if let Some(formula) = parse::<ChemicalFormula<u16, i16>>(&data.as_ref()) {
-                round_trip(&formula);
+        fuzz!(|data: FuzzFormula<CountType, ChargeType, Residual>| {
+            if let Some(formula) = parse::<ChemicalFormula<CountType, ChargeType>>(&data.as_ref()) {
+                round_trip(&data.as_ref(), &formula);
                 fuzz_molecular_formula(&formula);
                 fuzz_charged_molecular_formula(&formula);
             }
 
-            if let Some(formula) = parse::<MineralFormula<u16, i16>>(&data.as_ref()) {
-                round_trip(&formula);
+            if let Some(formula) = parse::<MineralFormula<CountType, ChargeType>>(&data.as_ref()) {
+                round_trip(&data.as_ref(), &formula);
                 fuzz_molecular_formula(&formula);
                 fuzz_charged_molecular_formula(&formula);
             }
 
-            if let Some(formula) = parse::<InChIFormula<u16>>(&data.as_ref()) {
-                round_trip(&formula);
+            if let Some(formula) = parse::<InChIFormula<CountType>>(&data.as_ref()) {
+                round_trip(&data.as_ref(), &formula);
                 fuzz_molecular_formula(&formula);
             }
 
             // Fuzz ResidualFormula - Has subset of methods
-            if let Some(formula) = parse::<ResidualFormula<u16, i16>>(&data.as_ref()) {
-                round_trip(&formula);
+            if let Some(formula) = parse::<ResidualFormula<CountType, ChargeType>>(&data.as_ref()) {
+                round_trip(&data.as_ref(), &formula);
                 // Specific methods
                 let _ = formula.contains_residuals();
             }

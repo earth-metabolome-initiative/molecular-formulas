@@ -5,7 +5,9 @@
 use elements_rs::Isotope;
 
 use crate::{
-    ChargeLike, ChemicalTree, CountLike, Empty, MineralFormula, Token, errors::ParserError, parsable::{MoleculeParser, molecule_parser::MolecularTreeParser}
+    ChargeLike, ChemicalTree, CountLike, Empty, MineralFormula, Token,
+    errors::ParserError,
+    parsable::{MoleculeParser, molecule_parser::MolecularTreeParser},
 };
 
 impl<I: Iterator<Item = char>, Count: CountLike, Charge: ChargeLike>

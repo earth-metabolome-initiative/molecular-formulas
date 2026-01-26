@@ -15,11 +15,11 @@ mod sequence_node;
 
 pub(crate) use bracket_node::BracketNode;
 pub(crate) use charge_node::ChargeNode;
+pub(crate) use empty_node::Empty;
 pub(crate) use radical_node::{Radical, RadicalNode};
 pub(crate) use repeat_node::RepeatNode;
 pub use residual_node::Residual;
 pub(crate) use sequence_node::SequenceNode;
-pub(crate) use empty_node::Empty;
 
 /// Trait defining an extension tree for molecular formulas.
 pub trait Node: Sized {}

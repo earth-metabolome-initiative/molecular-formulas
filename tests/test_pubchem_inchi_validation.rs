@@ -73,12 +73,7 @@ fn validate_pubchem_inchi(file_path: &Path) -> Result<(), Box<dyn std::error::Er
         }
 
         let _formula: InChIFormula = InChIFormula::from_str(formula_portion).map_err(|e| {
-            format!(
-                "Failed to parse formula `{}` for CID {}: {}",
-                result.inchi,
-                result.cid,
-                e
-            )
+            format!("Failed to parse formula `{}` for CID {}: {}", result.inchi, result.cid, e)
         })?;
 
         parsed_count += 1;

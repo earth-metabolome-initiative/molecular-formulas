@@ -19,8 +19,8 @@ use crate::{
 };
 
 /// Marker trait for typesettings that support charge notation.
-pub trait ChargeLike: NumberLike + Signed + CheckedNeg + Into<i32>{}
-impl<T> ChargeLike for T where T: NumberLike + Signed + CheckedNeg + Into<i32> {}
+pub trait ChargeLike: NumberLike + Signed + CheckedNeg + Into<i32> + TryFrom<i64> {}
+impl<T> ChargeLike for T where T: NumberLike + Signed + CheckedNeg + Into<i32> + TryFrom<i64> {}
 
 mod brackets;
 mod digits;
@@ -164,7 +164,24 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
         M::Charge: From<CS::Digit>,
     {
         let charge = self.parse_charge::<CS>()?;
+        // Charges cannot be immediately followed by another charge or digit.
+        if self.parse_any_charge_candidate() {
+            return Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap()));
+        }
         Ok(SubToken::Charge(charge))
+    }
+
+    /// Returns whether any charge or superscript digit can be parsed next.
+    fn parse_any_charge_candidate(&mut self) -> bool {
+        if let Some(c) = self.stream.peek().copied() {
+            SuperscriptMinus::matches(c)
+                || SuperscriptPlus::matches(c)
+                || BaselinePlus::matches(c)
+                || BaselineMinus::matches(c)
+                || SuperscriptDigit::try_from(c).is_ok()
+        } else {
+            false
+        }
     }
 }
 
@@ -205,14 +222,12 @@ where
             return Some(match self.stream.peek().copied() {
                 Some(c) if SuperscriptMinus::matches(c) => {
                     self.stream.next();
-                    M::Charge::try_from(count)
-                        .map_err(|_| NumericError::PositiveOverflow)
-                        .and_then(|ch| {
-                            Ok(SubToken::Charge(
-                                ch.checked_neg().ok_or(NumericError::NegativeOverflow)?,
-                            ))
-                        })
-                        .map_err(Into::into)
+                    let mut padded_count: i64 = count.into();
+                    // Should not be possible to overflow here.
+                    padded_count = -padded_count;
+                    M::Charge::try_from(padded_count)
+                        .map_err(|_| NumericError::NegativeOverflow.into())
+                        .map(|ch| SubToken::Charge(ch))
                 }
                 Some(c) if SuperscriptPlus::matches(c) => {
                     self.stream.next();
@@ -248,9 +263,7 @@ where
         if Radical::matches(next_char) {
             // We check that the radical is not repeated.
             if self.stream.peek().copied().is_some_and(Radical::matches) {
-                return Some(Err(ParserError::UnexpectedCharacter(
-                    self.stream.next().unwrap(),
-                )));
+                return Some(Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap())));
             }
 
             return Some(Ok(Radical.into()));

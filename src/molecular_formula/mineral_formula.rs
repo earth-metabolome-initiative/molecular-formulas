@@ -2,13 +2,14 @@
 //! formulas of minerals.
 
 use alloc::vec::Vec;
-use core::fmt::Display;
-use core::iter::Peekable;
+use core::{fmt::Display, iter::Peekable};
 
 use elements_rs::Isotope;
 
 use crate::{
-    BaselineMinus, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, Empty, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, errors::ParserError, parsable::CharacterMarker, prelude::ChemicalFormula
+    BaselineMinus, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, Empty,
+    MolecularFormula, MolecularFormulaMetadata, ParsableFormula, errors::ParserError,
+    parsable::CharacterMarker, prelude::ChemicalFormula,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]

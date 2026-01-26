@@ -67,3 +67,11 @@ opt-level = 3
 lto = true
 debug = true
 codegen-units = 1
+
+[[bench]]
+name = "inchi_benchmark"
+harness = false
+
+[[bench]]
+name = "chemical_formula_benchmark"
+harness = false

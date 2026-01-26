@@ -58,9 +58,9 @@ pub trait NumberLike:
 }
 
 /// Trait for count-like types.
-pub trait CountLike: NumberLike + Unsigned + Into<usize> {}
+pub trait CountLike: NumberLike + Unsigned + TryInto<usize> {}
 
-impl<T> CountLike for T where T: NumberLike + Unsigned + Into<usize> {}
+impl<T> CountLike for T where T: NumberLike + Unsigned + TryInto<usize> {}
 
 /// Macro to implement the `NumberLike` trait for a given numeric type.
 macro_rules! impl_number_like {

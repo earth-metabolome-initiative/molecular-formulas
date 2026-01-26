@@ -11,7 +11,7 @@ fn test_standard_isotopes() {
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3);
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "¹³CH4".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -26,7 +26,7 @@ fn test_bracket_isotopes() {
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3, "Mass was {mass} but expected ~17.03465");
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "[13C]H4".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -41,7 +41,7 @@ fn test_round_bracket_isotopes() {
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3, "Mass was {mass} but expected ~17.03465");
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "(13C)H4".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -59,7 +59,7 @@ fn test_deuterium() {
 
     assert!(formula.contains_isotope(HydrogenIsotope::D.into()));
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "D2O".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -74,7 +74,7 @@ fn test_tritium() {
     let mass = formula.isotopologue_mass();
     assert!((mass - 6.032).abs() < 1e-3);
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "T2".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -89,7 +89,7 @@ fn test_other_bracket_isotopes() {
     let mass = formula.isotopologue_mass();
     assert!((mass - 20.015).abs() < 1e-3);
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "H2[18O]".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
@@ -104,7 +104,7 @@ fn test_c13_notation() {
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3);
 
-    // We check that the same formula can also be parsed by the 
+    // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "C[13]H4".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());

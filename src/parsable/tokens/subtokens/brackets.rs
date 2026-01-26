@@ -44,10 +44,6 @@ impl Bracket {
 #[cfg(feature = "fuzzing")]
 impl<'a> arbitrary::Arbitrary<'a> for Bracket {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        if u.ratio(1, 2)? {
-            Ok(Bracket::Round)
-        } else {
-            Ok(Bracket::Square)
-        }
+        if u.ratio(1, 2)? { Ok(Bracket::Round) } else { Ok(Bracket::Square) }
     }
 }

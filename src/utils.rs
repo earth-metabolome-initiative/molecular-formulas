@@ -21,7 +21,8 @@ pub(crate) fn display_isotope(
     write!(f, "]")
 }
 
-/// Displays a charge in the format `<magnitude><sign>` using superscript digits.
+/// Displays a charge in the format `<magnitude><sign>` using superscript
+/// digits.
 ///
 /// The magnitude is displayed only if it is greater than 1.
 ///
@@ -45,10 +46,12 @@ pub(crate) fn display_charge<C: Into<i64>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use core::fmt::Display;
-    use elements_rs::Element;
     use alloc::string::ToString;
+    use core::fmt::Display;
+
+    use elements_rs::Element;
+
+    use super::*;
 
     struct IsotopeWrapper(Isotope);
     impl Display for IsotopeWrapper {
@@ -68,7 +71,7 @@ mod tests {
     fn test_display_isotope() {
         let c13 = Isotope::try_from((Element::C, 13_u16)).unwrap();
         assert_eq!(IsotopeWrapper(c13).to_string(), "[¹³C]");
-        
+
         let h2 = Isotope::try_from((Element::H, 2_u16)).unwrap();
         assert_eq!(IsotopeWrapper(h2).to_string(), "[²H]");
     }

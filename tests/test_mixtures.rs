@@ -7,10 +7,7 @@ use molecular_formulas::prelude::*;
 fn parse_mixture1() -> Result<(), Box<dyn std::error::Error>> {
     let formula: ChemicalFormula = "H2O.D2O".parse()?;
     assert_eq!(formula.number_of_mixtures(), 2);
-    assert_eq!(
-        formula,
-        ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("D2O")?
-    );
+    assert_eq!(formula, ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("D2O")?);
     Ok(())
 }
 
@@ -21,7 +18,9 @@ fn parse_mixture2() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(formula.number_of_mixtures(), 3, "{formula:#?}");
     assert_eq!(
         formula,
-        ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("D2O")? + ChemicalFormula::try_from("T2O")?
+        ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("D2O")?
+            + ChemicalFormula::try_from("T2O")?
     );
     Ok(())
 }
@@ -33,7 +32,9 @@ fn parse_mixture3() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(formula.number_of_mixtures(), 3, "{formula:#?}");
     assert_eq!(
         formula,
-        ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("H20")? + ChemicalFormula::try_from("H20")?,
+        ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("H20")?
+            + ChemicalFormula::try_from("H20")?,
     );
     Ok(())
 }
@@ -45,7 +46,12 @@ fn parse_mixture4() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(formula.number_of_mixtures(), 6, "{formula:#?}");
     assert_eq!(
         formula,
-        ChemicalFormula::try_from("CuSO4")? + ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("H2O")? + ChemicalFormula::try_from("H2O")?,
+        ChemicalFormula::try_from("CuSO4")?
+            + ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("H2O")?
+            + ChemicalFormula::try_from("H2O")?,
     );
     Ok(())
 }
