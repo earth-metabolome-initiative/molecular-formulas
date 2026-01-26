@@ -61,7 +61,7 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
             + num_traits::ConstOne,
     {
         let node_count = self.node.count_of_element::<C>(element)?;
-        let count_as_c: C = C::from(self.count.clone());
+        let count_as_c: C = C::from(self.count);
         node_count.checked_mul(&count_as_c)
     }
 
@@ -75,7 +75,7 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
             + num_traits::ConstOne,
     {
         let node_count = self.node.count_of_isotope::<C>(isotope)?;
-        let count_as_c: C = C::from(self.count.clone());
+        let count_as_c: C = C::from(self.count);
         node_count.checked_mul(&count_as_c)
     }
 
@@ -95,7 +95,7 @@ impl<Count: CountLike, T: Display> Display for RepeatNode<Count, T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.node)?;
         for digit in subscript_digits_ltr(self.count) {
-            write!(f, "{}", digit)?;
+            write!(f, "{digit}")?;
         }
         Ok(())
     }

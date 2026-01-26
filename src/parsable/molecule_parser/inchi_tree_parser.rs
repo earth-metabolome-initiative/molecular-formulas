@@ -25,7 +25,7 @@ impl<I: Iterator<Item = char>, Count: CountLike> MolecularTreeParser<Count, Sequ
                     Some(Ok(InchiToken::Count(count))) => {
                         // We consume the count token as we have used it.
                         self.tokens.next();
-                        tree.push(RepeatNode::new(count.clone(), element).into());
+                        tree.push(RepeatNode::new(count, element).into());
                         tree
                     }
                     _ => tree.element(element),

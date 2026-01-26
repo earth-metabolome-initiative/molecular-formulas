@@ -138,7 +138,7 @@ where
                 // and be the isotopic number of that element.
                 let next = match self.stream.next() {
                     Some(Ok(subtoken)) => subtoken,
-                    Some(Err(e)) => return Some(Err(e.into())),
+                    Some(Err(e)) => return Some(Err(e)),
                     None => {
                         return Some(Err(ParserError::UnexpectedEndOfInput));
                     }
@@ -208,7 +208,7 @@ where
             2 => Token::Inchi(InchiToken::Dot),
             3 => elements_rs::Isotope::arbitrary(u)?.into(),
             4 => Token::Charge(Charge::arbitrary(u)?),
-            5 => Token::Complex(Complex::arbitrary(u)?),
+            5 => Token::Complex(<Complex as arbitrary::Arbitrary>::arbitrary(u)?),
             6 => Token::Radical,
             7 => {
                 if u.ratio(1, 2)? {
@@ -231,7 +231,7 @@ where
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Token::Inchi(t) => write!(f, "{t}"),
-            Token::Isotope(iso) => display_isotope(iso, f),
+            Token::Isotope(iso) => display_isotope(*iso, f),
             Token::Charge(c) => display_charge(*c, f),
             Token::Complex(c) => write!(f, "{c}"),
             Token::Radical => write!(f, "."), // Radical is dot? Or how is it parsed?

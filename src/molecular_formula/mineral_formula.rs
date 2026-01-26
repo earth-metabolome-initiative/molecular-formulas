@@ -155,7 +155,7 @@ where
 impl<Count: CountLike, Charge: ChargeLike> Display for MineralFormula<Count, Charge> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         if let Some(prefix) = &self.polymorph_prefix {
-            write!(f, "{}", prefix)?;
+            write!(f, "{prefix}")?;
             write!(f, "-")?;
         }
         write!(f, "{}", self.formula)

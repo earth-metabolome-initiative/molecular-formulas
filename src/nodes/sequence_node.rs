@@ -52,7 +52,7 @@ where
 impl<N: Display> Display for SequenceNode<N> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         for node in &self.nodes {
-            write!(f, "{}", node)?;
+            write!(f, "{node}")?;
         }
         Ok(())
     }
@@ -119,11 +119,11 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
     }
 
     fn isotopologue_mass(&self) -> f64 {
-        self.nodes.iter().map(|node| node.isotopologue_mass()).sum()
+        self.nodes.iter().map(MolecularTree::isotopologue_mass).sum()
     }
 
     fn is_noble_gas_compound(&self) -> bool {
-        self.nodes.iter().all(|node| node.is_noble_gas_compound())
+        self.nodes.iter().all(MolecularTree::is_noble_gas_compound)
     }
 }
 
@@ -131,14 +131,14 @@ impl<Count: CountLike, Charge: ChargeLike, T: ChargedMolecularTree<Count, Charge
     ChargedMolecularTree<Count, Charge> for SequenceNode<T>
 {
     fn charge(&self) -> f64 {
-        self.nodes.iter().map(|node| node.charge()).sum()
+        self.nodes.iter().map(ChargedMolecularTree::charge).sum()
     }
 
     fn isotopologue_mass_with_charge(&self) -> f64 {
-        self.nodes.iter().map(|node| node.isotopologue_mass_with_charge()).sum()
+        self.nodes.iter().map(ChargedMolecularTree::isotopologue_mass_with_charge).sum()
     }
 
     fn molar_mass(&self) -> f64 {
-        self.nodes.iter().map(|node| node.molar_mass()).sum()
+        self.nodes.iter().map(ChargedMolecularTree::molar_mass).sum()
     }
 }

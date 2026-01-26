@@ -48,11 +48,12 @@ where
     }
 }
 
-impl<'stream, I: Iterator<Item = char>, M: ParsableFormula> MoleculeParser<I, M>
+impl<I: Iterator<Item = char>, M: ParsableFormula> MoleculeParser<I, M>
 where
     Self: MolecularTreeParser<M::Count, M::Tree>,
 {
     /// Peeks at the next token without consuming it.
+    #[allow(clippy::type_complexity)]
     fn peek_token(
         &mut self,
     ) -> Result<Option<<M::Tree as ParsableMolecularTree<M::Count>>::Token>, ParserError> {
@@ -146,7 +147,7 @@ where
             return Err(ParserError::EmptyMolecularTree);
         }
 
-        Ok(<M as ParsableFormula>::from_parsed(self.start_output, mixtures)?)
+        <M as ParsableFormula>::from_parsed(self.start_output, mixtures)
     }
 
     fn parse_sequence(

@@ -114,12 +114,11 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> ChemicalTree<Count, Charge
     /// Returns whether the chemical tree contains an extension node.
     pub(crate) fn contains_extension(&self) -> bool {
         match self {
-            Self::Element(_) => false,
-            Self::Isotope(_) => false,
+            Self::Element(_) | Self::Isotope(_) => false,
             Self::Radical(r) => r.as_ref().contains_extension(),
             Self::Charge(c) => c.as_ref().contains_extension(),
             Self::Repeat(r) => r.as_ref().contains_extension(),
-            Self::Sequence(s) => s.iter().any(|node| node.contains_extension()),
+            Self::Sequence(s) => s.iter().any(Self::contains_extension),
             Self::Unit(b) => b.as_ref().contains_extension(),
             Self::Extension(_) => true,
         }
@@ -390,7 +389,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Display> Display
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::Element(e) => write!(f, "{e}"),
-            Self::Isotope(i) => display_isotope(i, f),
+            Self::Isotope(i) => display_isotope(*i, f),
             Self::Radical(r) => write!(f, "{r}"),
             Self::Charge(c) => write!(f, "{c}"),
             Self::Repeat(r) => write!(f, "{r}"),

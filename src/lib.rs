@@ -16,7 +16,7 @@ pub use molecular_formula::*;
 pub use molecular_tree::*;
 pub use nodes::*;
 pub use parsable::*;
-pub(crate) use utils::*;
+pub(crate) use utils::{display_charge, display_isotope};
 pub mod fuzzing;
 
 /// Prelude module re-exporting commonly used items.

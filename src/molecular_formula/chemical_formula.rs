@@ -34,7 +34,7 @@ impl<Count: CountLike, Charge: ChargeLike> AddAssign for ChemicalFormula<Count, 
             let mut found = false;
             for (self_count, self_tree) in &mut self.mixtures {
                 if *self_tree == other_tree {
-                    *self_count = (*self_count).clone() + other_count;
+                    *self_count = (*self_count) + other_count;
                     found = true;
                     break;
                 }
@@ -90,7 +90,7 @@ where
         _start_output: Self::StartOutput,
         mixtures: Vec<(Count, Self::Tree)>,
     ) -> Result<Self, crate::errors::ParserError> {
-        assert!(mixtures.len() > 0, "At least one mixture is required");
+        assert!(!mixtures.is_empty(), "At least one mixture is required");
         Ok(Self { mixtures })
     }
 }
@@ -102,9 +102,9 @@ impl<Count: CountLike, Charge: ChargeLike> Display for ChemicalFormula<Count, Ch
                 write!(f, ".")?;
             }
             if !count.is_one() {
-                write!(f, "{}", count)?;
+                write!(f, "{count}")?;
             }
-            write!(f, "{}", tree)?;
+            write!(f, "{tree}")?;
         }
         Ok(())
     }

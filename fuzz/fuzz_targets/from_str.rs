@@ -63,9 +63,9 @@ fn round_trip<M: Display + FromStr<Err: Debug> + Eq + Debug + Serialize + Deseri
     }
 }
 
-/// Verifies that all of the methos of the MolecularFormula trait can be called
+/// Verifies that all of the methods of the MolecularFormula trait can be called
 /// without panicking.
-fn fuzz_molecular_formua<M: MolecularFormula>(formula: &M)
+fn fuzz_molecular_formula<M: MolecularFormula>(formula: &M)
 where
     u64: From<M::Count>,
 {
@@ -87,9 +87,9 @@ where
     }
 }
 
-/// Verifies that all of the methos of the ChargedMolecularFormula trait can be
+/// Verifies that all of the methods of the ChargedMolecularFormula trait can be
 /// called without panicking.
-fn fuzz_charged_molecular_formua<M: ChargedMolecularFormula>(formula: &M) {
+fn fuzz_charged_molecular_formula<M: ChargedMolecularFormula>(formula: &M) {
     let _ = formula.molar_mass();
     let _ = formula.isotopologue_mass_with_charge();
     let _ = formula.isotopologue_mass_over_charge();
@@ -98,20 +98,26 @@ fn fuzz_charged_molecular_formua<M: ChargedMolecularFormula>(formula: &M) {
 
 fn main() {
     loop {
-        fuzz!(|data: FuzzFormula<u8, i8, Residual>| {
-            if let Some(formula) = parse::<ChemicalFormula<u8, i8>>(&data.as_ref()) {
+        fuzz!(|data: FuzzFormula<u16, i16, Residual>| {
+            if let Some(formula) = parse::<ChemicalFormula<u16, i16>>(&data.as_ref()) {
                 round_trip(&formula);
-                fuzz_molecular_formua(&formula);
-                fuzz_charged_molecular_formua(&formula);
+                fuzz_molecular_formula(&formula);
+                fuzz_charged_molecular_formula(&formula);
             }
 
-            if let Some(formula) = parse::<InChIFormula<u8>>(&data.as_ref()) {
+            if let Some(formula) = parse::<MineralFormula<u16, i16>>(&data.as_ref()) {
                 round_trip(&formula);
-                fuzz_molecular_formua(&formula);
+                fuzz_molecular_formula(&formula);
+                fuzz_charged_molecular_formula(&formula);
+            }
+
+            if let Some(formula) = parse::<InChIFormula<u16>>(&data.as_ref()) {
+                round_trip(&formula);
+                fuzz_molecular_formula(&formula);
             }
 
             // Fuzz ResidualFormula - Has subset of methods
-            if let Some(formula) = parse::<ResidualFormula<u8, i8>>(&data.as_ref()) {
+            if let Some(formula) = parse::<ResidualFormula<u16, i16>>(&data.as_ref()) {
                 round_trip(&formula);
                 // Specific methods
                 let _ = formula.contains_residuals();

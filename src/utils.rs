@@ -10,7 +10,7 @@ use crate::{SuperscriptMinus, SuperscriptPlus, superscript_digits_ltr};
 /// * `isotope` - The isotope to display.
 /// * `f` - The formatter to write to.
 pub(crate) fn display_isotope(
-    isotope: &Isotope,
+    isotope: Isotope,
     f: &mut core::fmt::Formatter<'_>,
 ) -> core::fmt::Result {
     write!(f, "[")?;
@@ -53,7 +53,7 @@ mod tests {
     struct IsotopeWrapper(Isotope);
     impl Display for IsotopeWrapper {
         fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-            display_isotope(&self.0, f)
+            display_isotope(self.0, f)
         }
     }
 

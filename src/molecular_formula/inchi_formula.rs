@@ -25,7 +25,7 @@ impl<Count: CountLike> MolecularFormula for InChIFormula<Count> {
     type Tree = SequenceNode<InChITree<Count>>;
 
     fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
-        self.mixtures.iter().map(|(count, tree)| (count.clone(), tree))
+        self.mixtures.iter().map(|(count, tree)| (*count, tree))
     }
 }
 
@@ -46,7 +46,7 @@ impl<Count: CountLike> ParsableFormula for InChIFormula<Count> {
         _start_output: Self::StartOutput,
         mixtures: Vec<(Count, Self::Tree)>,
     ) -> Result<Self, crate::errors::ParserError> {
-        assert!(mixtures.len() > 0, "At least one mixture is required");
+        assert!(!mixtures.is_empty(), "At least one mixture is required");
         let inchi = InChIFormula { mixtures };
 
         if !inchi.is_hill_sorted() {
@@ -63,7 +63,7 @@ impl<Count: CountLike> Display for InChIFormula<Count> {
             if i > 0 {
                 write!(f, ".")?;
             }
-            write!(f, "{}{}", count, tree)?;
+            write!(f, "{count}{tree}")?;
         }
         Ok(())
     }

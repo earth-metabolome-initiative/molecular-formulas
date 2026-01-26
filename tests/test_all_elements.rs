@@ -59,8 +59,7 @@ fn test_all_elements() {
 
 #[test]
 /// Test that all elements from the periodic table are parsed correctly.
-fn test_all_isotopes() -> Result<(), Box<dyn std::error::Error>> {
+fn test_all_isotopes() {
     test_hydrogen_on::<ChemicalFormula>();
     test_hydrogen_on::<MineralFormula>();
-    Ok(())
 }

@@ -23,7 +23,7 @@ fn test_fuzzing_case3() {
     let formula = "T.3870T";
     let parsed: ChemicalFormula =
         ChemicalFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "[³H].3870[³H]", "Parsed formula was {:?}", parsed);
+    assert_eq!(parsed.to_string(), "[³H].3870[³H]", "Parsed formula was {parsed:?}");
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn test_fuzzing_case4() {
     let formula = "Cp-";
     let parsed: ChemicalFormula =
         ChemicalFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "(C₅H₅)²⁻", "Parsed formula was {:?}", parsed);
+    assert_eq!(parsed.to_string(), "(C₅H₅)²⁻", "Parsed formula was {parsed:?}");
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn test_fuzzing_case6() {
     let formula = "V[11N]";
     let parsed: ChemicalFormula =
         ChemicalFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "V[¹¹N]", "Parsed formula was {:?}", parsed);
+    assert_eq!(parsed.to_string(), "V[¹¹N]", "Parsed formula was {parsed:?}");
 }
 
 #[test]

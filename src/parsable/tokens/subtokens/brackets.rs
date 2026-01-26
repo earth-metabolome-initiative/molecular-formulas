@@ -23,6 +23,7 @@ impl Display for Bracket {
 
 impl Bracket {
     /// Returns the opening bracket character.
+    #[must_use]
     pub const fn opening(&self) -> char {
         match self {
             Self::Round => '(',
@@ -31,6 +32,7 @@ impl Bracket {
     }
 
     /// Returns the closing bracket character.
+    #[must_use]
     pub const fn closing(&self) -> char {
         match self {
             Self::Round => ')',

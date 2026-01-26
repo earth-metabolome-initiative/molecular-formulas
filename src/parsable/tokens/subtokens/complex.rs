@@ -4,6 +4,7 @@ use core::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// Represents complex group fragments in molecular formulas.
 pub enum Complex {
     /// Methyl group (Me) - CH3
@@ -70,20 +71,5 @@ mod tests {
         assert_eq!(Complex::try_from(['C', 'y']).unwrap(), Complex::Cyclohexyl);
         assert_eq!(Complex::try_from(['C', 'p']).unwrap(), Complex::Cyclopentadienyl);
         assert!(Complex::try_from(['X', 'x']).is_err());
-    }
-}
-
-#[cfg(feature = "fuzzing")]
-impl<'a> arbitrary::Arbitrary<'a> for Complex {
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let i = u.int_in_range(0..=5)?;
-        Ok(match i {
-            0 => Complex::Methyl,
-            1 => Complex::Ethyl,
-            2 => Complex::Butyl,
-            3 => Complex::Phenyl,
-            4 => Complex::Benzyl,
-            _ => Complex::Cyclohexyl,
-        })
     }
 }

@@ -16,6 +16,6 @@ fn test_incorrect_superscript_position() {
             ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
             ParserError::UnexpectedEndOfInput,
             "Failed to raise the correct error for formula `{formula}`"
-        )
+        );
     }
 }

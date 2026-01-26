@@ -56,7 +56,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// Iterates over the elements in the molecular formula.
     fn elements(&self) -> impl Iterator<Item = Element> {
         self.mixtures()
-            .flat_map(|(count, tree)| repeat_n(tree, count.into()).flat_map(|t| t.elements()))
+            .flat_map(|(count, tree)| repeat_n(tree, count.into()).flat_map(MolecularTree::elements))
     }
 
     /// Returns whether the molecular formula contains any elements.

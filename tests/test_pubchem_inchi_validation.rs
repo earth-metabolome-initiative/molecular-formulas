@@ -59,7 +59,7 @@ fn validate_pubchem_inchi(file_path: &Path) -> Result<(), Box<dyn std::error::Er
         let prefix_removed = result
             .inchi
             .strip_prefix("InChI=1S/")
-            .expect(&format!("Invalid InChI format for CID {}", result.cid));
+            .unwrap_or_else(|| panic!("Invalid InChI format for CID {}", result.cid));
 
         let (formula_portion, _rest) = match prefix_removed.find('/') {
             Some(index) => prefix_removed.split_at(index),
@@ -77,7 +77,7 @@ fn validate_pubchem_inchi(file_path: &Path) -> Result<(), Box<dyn std::error::Er
                 "Failed to parse formula `{}` for CID {}: {}",
                 result.inchi,
                 result.cid,
-                e.to_string()
+                e
             )
         })?;
 
@@ -85,6 +85,7 @@ fn validate_pubchem_inchi(file_path: &Path) -> Result<(), Box<dyn std::error::Er
     }
 
     let time_required = start.elapsed().as_secs_f64();
+    #[allow(clippy::cast_precision_loss)]
     let time_per_compound = time_required / parsed_count as f64;
 
     pb.finish_with_message("Validation complete");
@@ -94,10 +95,10 @@ fn validate_pubchem_inchi(file_path: &Path) -> Result<(), Box<dyn std::error::Er
         time_required,
         time_per_compound * 1000.0
     );
-    println!("Parsed compounds: {}", parsed_count);
+    println!("Parsed compounds: {parsed_count}");
     println!("Skipped compounds (non-formula layers): {}", skipped_compounds.len());
     for (cid, inchi) in skipped_compounds {
-        println!("  CID {}: InChI {}", cid, inchi);
+        println!("  CID {cid}: InChI {inchi}");
     }
 
     Ok(())

@@ -10,6 +10,7 @@ use crate::{
     SequenceNode, molecular_tree::MolecularTree,
 };
 
+#[allow(clippy::type_complexity)]
 pub enum ChemicalTreeElementIter<
     'a,
     Count: CountLike + 'a,
@@ -67,13 +68,9 @@ impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: MolecularTre
 
     fn next(&mut self) -> Option<Self::Item> {
         match self {
-            ChemicalTreeElementIter::Element(iter) => iter.next(),
-            ChemicalTreeElementIter::Isotope(iter) => iter.next(),
-            ChemicalTreeElementIter::Radical(iter) => iter.next(),
-            ChemicalTreeElementIter::Charge(iter) => iter.next(),
-            ChemicalTreeElementIter::Repeat(iter) => iter.next(),
+            ChemicalTreeElementIter::Element(iter) | ChemicalTreeElementIter::Isotope(iter) => iter.next(),
+            ChemicalTreeElementIter::Radical(iter) | ChemicalTreeElementIter::Charge(iter) | ChemicalTreeElementIter::Repeat(iter) | ChemicalTreeElementIter::Unit(iter) => iter.next(),
             ChemicalTreeElementIter::Sequence(iter) => iter.next(),
-            ChemicalTreeElementIter::Unit(iter) => iter.next(),
             ChemicalTreeElementIter::Extension(iter) => iter.next(),
         }
     }

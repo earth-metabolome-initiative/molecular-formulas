@@ -20,6 +20,7 @@ pub struct ResidualFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
 
 impl<Count: CountLike, Charge: ChargeLike> ResidualFormula<Count, Charge> {
     /// Checks if the formula contains any residual notations.
+    #[must_use]
     pub fn contains_residuals(&self) -> bool {
         for (_fraction, tree) in &self.mixtures {
             if tree.contains_extension() {
@@ -65,7 +66,7 @@ where
         _start_output: Self::StartOutput,
         mixtures: Vec<(Count, Self::Tree)>,
     ) -> Result<Self, crate::errors::ParserError> {
-        assert!(mixtures.len() > 0, "At least one mixture is required");
+        assert!(!mixtures.is_empty(), "At least one mixture is required");
         Ok(Self { mixtures })
     }
 }
@@ -81,9 +82,9 @@ where
                 write!(f, ".")?;
             }
             if *fraction != Count::one() {
-                write!(f, "{}", fraction)?;
+                write!(f, "{fraction}")?;
             }
-            write!(f, "{}", tree)?;
+            write!(f, "{tree}")?;
         }
         Ok(())
     }

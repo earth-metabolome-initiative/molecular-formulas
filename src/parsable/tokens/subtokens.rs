@@ -134,7 +134,7 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
     {
         // There might be one of more signs in some notations.
         let mut sign_count: M::Charge = <M::Charge as ConstOne>::ONE;
-        while self.stream.peek().copied().map_or(false, |c| CS::matches(c)) {
+        while self.stream.peek().copied().is_some_and(|c| CS::matches(c)) {
             sign_count = sign_count
                 .checked_add(&<M::Charge as ConstOne>::ONE)
                 .ok_or(NumericError::PositiveOverflow)?;
@@ -143,10 +143,10 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
 
         // If the sign count is, in absolute value, equal to one, it may be followed
         // by an optional number.
-        if sign_count.abs().is_one() {
-            if let Some(count) = try_fold_number::<M::Charge, CS::Digit, _>(&mut self.stream) {
-                sign_count = count?;
-            }
+        if sign_count.abs().is_one()
+            && let Some(count) = try_fold_number::<M::Charge, CS::Digit, _>(&mut self.stream)
+        {
+            sign_count = count?;
         }
 
         // We adjust the sign of the charge according to the sign marker.
@@ -175,12 +175,13 @@ where
 {
     type Item = Result<SubToken<M::Count, M::Charge, Extension>, ParserError>;
 
+    #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(count) = try_fold_number::<M::Count, BaselineDigit, _>(&mut self.stream) {
             // If we have found a baseline number, we return it as a count token.
             // But first, we check that it is not further followed by a subscript digit,
             // which would indicate an incorrect formula.
-            if self.stream.peek().copied().map_or(false, |c| SubscriptDigit::try_from(c).is_ok()) {
+            if self.stream.peek().copied().is_some_and(|c| SubscriptDigit::try_from(c).is_ok()) {
                 return Some(Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap())));
             }
 
@@ -190,7 +191,7 @@ where
             // If we have found a subscript number, we return it as a count token.
             // But first, we check that it is not further followed by a baseline digit,
             // which would indicate an incorrect formula.
-            if self.stream.peek().copied().map_or(false, |c| BaselineDigit::try_from(c).is_ok()) {
+            if self.stream.peek().copied().is_some_and(|c| BaselineDigit::try_from(c).is_ok()) {
                 return Some(Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap())));
             }
 
@@ -246,7 +247,7 @@ where
 
         if Radical::matches(next_char) {
             // We check that the radical is not repeated.
-            if self.stream.peek().copied().map_or(false, |c| Radical::matches(c)) {
+            if self.stream.peek().copied().is_some_and(Radical::matches) {
                 return Some(Err(ParserError::UnexpectedCharacter(
                     self.stream.next().unwrap(),
                 )));
@@ -281,7 +282,7 @@ where
             'D' => Some(Ok(HydrogenIsotope::D.into())),
             '[' => {
                 // We check that it is not immediately followed by a closed bracket.
-                if self.stream.peek().copied().map_or(false, |c| c == ']') {
+                if self.stream.peek().copied() == Some(']') {
                     return Some(Err(ParserError::UnexpectedCharacter(
                         self.stream.next().unwrap(),
                     )));
@@ -291,7 +292,7 @@ where
             ']' => Some(Ok(SubToken::CloseBracket(Bracket::Square))),
             '(' => {
                 // We check that it is not immediately followed by a closed bracket.
-                if self.stream.peek().copied().map_or(false, |c| c == ')') {
+                if self.stream.peek().copied() == Some(')') {
                     return Some(Err(ParserError::UnexpectedCharacter(
                         self.stream.next().unwrap(),
                     )));

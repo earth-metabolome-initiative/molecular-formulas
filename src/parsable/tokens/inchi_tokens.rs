@@ -48,7 +48,7 @@ impl<Count: CountLike> TokenLike for InchiToken<Count> {
 
     fn as_count(&self) -> Option<Count> {
         match self {
-            InchiToken::Count(count) => Some(count.clone()),
+            InchiToken::Count(count) => Some(*count),
             _ => None,
         }
     }

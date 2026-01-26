@@ -115,6 +115,7 @@ pub enum Digit {
 
 impl Digit {
     /// Returns true if the digit is zero.
+    #[must_use]
     pub fn is_zero(&self) -> bool {
         matches!(self, Digit::Zero)
     }
@@ -127,6 +128,7 @@ pub struct BaselineDigit(Digit);
 
 impl BaselineDigit {
     /// Returns true if the digit is zero.
+    #[must_use]
     pub fn is_zero(&self) -> bool {
         self.0.is_zero()
     }

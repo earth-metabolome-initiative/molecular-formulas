@@ -1,75 +1,41 @@
-# Fuzzing harnesses for molecular formulas
+# Molecular Formulas Fuzzing
 
-This directory contains fuzzing harnesses to test the robustness and correctness of the `molecular_formulas` crate using [honggfuzz](https://github.com/google/honggfuzz).
+This directory contains harnesses for **fuzz testing** the `molecular_formulas` crate.
 
 ## What is Fuzzing?
 
-Fuzzing (or fuzz testing) is an automated software testing technique that involves providing invalid, unexpected, or random data as inputs to a computer program.
+[Fuzzing](https://rust-fuzz.github.io/book/) is an automated testing technique that feeds random, invalid, or unexpected inputs into your program to find bugs, crashes, or security vulnerabilities (like panics or infinite loops). We use [Honggfuzz](https://github.com/google/honggfuzz) (via [honggfuzz-rs](https://github.com/rust-fuzz/honggfuzz-rs)) as our fuzzing engine.
 
-For a parser like `molecular_formulas`, fuzzing is critical because:
+## How it works
 
-1. **Edge Case Discovery**: Human developers may miss obscure combinations of characters (e.g., deeply nested brackets like `((H)2)3`) that can cause crashes.
-2. **Security**: Ensure that malicious or malformed input cannot cause heavy resource consumption (Denial of Service) or panics.
-3. **Correctness**: By generating random valid inputs and checking properties (like round-trip consistency: `parse -> to_string -> parse`), we can verify logic across millions of generated formulas.
+We utilize **Structure-Aware Fuzzing**. Instead of generating purely random strings (which would mostly just test the "invalid character" error handler), we use the [`Arbitrary`](https://crates.io/crates/arbitrary) trait. This generates syntactically plausible sequences of tokens (elements, isotopes, brackets) to deeply exercise the parser's logic for nested structures and complex formulas.
 
-## Prerequisites
+## Getting Started
 
-To run the fuzzers, you need a Linux system (WSL works too) and the following dependencies:
+1. Install Prerequisites (Linux/WSL)
 
-1. **System Dependencies**:
+```bash
+sudo apt install build-essential binutils-dev libunwind-dev
+cargo install honggfuzz
+```
 
-    ```bash
-    sudo apt install build-essential binutils-dev libunwind-dev
-    ```
+1. Run the Fuzzer
 
-2. **Honggfuzz**:
-
-    ```bash
-    cargo install honggfuzz
-    ```
-
-## Directory Structure
-
-* `fuzz_targets/`: Contains the actual source code for the fuzz targets (e.g., `from_str.rs`).
-* `hfuzz_workspace/`: Directory where `honggfuzz` stores its corpus (inputs), crashes, and reports. Created automatically when you run the fuzzer.
-* `hfuzz_target/`: Build artifacts for the fuzz targets.
-
-## Available Harnesses
-
-### `from_str`
-
-This harness fuzzes the `FromStr` implementation of `MolecularFormula`. It generates random strings and attempts to parse them.
-
-**What it checks:**
-
-* **Panic Freedom**: Parsing should never panic, only return `Ok` or `Err`.
-* **Round-Trip Consistency**: If a string parses successfully, converting the result back to a string (`to_string()`) and re-parsing it should yield an equivalent formula.
-* **Property Accessors**: Calls various methods (e.g., `mass`, `charge`, `elements`) on valid formulas to ensure they don't panic.
-* **Performance**: Checks for unusually slow parsing times (timeout check).
-
-**To run:**
+The `from_str` target tests parsing consistency, round-trip serialization, and method safety across millions of generated inputs.
 
 ```bash
 cargo hfuzz run from_str
 ```
 
-**To debug a crash:**
+1. Debugging Crashes
 
-If the fuzzer finds a crash, it will save the crashing input in `hfuzz_workspace/from_str/`. You can reproduce it with:
+If a crash is found, the input is saved in `hfuzz_workspace/from_str/`. Crashes should be included in your test suite so to avoid potential future regressions. You can replay it with `run-debug` to investigate the issue:
 
 ```bash
-# Verify a specific crash file
 cargo hfuzz run-debug from_str hfuzz_workspace/from_str/*.fuzz
 ```
 
-## Interpretation of Results
-
-* **SIGABRT / Panic**: Found a bug! Check the backtrace in the report file in `hfuzz_workspace`.
-* **Timeout**: The parser might have stuck in an infinite loop or is strictly too slow for the given input.
-
-## Cleaning Up
-
-To clean up all fuzzing artifacts (corpus, crashes, build files):
+1. Cleaning Up
 
 ```bash
 cargo hfuzz clean
