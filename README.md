@@ -3,6 +3,8 @@
 [![CI](https://github.com/earth-metabolome-initiative/molecular-formulas/actions/workflows/rust.yml/badge.svg)](https://github.com/earth-metabolome-initiative/molecular-formulas/actions/workflows/rust.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Codecov](https://codecov.io/gh/earth-metabolome-initiative/molecular-formulas/branch/main/graph/badge.svg)](https://codecov.io/gh/earth-metabolome-initiative/molecular-formulas)
+[![Crates.io](https://img.shields.io/crates/v/molecular-formulas.svg)](https://crates.io/crates/molecular-formulas)
+[![Docs.rs](https://docs.rs/molecular-formulas/badge.svg)](https://docs.rs/molecular-formulas)
 
 A Rust crate for parsing, manipulating, and analyzing molecular formulas.
 
@@ -148,10 +150,10 @@ Specifically, we download the `CID-Mass.gz` and `CID-InChI-Key.gz` documents, wh
 You can run the validation suites yourself:
 
 ```bash
-# Validate Mass Calculation (ChemicalFormula)
+# Validate Mass Calculation (ChemicalFormula), takes about 55 seconds
 cargo test --release --test test_pubchem_validation -- --ignored --nocapture
 
-# Validate InChI Parsing (InChIFormula)
+# Validate InChI Parsing (InChIFormula), takes about 45 seconds
 cargo test --release --test test_pubchem_inchi_validation -- --ignored --nocapture
 ```
 
