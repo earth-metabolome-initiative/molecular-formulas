@@ -5,7 +5,16 @@ use std::str::FromStr;
 use molecular_formulas::ResidualFormula;
 
 const FORMULAS_WITH_RESIDUALS: &[&str] = &[
-    "CH4R", "C2H6R", "C3H8R", "C4H10R", "C5H12R", "C6H14R", "C7H16R", "C8H18R", "C9H20R", "C10H22R",
+    "CH4R",
+    "C2H6R",
+    "C3H8R",
+    "(C4H10R)⁻",
+    "·[C5H12R]",
+    "·([[C6]H14R])⁻",
+    "·C7H16R⁻",
+    "·C8H18R",
+    "C9H20R",
+    "C10H22R·",
 ];
 const FORMULAS_WITHOUT_RESIDUALS: &[&str] =
     &["CH4", "C2H6", "C3H8", "C4H10", "C5H12", "C6H14", "C7H16", "C8H18", "C9H20", "C10H22"];

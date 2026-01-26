@@ -165,19 +165,20 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
     {
         let charge = self.parse_charge::<CS>()?;
         // Charges cannot be immediately followed by another charge or digit.
-        if self.parse_any_charge_candidate() {
+        if self.parse_any_illegal_charge_successor() {
             return Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap()));
         }
         Ok(SubToken::Charge(charge))
     }
 
     /// Returns whether any charge or superscript digit can be parsed next.
-    fn parse_any_charge_candidate(&mut self) -> bool {
+    fn parse_any_illegal_charge_successor(&mut self) -> bool {
         if let Some(c) = self.stream.peek().copied() {
             SuperscriptMinus::matches(c)
                 || SuperscriptPlus::matches(c)
                 || BaselinePlus::matches(c)
                 || BaselineMinus::matches(c)
+                || Radical::matches(c)
                 || SuperscriptDigit::try_from(c).is_ok()
         } else {
             false
@@ -224,7 +225,7 @@ where
                     self.stream.next();
 
                     // We check that no further charge or digit follows.
-                    if self.parse_any_charge_candidate() {
+                    if self.parse_any_illegal_charge_successor() {
                         return Some(Err(ParserError::UnexpectedCharacter(
                             self.stream.next().unwrap(),
                         )));
@@ -241,7 +242,7 @@ where
                     self.stream.next();
 
                     // We check that no further charge or digit follows.
-                    if self.parse_any_charge_candidate() {
+                    if self.parse_any_illegal_charge_successor() {
                         return Some(Err(ParserError::UnexpectedCharacter(
                             self.stream.next().unwrap(),
                         )));

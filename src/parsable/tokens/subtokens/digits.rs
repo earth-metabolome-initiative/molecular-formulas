@@ -417,3 +417,85 @@ pub fn superscript_digits_ltr<D: Into<i64>>(number: D) -> impl Iterator<Item = c
 pub fn subscript_digits_ltr<D: Into<i64>>(number: D) -> impl Iterator<Item = char> {
     digits_ltr(number).map(|d| SubscriptDigit(d).into())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::errors::NumericError;
+
+    #[test]
+    fn test_try_fold_empty_stream() {
+        let text = "";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, BaselineDigit, _>(&mut stream);
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_try_fold_no_digit() {
+        let text = "abc";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, BaselineDigit, _>(&mut stream);
+        assert!(result.is_none());
+        assert_eq!(stream.peek(), Some(&'a'));
+    }
+
+    #[test]
+    fn test_try_fold_leading_zero() {
+        let text = "0123";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, BaselineDigit, _>(&mut stream);
+        assert_eq!(result, Some(Err(NumericError::LeadingZero)));
+    }
+
+    #[test]
+    fn test_try_fold_simple_valid() {
+        let text = "123";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, BaselineDigit, _>(&mut stream);
+        assert_eq!(result, Some(Ok(123)));
+        assert!(stream.peek().is_none());
+    }
+
+    #[test]
+    fn test_try_fold_partial_valid() {
+        let text = "12a";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, BaselineDigit, _>(&mut stream);
+        assert_eq!(result, Some(Ok(12)));
+        assert_eq!(stream.peek(), Some(&'a'));
+    }
+
+    #[test]
+    fn test_try_fold_overflow() {
+        // u8 max is 255. 300 should overflow
+        let text = "300";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u8, NumericError>> =
+            try_fold_number::<u8, BaselineDigit, _>(&mut stream);
+        assert_eq!(result, Some(Err(NumericError::PositiveOverflow)));
+    }
+
+    #[test]
+    fn test_try_fold_superscript() {
+        let text = "¹²³";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, SuperscriptDigit, _>(&mut stream);
+        assert_eq!(result, Some(Ok(123)));
+    }
+
+    #[test]
+    fn test_try_fold_subscript() {
+        let text = "₁₂₃";
+        let mut stream = text.chars().peekable();
+        let result: Option<Result<u32, NumericError>> =
+            try_fold_number::<u32, SubscriptDigit, _>(&mut stream);
+        assert_eq!(result, Some(Ok(123)));
+    }
+}

@@ -3,7 +3,7 @@
 use core::str::FromStr;
 
 use elements_rs::isotopes::{HeliumIsotope, HydrogenIsotope};
-use molecular_formulas::prelude::*;
+use molecular_formulas::{errors::ParserError, prelude::*};
 use num_traits::Zero;
 use strum::IntoEnumIterator;
 
@@ -103,6 +103,9 @@ fn test_largest_inchi() {
 #[test]
 fn test_largest_formula() {
     let mixture = "•([C₃₉₀³H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂•])³⁹⁻";
+
+    assert_eq!(InChIFormula::<u32>::from_str(mixture), Err(ParserError::UnexpectedCharacter('•')));
+
     let largest_chemical: ChemicalFormula = ChemicalFormula::from_str(mixture).unwrap();
     let serialized = serde_json::to_string(&largest_chemical).unwrap();
     let deserialized: ChemicalFormula = serde_json::from_str(&serialized).unwrap();

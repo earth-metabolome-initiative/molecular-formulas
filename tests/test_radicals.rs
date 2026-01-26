@@ -9,7 +9,10 @@ fn test_invalid_radicals() {
 
     assert_eq!(ChemicalFormula::<u16, i16>::try_from("·+"), Err(ParserError::EmptyMolecularTree));
 
-    assert_eq!(ChemicalFormula::<u16, i16>::try_from("-·"), Err(ParserError::EmptyMolecularTree));
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::try_from("-·"),
+        Err(ParserError::UnexpectedCharacter('·'))
+    );
 
     assert_eq!(
         ChemicalFormula::<u16, i16>::try_from("H2O··"),
@@ -23,4 +26,12 @@ fn test_clorine_radical() {
     assert_eq!(formula.to_string(), "Cl•");
     let formula: ChemicalFormula = ChemicalFormula::<u16, i16>::try_from("•Cl").unwrap();
     assert_eq!(formula.to_string(), "•Cl");
+}
+
+#[test]
+fn test_radical_cannot_follow_charge() {
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::try_from("OH+·"),
+        Err(ParserError::UnexpectedCharacter('·'))
+    );
 }

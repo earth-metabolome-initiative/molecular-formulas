@@ -43,3 +43,38 @@ impl<I: Iterator<Item = char>, Count: CountLike>
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use elements_rs::Element;
+
+    use super::*;
+
+    #[test]
+    #[should_panic(expected = "Counts should be handled at a higher level than sequence extension")]
+    fn test_extend_tree_panics_on_count() {
+        let mut parser =
+            MoleculeParser::<core::str::Chars, InChIFormula<u32>>::new("".chars()).unwrap();
+        let tree = SequenceNode::empty();
+        let terminator = InchiToken::Element(Element::H);
+        let token = InchiToken::Count(2);
+
+        // This should panic
+        let _ = parser.extend_tree(tree, terminator, token);
+    }
+
+    #[test]
+    #[should_panic(
+        expected = "Mixture separators should be handled at a higher level than sequence extension"
+    )]
+    fn test_extend_tree_panics_on_dot() {
+        let mut parser =
+            MoleculeParser::<core::str::Chars, InChIFormula<u32>>::new("".chars()).unwrap();
+        let tree = SequenceNode::empty();
+        let terminator = InchiToken::Element(Element::H);
+        let token = InchiToken::Dot;
+
+        // This should panic
+        let _ = parser.extend_tree(tree, terminator, token);
+    }
+}
