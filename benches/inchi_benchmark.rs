@@ -12,7 +12,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("inchi large mixture", |b| {
         b.iter(|| {
             let _: InChIFormula = InChIFormula::from_str(black_box(mixture)).unwrap();
-        })
+        });
     });
 }
 

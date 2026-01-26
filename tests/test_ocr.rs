@@ -18,11 +18,11 @@ fn test_ocr_variants() {
     let c2: ChemicalFormula<u16, i16> = ChemicalFormula::from_str("Fe³⁺").unwrap();
 
     assert_eq!(c1, c2);
-    assert_eq!(c1.charge(), 3.0);
+    assert!((c1.charge() - 3.0).abs() < f64::EPSILON);
 
     // Does "Fe+++" work?
     let c3: ChemicalFormula<u16, i16> = ChemicalFormula::from_str("Fe+++").expect("Fe+++ failed");
-    assert_eq!(c3.charge(), 3.0);
+    assert!((c3.charge() - 3.0).abs() < f64::EPSILON);
     assert_eq!(c1, c3);
 
     // OCR "Crippled" Examples
@@ -38,5 +38,5 @@ fn test_ocr_variants() {
     // Using en-dash
     let i2: ChemicalFormula<u16, i16> = ChemicalFormula::from_str("SO4–2").unwrap();
     assert_eq!(i1, i2);
-    assert_eq!(i1.charge(), -2.0);
+    assert!((i1.charge() + 2.0).abs() < f64::EPSILON);
 }

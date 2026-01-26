@@ -182,7 +182,6 @@ fn validate_pubchem_data(
     );
 
     let start = std::time::Instant::now();
-    let mut largest_formula = String::new();
 
     for result in csv_reader.deserialize::<PubChemCompound>() {
         let result = result?;
@@ -193,11 +192,6 @@ fn validate_pubchem_data(
         let is_ion = !formula.charge().is_zero();
         let calculated_mass = formula.isotopologue_mass();
         let mass_diff = (calculated_mass - result.monoisotopic_mass).abs();
-
-        let formula_as_string = formula.to_string();
-        if formula_as_string.len() > largest_formula.len() {
-            largest_formula = formula_as_string;
-        }
 
         if mass_diff > mass_tolerance {
             let entry = MismatchEntry {
@@ -241,8 +235,6 @@ fn validate_pubchem_data(
     stats.time_required = start.elapsed().as_secs_f64();
 
     pb.finish_with_message("Validation complete");
-
-    println!("Largest formula encountered: {}", largest_formula);
     Ok(stats)
 }
 

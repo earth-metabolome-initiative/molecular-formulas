@@ -13,7 +13,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("chemical formula complex", |b| {
         b.iter(|| {
             let _: ChemicalFormula = ChemicalFormula::from_str(black_box(formula)).unwrap();
-        })
+        });
     });
 }
 
