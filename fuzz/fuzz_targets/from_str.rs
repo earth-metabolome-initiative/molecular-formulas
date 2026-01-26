@@ -83,6 +83,7 @@ where
     let _ = formula.count_of_element::<u64>(Element::H);
     if let Ok(iso) = Isotope::try_from((Element::H, 1_u16)) {
         let _ = formula.contains_isotope(iso);
+        let _ = formula.count_of_isotope::<u64>(iso);
     }
 }
 

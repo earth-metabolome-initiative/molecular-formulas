@@ -16,6 +16,10 @@ fn test_standard_isotopes() {
         Some(1)
     );
 
+    // We iterate over the elements in the formula and check they match expected
+    // isotopes
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
+
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "¹³CH4".parse().unwrap();
@@ -35,6 +39,7 @@ fn test_bracket_isotopes() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -55,6 +60,7 @@ fn test_round_bracket_isotopes() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -74,6 +80,7 @@ fn test_deuterium() {
 
     assert!(formula.contains_isotope(HydrogenIsotope::D.into()));
     assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::D.into()), Some(2));
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::O]);
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -91,6 +98,7 @@ fn test_tritium() {
     assert!((mass - 6.032).abs() < 1e-3);
     assert!(formula.contains_isotope(HydrogenIsotope::T.into()));
     assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::T.into()), Some(2));
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H]);
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "T2".parse().unwrap();
@@ -110,6 +118,7 @@ fn test_other_bracket_isotopes() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::O, 18u8)).unwrap()),
         Some(1)
     );
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::O]);
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -130,7 +139,7 @@ fn test_c13_notation() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
-
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "C[13]H4".parse().unwrap();
