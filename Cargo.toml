@@ -2,6 +2,14 @@
 name = "molecular-formulas"
 version = "0.1.0"
 edition = "2024"
+authors = ["Earth Metabolome Initiative"]
+license-file = "LICENSE"
+repository = "https://github.com/earth-metabolome-initiative/molecular-formulas"
+description = "A Rust crate for parsing, manipulating, and analyzing molecular formulas."
+readme = "README.md"
+keywords = ["chemistry", "molecular-formulas", "elements", "isotopes", "science"]
+categories = ["science", "database"]
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
 serde = { version = "1.0", optional = true }
