@@ -89,3 +89,66 @@ where
         MoleculeParser::new(s.chars())?.parse_formula()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use super::*;
+
+    #[test]
+    fn test_inchi_formula_from_str() {
+        let input = "C2H5";
+        let expected = "1C2H5"; // InChI formula explicitly prints count
+        let formula = InChIFormula::<u32>::from_str(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_chemical_formula_try_from() {
+        let input = "H2O";
+        let expected = "H₂O"; // Chemical formula uses subscripts
+        let formula = ChemicalFormula::<u32, i32>::try_from(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_chemical_formula_from_str() {
+        let input = "H2O";
+        let expected = "H₂O";
+        let formula = ChemicalFormula::<u32, i32>::from_str(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_mineral_formula_try_from() {
+        let input = "SiO2";
+        let expected = "SiO₂"; // Mineral formula uses subscripts
+        let formula = MineralFormula::<u32, i32>::try_from(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_mineral_formula_from_str() {
+        let input = "SiO2";
+        let expected = "SiO₂";
+        let formula = MineralFormula::<u32, i32>::from_str(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_residual_formula_try_from() {
+        let input = "C6H12O6";
+        let expected = "C₆H₁₂O₆"; // Residual formula uses subscripts
+        let formula = ResidualFormula::<u32, i32>::try_from(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+
+    #[test]
+    fn test_residual_formula_from_str() {
+        let input = "C6H12O6";
+        let expected = "C₆H₁₂O₆";
+        let formula = ResidualFormula::<u32, i32>::from_str(input).unwrap();
+        assert_eq!(formula.to_string(), expected);
+    }
+}

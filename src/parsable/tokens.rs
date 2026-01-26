@@ -145,7 +145,7 @@ where
                 };
                 if let SubToken::Inchi(InchiToken::Element(element)) = next {
                     match Isotope::try_from((element, candidate_isotopic_number)) {
-                        Ok(isotope) => Token::Isotope(isotope),
+                        Ok(isotope) => isotope.into(),
                         Err(err) => {
                             return Some(Err(err.into()));
                         }
@@ -238,6 +238,73 @@ where
             Token::OpenBracket(b) => write!(f, "{}", b.opening()),
             Token::CloseBracket(b) => write!(f, "{}", b.closing()),
             Token::Extension(e) => write!(f, "{e}"),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use elements_rs::Element;
+
+    use super::*;
+
+    #[test]
+    fn test_display() {
+        let element = Token::<u32, i32, char>::from(Element::C);
+        assert_eq!(format!("{element}"), "C");
+
+        let count = Token::<u32, i32, char>::Inchi(InchiToken::Count(42));
+        assert_eq!(format!("{count}"), "42");
+
+        let dot = Token::<u32, i32, char>::Inchi(InchiToken::Dot);
+        assert_eq!(format!("{dot}"), ".");
+
+        let isotope =
+            Token::<u32, i32, char>::from(Isotope::try_from((Element::C, 13_u16)).unwrap());
+        assert_eq!(format!("{isotope}"), "[¹³C]");
+
+        let charge = Token::<u32, i32, char>::Charge(2);
+        assert_eq!(format!("{charge}"), "²⁺");
+
+        let complex = Token::<u32, i32, char>::Complex(Complex::Methyl);
+        assert_eq!(format!("{complex}"), "Me");
+
+        let radical = Token::<u32, i32, char>::Radical;
+        assert_eq!(format!("{radical}"), ".");
+
+        let open = Token::<u32, i32, char>::OpenBracket(Bracket::Round);
+        assert_eq!(format!("{open}"), "(");
+
+        let close = Token::<u32, i32, char>::CloseBracket(Bracket::Square);
+        assert_eq!(format!("{close}"), "]");
+
+        let ext = Token::<u32, i32, char>::Extension('X');
+        assert_eq!(format!("{ext}"), "X");
+    }
+
+    #[cfg(feature = "fuzzing")]
+    #[test]
+    #[allow(clippy::cast_possible_truncation)]
+    fn test_arbitrary() {
+        use arbitrary::{Arbitrary, Unstructured};
+
+        // Test with a limited number of data patterns to avoid slow tests
+        for i in 0u8..16 {
+            let mut raw_data = [0u8; 256];
+            for (j, byte) in raw_data.iter_mut().enumerate() {
+                // Generates a deterministic pseudo-random pattern
+                *byte = j.wrapping_add(i as usize).wrapping_mul(31) as u8;
+            }
+            let mut u = Unstructured::new(&raw_data);
+
+            // Generate tokens until data is exhausted
+            while Token::<u32, i32, char>::arbitrary(&mut u).is_ok() {
+                if u.is_empty() {
+                    break;
+                }
+            }
         }
     }
 }
