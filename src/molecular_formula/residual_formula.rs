@@ -12,7 +12,6 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// A chemical formula which can contain residual notations.
 pub struct ResidualFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     mixtures: Vec<(Count, ChemicalTree<Count, Charge, Residual>)>,
@@ -71,11 +70,7 @@ where
     }
 }
 
-impl<Count: CountLike, Charge: ChargeLike> core::fmt::Display for ResidualFormula<Count, Charge>
-where
-    Charge: TryFrom<Count>,
-    ChemicalTree<Count, Charge, Residual>: core::fmt::Display,
-{
+impl<Count: CountLike, Charge: ChargeLike> core::fmt::Display for ResidualFormula<Count, Charge> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         for (i, (fraction, tree)) in self.mixtures.iter().enumerate() {
             if i > 0 {

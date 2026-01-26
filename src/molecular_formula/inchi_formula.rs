@@ -11,7 +11,6 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// A chemical formula representing molecular formulas in InChI format.
 pub struct InChIFormula<Count: CountLike = u16> {
     mixtures: Vec<(Count, SequenceNode<InChITree<Count>>)>,

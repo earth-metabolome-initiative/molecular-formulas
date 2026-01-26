@@ -248,3 +248,13 @@ fn test_fuzzing_case24() {
         ChemicalFormula::from_str(&parsed.to_string()).expect("Failed to reparse formula");
     assert_eq!(parsed, reparsed, "Reparsed formula did not match original");
 }
+
+#[test]
+fn test_fuzzing_case25() {
+    let formula = "[⁷⁰Fe]49281¹¹⁵⁻¹¹⁵⁺12976";
+    // We expect this to fail parsing due to invalid charge.
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter('¹')
+    );
+}

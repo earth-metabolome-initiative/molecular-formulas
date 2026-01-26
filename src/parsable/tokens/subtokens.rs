@@ -222,6 +222,14 @@ where
             return Some(match self.stream.peek().copied() {
                 Some(c) if SuperscriptMinus::matches(c) => {
                     self.stream.next();
+
+                    // We check that no further charge or digit follows.
+                    if self.parse_any_charge_candidate() {
+                        return Some(Err(ParserError::UnexpectedCharacter(
+                            self.stream.next().unwrap(),
+                        )));
+                    }
+
                     let mut padded_count: i64 = count.into();
                     // Should not be possible to overflow here.
                     padded_count = -padded_count;
@@ -231,6 +239,14 @@ where
                 }
                 Some(c) if SuperscriptPlus::matches(c) => {
                     self.stream.next();
+
+                    // We check that no further charge or digit follows.
+                    if self.parse_any_charge_candidate() {
+                        return Some(Err(ParserError::UnexpectedCharacter(
+                            self.stream.next().unwrap(),
+                        )));
+                    }
+
                     M::Charge::try_from(count)
                         .map_err(|_| NumericError::PositiveOverflow.into())
                         .map(|ch| SubToken::Charge(ch))
