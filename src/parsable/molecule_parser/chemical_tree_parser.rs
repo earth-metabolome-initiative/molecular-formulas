@@ -7,7 +7,7 @@ use elements_rs::Isotope;
 
 use crate::{
     Bracket, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalFormula, ChemicalTree, CountLike,
-    Empty, InchiToken, MolecularFormulaMetadata, ParsableFormula, Token,
+    Empty, InchiToken, MolecularFormulaMetadata, ParsableFormula, Token, TokenLike,
     errors::ParserError,
     parsable::{
         MoleculeParser, molecule_parser::MolecularTreeParser,
@@ -96,7 +96,7 @@ where
                 // in which case it is an isotope specifier.
                 if !tree.is_empty() {
                     tree.repeat(count)
-                } else if let Some(element) = self.consume_element()? {
+                } else if let Some(element) = self.consume_token()?.as_element() {
                     tree.isotope(Isotope::try_from((element, count))?)
                 } else {
                     return Err(ParserError::UnprocessableNumber);

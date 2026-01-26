@@ -82,24 +82,56 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
     fn test_fuzz_formula_arbitrary_residual() {
-        let bytes = (0..255).cycle().take(1000).collect::<Vec<u8>>();
+        // Use pseudo-random bytes to ensure non-empty vectors are generated
+        let mut bytes = Vec::with_capacity(4096);
+        for i in 0u32..4096 {
+            bytes.push(i.wrapping_mul(31).wrapping_add(17) as u8);
+        }
         let mut u = Unstructured::new(&bytes);
 
-        if let Ok(f) = FuzzFormula::<u16, i16, Residual>::arbitrary(&mut u) {
-            let s: String = f.clone().into();
-            assert_eq!(s, f.as_ref());
+        let mut hit_non_empty = false;
+        // Consume as much as possible
+        while !u.is_empty() {
+            if let Ok(f) = FuzzFormula::<u16, i16, Residual>::arbitrary(&mut u) {
+                let s: String = f.clone().into();
+                assert_eq!(s, f.as_ref());
+
+                if !s.is_empty() {
+                    hit_non_empty = true;
+                }
+            } else {
+                break;
+            }
         }
+        assert!(hit_non_empty, "Should have generated at least one non-empty formula");
     }
 
     #[test]
+    #[allow(clippy::cast_possible_truncation)]
     fn test_fuzz_formula_arbitrary_empty() {
-        let bytes = (0..255).cycle().take(1000).collect::<Vec<u8>>();
+        // Use pseudo-random bytes to ensure non-empty vectors are generated
+        let mut bytes = Vec::with_capacity(4096);
+        for i in 0u32..4096 {
+            bytes.push(i.wrapping_mul(31).wrapping_add(17) as u8);
+        }
         let mut u = Unstructured::new(&bytes);
 
-        if let Ok(f) = FuzzFormula::<u16, i16, Empty>::arbitrary(&mut u) {
-            let s: String = f.clone().into();
-            assert_eq!(s, f.as_ref());
+        let mut hit_non_empty = false;
+        // Consume as much as possible
+        while !u.is_empty() {
+            if let Ok(f) = FuzzFormula::<u16, i16, Empty>::arbitrary(&mut u) {
+                let s: String = f.clone().into();
+                assert_eq!(s, f.as_ref());
+
+                if !s.is_empty() {
+                    hit_non_empty = true;
+                }
+            } else {
+                break;
+            }
         }
+        assert!(hit_non_empty, "Should have generated at least one non-empty formula");
     }
 }

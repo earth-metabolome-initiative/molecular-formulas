@@ -107,23 +107,6 @@ where
         }
     }
 
-    /// Consumes an element token if present and returns its value.
-    pub(crate) fn consume_element(&mut self) -> Result<Option<elements_rs::Element>, ParserError> {
-        match self.tokens.peek().copied() {
-            Some(Ok(token)) => {
-                if let Some(element) = token.as_element() {
-                    // Consume the element token
-                    self.tokens.next();
-                    Ok(Some(element))
-                } else {
-                    Ok(None)
-                }
-            }
-            Some(Err(e)) => Err(e),
-            None => Err(ParserError::UnexpectedEndOfInput),
-        }
-    }
-
     pub(super) fn parse_formula(mut self) -> Result<M, ParserError> {
         // Next, we start to parse the mixtures, which are separated by dots.
         let mut mixtures: Vec<(M::Count, M::Tree)> = Vec::new();

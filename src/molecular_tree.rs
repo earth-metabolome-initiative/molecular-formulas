@@ -126,3 +126,49 @@ pub trait ChargedMolecularTree<Count, Charge>: MolecularTree<Count> {
     /// Returns the molar mass.
     fn molar_mass(&self) -> f64;
 }
+
+#[cfg(test)]
+mod tests {
+    use core::str::FromStr;
+
+    use crate::{MolecularFormula, prelude::ChemicalFormula};
+
+    #[test]
+    fn test_is_hill_sorted_cases() {
+        let cases = [
+            // --- Branch 1: Starts with C ---
+            // Valid cases
+            ("C2H5O", true), // C, H, O (sorted alphabetically after H)
+            ("CO2", true),   // C, O (Valid, no H)
+            ("CH4", true),   // C, H (Valid)
+            // Invalid: Branch 2 (C appears again immediately)
+            ("CC", false),
+            // Invalid: Branch 4 (H appears again immediately)
+            // Note: C.H.H
+            ("CHH", false),
+            // Invalid: Branch 5 (C appears later)
+            ("COC", false),
+            // Invalid: Branch 5 (H appears later)
+            ("CHBrH", false), // C, H, Br, H (H reappears)
+            // Invalid: Branch 6 (Not sorted alphabetically after H)
+            ("CHIBr", false), // I comes after Br, so I, Br is desc order.
+            // --- Branch 7: Does not start with C ---
+            // Valid cases
+            ("H2O", true), // H, O. (H < O).
+            ("ClH", true), // Cl, H. ("Cl" < "H" because 'C' < 'H').
+            ("O2", true),  // O.
+            // Invalid: Branch 8 (C appears later)
+            ("HC", false),
+            // Invalid: Branch 9 (Not sorted alphabetically)
+            ("ON", false),  // O, N. "N" < "O". Returns false. (Unsorted: O > N).
+            ("HCl", false), // H, Cl. "H" > "Cl". Returns false. (Unsorted).
+        ];
+
+        for (formula_str, expected) in cases {
+            let formula = ChemicalFormula::<u32, i32>::from_str(formula_str)
+                .unwrap_or_else(|_| panic!("Failed to parse {formula_str}"));
+
+            assert_eq!(formula.is_hill_sorted(), expected, "Mismatch for formula {formula_str}");
+        }
+    }
+}

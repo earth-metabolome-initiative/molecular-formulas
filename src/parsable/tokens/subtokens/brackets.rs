@@ -4,6 +4,7 @@ use core::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// Represents the kind of brackets used in a molecular formula.
 pub enum Bracket {
     /// Round brackets: ()
@@ -38,12 +39,5 @@ impl Bracket {
             Self::Round => ')',
             Self::Square => ']',
         }
-    }
-}
-
-#[cfg(feature = "fuzzing")]
-impl<'a> arbitrary::Arbitrary<'a> for Bracket {
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        if u.ratio(1, 2)? { Ok(Bracket::Round) } else { Ok(Bracket::Square) }
     }
 }

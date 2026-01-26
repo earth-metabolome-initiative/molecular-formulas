@@ -21,13 +21,6 @@ pub trait MolecularFormulaMetadata: Sized {
     type Count: CountLike;
 }
 
-impl<M> MolecularFormulaMetadata for &M
-where
-    M: MolecularFormulaMetadata,
-{
-    type Count = M::Count;
-}
-
 /// Trait for computing various molecular properties.
 pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// The tree type used in the molecular formula.
@@ -245,25 +238,10 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     }
 }
 
-impl<M: MolecularFormula> MolecularFormula for &M {
-    type Tree = M::Tree;
-
-    fn mixtures(&self) -> impl Iterator<Item = (M::Count, &M::Tree)> {
-        (*self).mixtures()
-    }
-}
-
 /// A molecular formula that can hold a charge.
 pub trait ChargedMolecularFormulaMetadata: MolecularFormulaMetadata {
     /// The charge type used in the molecular formula.
     type Charge: ChargeLike + TryFrom<Self::Count>;
-}
-
-impl<M> ChargedMolecularFormulaMetadata for &M
-where
-    M: ChargedMolecularFormulaMetadata,
-{
-    type Charge = M::Charge;
 }
 
 /// Trait for computing various charged molecular properties.
