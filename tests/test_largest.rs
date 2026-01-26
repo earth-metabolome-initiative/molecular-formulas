@@ -2,7 +2,7 @@
 
 use core::str::FromStr;
 
-use elements_rs::isotopes::HydrogenIsotope;
+use elements_rs::isotopes::{HeliumIsotope, HydrogenIsotope};
 use molecular_formulas::prelude::*;
 use num_traits::Zero;
 use strum::IntoEnumIterator;
@@ -45,6 +45,8 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
         assert!(m.contains_element(element));
     }
     assert!(m.contains_isotopes());
+    assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
+    assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Some(M::Count::zero()));
     assert!(m.contains_elements());
     assert!(
         (m.isotopologue_mass() - 9492.200799867811).abs() < f64::EPSILON,
@@ -56,14 +58,14 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
 }
 
 fn test_all_charged_molecular_trait_method2<M: ChargedMolecularFormula>(m: &M) {
-    assert!((m.charge() + 3.0).abs() < f64::EPSILON, "Found charge: {}", m.charge());
+    assert!((m.charge() + 39.0).abs() < f64::EPSILON, "Found charge: {}", m.charge());
     assert!(
-        (m.isotopologue_mass_with_charge() - 9492.202445607538).abs() < f64::EPSILON,
+        (m.isotopologue_mass_with_charge() - 9492.222194484264).abs() < f64::EPSILON,
         "Found mass: {}",
         m.isotopologue_mass_with_charge()
     );
     assert!(
-        (m.molar_mass() - 8686.897193659726).abs() < f64::EPSILON,
+        (m.molar_mass() - 8686.916942536453).abs() < f64::EPSILON,
         "Found mass: {}",
         m.molar_mass()
     );
@@ -100,7 +102,7 @@ fn test_largest_inchi() {
 
 #[test]
 fn test_largest_formula() {
-    let mixture = "•([C₃₉₀³H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂³⁻•])";
+    let mixture = "•([C₃₉₀³H₄₀₄B₂Br₂ClCs₂F₁₁K₂MnN₂₆Na₂O₁₀₀OsPdS₃W₂•])³⁹⁻";
     let largest_chemical: ChemicalFormula = ChemicalFormula::from_str(mixture).unwrap();
     let serialized = serde_json::to_string(&largest_chemical).unwrap();
     let deserialized: ChemicalFormula = serde_json::from_str(&serialized).unwrap();

@@ -198,7 +198,7 @@ where
     Extension: arbitrary::Arbitrary<'a>,
 {
     fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let variant = u.int_in_range(0..=7)?;
+        let variant = u.int_in_range(0..=9)?;
         Ok(match variant {
             0 => elements_rs::Element::arbitrary(u)?.into(),
             1 => {
@@ -210,13 +210,8 @@ where
             4 => Token::Charge(Charge::arbitrary(u)?),
             5 => Token::Complex(<Complex as arbitrary::Arbitrary>::arbitrary(u)?),
             6 => Token::Radical,
-            7 => {
-                if u.ratio(1, 2)? {
-                    Token::OpenBracket(Bracket::arbitrary(u)?)
-                } else {
-                    Token::CloseBracket(Bracket::arbitrary(u)?)
-                }
-            }
+            7 => Token::OpenBracket(Bracket::arbitrary(u)?),
+            8 => Token::CloseBracket(Bracket::arbitrary(u)?),
             _ => Token::Extension(Extension::arbitrary(u)?),
         })
     }

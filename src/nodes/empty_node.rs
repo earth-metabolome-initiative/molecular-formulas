@@ -27,3 +27,40 @@ impl TryFrom<char> for Empty {
         Err(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use super::*;
+
+    #[test]
+    fn test_empty_display() {
+        assert_eq!(format!("{Empty}"), "");
+    }
+
+    #[test]
+    fn test_empty_try_from_char() {
+        assert_eq!(Empty::try_from('a'), Err(()));
+    }
+
+    #[test]
+    fn test_empty_traits() {
+        let e1 = Empty;
+        let e2 = Empty;
+        assert_eq!(e1, e2);
+        assert_eq!(e1.clone(), e2);
+        assert_eq!(format!("{e1:?}"), "Empty");
+    }
+
+    #[cfg(feature = "fuzzing")]
+    #[test]
+    fn test_empty_arbitrary() {
+        use arbitrary::{Arbitrary, Unstructured};
+
+        let raw_data = [0u8; 10];
+        let mut u = Unstructured::new(&raw_data);
+        let e = Empty::arbitrary(&mut u).unwrap();
+        assert_eq!(e, Empty);
+    }
+}

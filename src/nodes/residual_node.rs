@@ -31,3 +31,41 @@ impl TryFrom<char> for Residual {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use super::*;
+
+    #[test]
+    fn test_residual_display() {
+        assert_eq!(format!("{Residual}"), "R");
+    }
+
+    #[test]
+    fn test_residual_try_from_char() {
+        assert_eq!(Residual::try_from('R'), Ok(Residual));
+        assert_eq!(Residual::try_from('A'), Err(()));
+    }
+
+    #[test]
+    fn test_residual_traits() {
+        let r1 = Residual;
+        let r2 = Residual;
+        assert_eq!(r1, r2);
+        assert_eq!(r1.clone(), r2);
+        assert_eq!(format!("{r1:?}"), "Residual");
+    }
+
+    #[cfg(feature = "fuzzing")]
+    #[test]
+    fn test_residual_arbitrary() {
+        use arbitrary::{Arbitrary, Unstructured};
+
+        let raw_data = [0u8; 10];
+        let mut u = Unstructured::new(&raw_data);
+        let r = Residual::arbitrary(&mut u).unwrap();
+        assert_eq!(r, Residual);
+    }
+}
