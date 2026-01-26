@@ -260,7 +260,7 @@ where
         if let Some(peaked) = self.stream.peek().copied() {
             if let Ok(complex) = Complex::try_from([next_char, peaked]) {
                 self.stream.next();
-                return Some(Ok(SubToken::Complex(complex)));
+                return Some(Ok(complex.into()));
             }
             if let Ok(element) = Element::try_from([next_char, peaked]) {
                 self.stream.next();
