@@ -10,6 +10,11 @@ fn test_standard_isotopes() {
     let mass = formula.isotopologue_mass();
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3);
+    assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
+    assert_eq!(
+        formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
+        Some(1)
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -25,6 +30,11 @@ fn test_bracket_isotopes() {
     let mass = formula.isotopologue_mass();
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3, "Mass was {mass} but expected ~17.03465");
+    assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
+    assert_eq!(
+        formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
+        Some(1)
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -40,6 +50,11 @@ fn test_round_bracket_isotopes() {
     let mass = formula.isotopologue_mass();
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3, "Mass was {mass} but expected ~17.03465");
+    assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
+    assert_eq!(
+        formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
+        Some(1)
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -58,6 +73,7 @@ fn test_deuterium() {
     assert!((mass - 20.023).abs() < 1e-3);
 
     assert!(formula.contains_isotope(HydrogenIsotope::D.into()));
+    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::D.into()), Some(2));
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -73,7 +89,8 @@ fn test_tritium() {
     // T mass approx 3.016
     let mass = formula.isotopologue_mass();
     assert!((mass - 6.032).abs() < 1e-3);
-
+    assert!(formula.contains_isotope(HydrogenIsotope::T.into()));
+    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::T.into()), Some(2));
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
     let residual_formula: ResidualFormula = "T2".parse().unwrap();
@@ -88,6 +105,11 @@ fn test_other_bracket_isotopes() {
     // 2*1.008 + 17.999 = ~20.015
     let mass = formula.isotopologue_mass();
     assert!((mass - 20.015).abs() < 1e-3);
+    assert!(formula.contains_isotope(Isotope::try_from((Element::O, 18u8)).unwrap()));
+    assert_eq!(
+        formula.count_of_isotope::<u32>(Isotope::try_from((Element::O, 18u8)).unwrap()),
+        Some(1)
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -103,6 +125,11 @@ fn test_c13_notation() {
     let mass = formula.isotopologue_mass();
     // 13.00335 + 4 * 1.007825
     assert!((mass - 17.03465).abs() < 1e-3);
+    assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
+    assert_eq!(
+        formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
+        Some(1)
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.

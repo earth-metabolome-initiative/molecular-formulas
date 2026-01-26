@@ -2,8 +2,10 @@
 
 use core::str::FromStr;
 
+use elements_rs::isotopes::HydrogenIsotope;
 use molecular_formulas::prelude::*;
 use num_traits::Zero;
+use strum::IntoEnumIterator;
 
 fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     assert_eq!(m.number_of_mixtures(), 76);
@@ -21,6 +23,11 @@ fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     );
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
+
+    for isotope in HydrogenIsotope::iter() {
+        assert!(!m.contains_isotope(isotope.into()));
+        assert_eq!(m.count_of_isotope::<M::Count>(isotope.into()), Some(M::Count::zero()));
+    }
 }
 
 fn test_all_charged_molecular_trait_method1<M: ChargedMolecularFormula>(m: &M) {
@@ -46,6 +53,11 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
     );
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
+
+    for isotope in HydrogenIsotope::iter() {
+        assert!(!m.contains_isotope(isotope.into()));
+        assert_eq!(m.count_of_isotope::<M::Count>(isotope.into()), Some(M::Count::zero()));
+    }
 }
 
 fn test_all_charged_molecular_trait_method2<M: ChargedMolecularFormula>(m: &M) {

@@ -162,3 +162,67 @@ impl<Count: CountLike, Charge: ChargeLike> Display for MineralFormula<Count, Cha
         write!(f, "{}", self.formula)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use alloc::{format, string::ToString};
+    use core::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn test_all_prefixes_roundtrip() {
+        let cases = [
+            (PolymorphPrefix::Alpha, "α"),
+            (PolymorphPrefix::Beta, "β"),
+            (PolymorphPrefix::Gamma, "γ"),
+            (PolymorphPrefix::Delta, "δ"),
+            (PolymorphPrefix::Phi, "φ"),
+            (PolymorphPrefix::Omega, "ω"),
+            (PolymorphPrefix::Lambda, "λ"),
+            (PolymorphPrefix::Mu, "μ"),
+            (PolymorphPrefix::Pi, "π"),
+        ];
+
+        // Testing with simple "SiO2".
+        // Note: The Display implementation for ChemicalFormula uses subscripts (SiO₂).
+        // To ensure roundtrip equality (string -> parse -> string == string), we use
+        // the subscript version as input.
+        let formula_part = "SiO₂";
+
+        for (prefix, char_representation) in cases {
+            let input = format!("{char_representation}-{formula_part}");
+            let parsed = MineralFormula::<u32, i32>::from_str(&input).expect("Should parse");
+
+            assert_eq!(parsed.polymorph_prefix, Some(prefix), "Prefix mismatch for {input}");
+            assert_eq!(parsed.to_string(), input, "Roundtrip mismatch for {input}");
+        }
+    }
+
+    #[test]
+    fn test_illegal_cases() {
+        // defined prefix character but missing hyphen
+        assert_eq!(
+            MineralFormula::<u32, i32>::from_str("αSiO2"),
+            Err(ParserError::UnexpectedCharacter('S'))
+        );
+
+        // defined prefix character but wrong separator (space is not a BaselineMinus)
+        assert_eq!(
+            MineralFormula::<u32, i32>::from_str("α SiO2"),
+            Err(ParserError::UnexpectedCharacter(' '))
+        );
+
+        // Just the prefix (UnexpectedEndOfInput looking for hyphen)
+        assert_eq!(
+            MineralFormula::<u32, i32>::from_str("α"),
+            Err(ParserError::UnexpectedEndOfInput)
+        );
+
+        // Prefix with an hyphen but no formula
+        assert_eq!(
+            MineralFormula::<u32, i32>::from_str("α-"),
+            Err(ParserError::EmptyMolecularTree)
+        );
+    }
+}
