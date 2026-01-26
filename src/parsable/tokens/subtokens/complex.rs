@@ -1,0 +1,89 @@
+//! Submodules for tokens representing complex groups.
+
+use core::fmt::Display;
+
+#[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// Represents complex group fragments in molecular formulas.
+pub enum Complex {
+    /// Methyl group (Me) - CH3
+    Methyl,
+    /// Ethyl group (Et) - C2H5
+    Ethyl,
+    /// Butyl group (Bu) - C4H9
+    Butyl,
+    /// Phenyl group (Ph) - C6H5
+    Phenyl,
+    /// Benzyl group (Bn) - C7H7
+    Benzyl,
+    /// Cyclohexyl group (Cy) - C6H11
+    Cyclohexyl,
+    /// Cyclopentadienyl group (Cp) - `C5H5-`
+    Cyclopentadienyl,
+}
+
+impl Display for Complex {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let s = match self {
+            Complex::Methyl => "Me",
+            Complex::Ethyl => "Et",
+            Complex::Butyl => "Bu",
+            Complex::Phenyl => "Ph",
+            Complex::Benzyl => "Bn",
+            Complex::Cyclohexyl => "Cy",
+            Complex::Cyclopentadienyl => "Cp",
+        };
+        write!(f, "{s}")
+    }
+}
+
+impl TryFrom<[char; 2]> for Complex {
+    type Error = ();
+
+    fn try_from(value: [char; 2]) -> Result<Self, Self::Error> {
+        match value {
+            ['M', 'e'] => Ok(Complex::Methyl),
+            ['E', 't'] => Ok(Complex::Ethyl),
+            ['B', 'u'] => Ok(Complex::Butyl),
+            ['P', 'h'] => Ok(Complex::Phenyl),
+            ['B', 'n'] => Ok(Complex::Benzyl),
+            ['C', 'y'] => Ok(Complex::Cyclohexyl),
+            ['C', 'p'] => Ok(Complex::Cyclopentadienyl),
+            _ => Err(()),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_complex_try_from_char_array() {
+        use core::convert::TryFrom;
+
+        use super::Complex;
+
+        assert_eq!(Complex::try_from(['M', 'e']).unwrap(), Complex::Methyl);
+        assert_eq!(Complex::try_from(['E', 't']).unwrap(), Complex::Ethyl);
+        assert_eq!(Complex::try_from(['B', 'u']).unwrap(), Complex::Butyl);
+        assert_eq!(Complex::try_from(['P', 'h']).unwrap(), Complex::Phenyl);
+        assert_eq!(Complex::try_from(['B', 'n']).unwrap(), Complex::Benzyl);
+        assert_eq!(Complex::try_from(['C', 'y']).unwrap(), Complex::Cyclohexyl);
+        assert_eq!(Complex::try_from(['C', 'p']).unwrap(), Complex::Cyclopentadienyl);
+        assert!(Complex::try_from(['X', 'x']).is_err());
+    }
+}
+
+#[cfg(feature = "fuzzing")]
+impl<'a> arbitrary::Arbitrary<'a> for Complex {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+        let i = u.int_in_range(0..=5)?;
+        Ok(match i {
+            0 => Complex::Methyl,
+            1 => Complex::Ethyl,
+            2 => Complex::Butyl,
+            3 => Complex::Phenyl,
+            4 => Complex::Benzyl,
+            _ => Complex::Cyclohexyl,
+        })
+    }
+}

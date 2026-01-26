@@ -2,7 +2,7 @@
 
 use std::str::FromStr;
 
-use molecular_formulas::{MolecularFormula, ResidualFormula};
+use molecular_formulas::{ChemicalFormula, ResidualFormula};
 
 const COMPLEX_FORMULAS: &[&str] = &[
     "C14H14ClN3OS",
@@ -286,7 +286,7 @@ const NAMED_FORMULAS: &[(&str, &str)] = &[
 #[test]
 fn test_parser() {
     for (i, (name, formula)) in NAMED_FORMULAS.iter().enumerate() {
-        let parsed: Result<ResidualFormula, _> = MolecularFormula::from_str(formula);
+        let parsed: Result<ResidualFormula, _> = ResidualFormula::from_str(formula);
         if let Err(e) = parsed {
             panic!(
                 "Case {i}/{} - Failed to parse \"{name}\" with formula \"{formula}\": {e:?}",
@@ -296,7 +296,7 @@ fn test_parser() {
     }
 
     for formula in COMPLEX_FORMULAS {
-        let parsed: Result<MolecularFormula, _> = MolecularFormula::from_str(formula);
+        let parsed: Result<ChemicalFormula, _> = ChemicalFormula::from_str(formula);
         if let Err(e) = parsed {
             panic!("Failed to parse formula {formula}: {e:?}");
         }

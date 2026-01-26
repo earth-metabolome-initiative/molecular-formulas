@@ -1,77 +1,76 @@
 //! Submodule for testing corner cases identified during fuzzing.
 use std::str::FromStr;
 
-use molecular_formulas::{
-    Bracket, DefaultTree, LargestTree, MolecularFormula, ParseError, ResidualFormula, SubToken,
-    Terminator, TokenError,
-};
+use molecular_formulas::{errors::ParserError, prelude::*};
 
 #[test]
 fn test_fuzzing_case1() {
     let formula_str = "805F712";
-    assert!(MolecularFormula::<DefaultTree>::from_str(formula_str).is_ok());
+    let _formula: ChemicalFormula =
+        ChemicalFormula::from_str(formula_str).expect("Failed to parse formula");
 }
 
 #[test]
 fn test_fuzzing_case2() {
     let formula_str = "63F6BR.N";
-    assert!(MolecularFormula::<DefaultTree>::from_str(formula_str).is_err());
-    assert!(ResidualFormula::from_str(formula_str).is_ok());
+    assert!(ChemicalFormula::<u16, i16>::from_str(formula_str).is_err());
+    let _residual: ResidualFormula =
+        ResidualFormula::from_str(formula_str).expect("Failed to parse formula");
 }
 
 #[test]
 fn test_fuzzing_case3() {
     let formula = "T.3870T";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "T.3870T");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "[³H].3870[³H]", "Parsed formula was {:?}", parsed);
 }
 
 #[test]
 fn test_fuzzing_case4() {
     let formula = "Cp-";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "(C₅H₅)²⁻");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "(C₅H₅)²⁻", "Parsed formula was {:?}", parsed);
 }
 
 #[test]
 fn test_fuzzing_case5() {
     let formula = "VUU[TU]";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "VUU[TU]");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "VUU[[³H]U]");
 }
 
 #[test]
 fn test_fuzzing_case6() {
     let formula = "V[11N]";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "V[¹¹N]");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "V[¹¹N]", "Parsed formula was {:?}", parsed);
 }
 
 #[test]
 fn test_fuzzing_case7() {
     let formula = "V[¹¹N]";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
     assert_eq!(parsed.to_string(), "V[¹¹N]");
 }
 
 #[test]
 fn test_fuzzing_case8() {
     let formula = "Cp+";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
     assert_eq!(parsed.to_string(), "(C₅H₅)");
 }
 
 #[test]
 fn test_fuzzing_case9() {
     let formula = "Cp+Cp+";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
     assert_eq!(parsed.to_string(), "(C₅H₅)(C₅H₅)");
 }
 
@@ -79,18 +78,18 @@ fn test_fuzzing_case9() {
 fn test_fuzzing_case10() {
     let formula2 = "Cp+Cp+";
     let formula1 = "(C₅H₅)(C₅H₅)";
-    let parsed1: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula1).expect("Failed to parse formula");
-    let parsed2: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula2).expect("Failed to parse formula");
+    let parsed1: ChemicalFormula =
+        ChemicalFormula::from_str(formula1).expect("Failed to parse formula");
+    let parsed2: ChemicalFormula =
+        ChemicalFormula::from_str(formula2).expect("Failed to parse formula");
     assert_eq!(parsed1, parsed2);
 }
 
 #[test]
 fn test_fuzzing_case11() {
     let formula = "Bu";
-    let parsed: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
+    let parsed: ChemicalFormula =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
     assert_eq!(parsed.to_string(), "(C₄H₉)");
 }
 
@@ -98,10 +97,10 @@ fn test_fuzzing_case11() {
 fn test_fuzzing_case12() {
     let formula1 = "Bu";
     let formula2 = "(C₄H₉)";
-    let parsed1: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula1).expect("Failed to parse formula");
-    let parsed2: MolecularFormula<DefaultTree> =
-        MolecularFormula::from_str(formula2).expect("Failed to parse formula");
+    let parsed1: ChemicalFormula =
+        ChemicalFormula::from_str(formula1).expect("Failed to parse formula");
+    let parsed2: ChemicalFormula =
+        ChemicalFormula::from_str(formula2).expect("Failed to parse formula");
     assert_eq!(parsed1, parsed2);
 }
 
@@ -110,9 +109,9 @@ fn test_fuzzing_case13() {
     let formula1 = "Bu";
     let formula2 = "(C₄H₉)";
     let parsed1: ResidualFormula =
-        MolecularFormula::from_str(formula1).expect("Failed to parse formula");
+        ResidualFormula::from_str(formula1).expect("Failed to parse formula");
     let parsed2: ResidualFormula =
-        MolecularFormula::from_str(formula2).expect("Failed to parse formula");
+        ResidualFormula::from_str(formula2).expect("Failed to parse formula");
     assert_eq!(parsed1, parsed2);
 }
 
@@ -120,7 +119,7 @@ fn test_fuzzing_case13() {
 fn test_fuzzing_case14() {
     let formula = "BBBuBu";
     let parsed: ResidualFormula =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
+        ResidualFormula::from_str(formula).expect("Failed to parse formula");
     assert_eq!(parsed.to_string(), "BB(C₄H₉)(C₄H₉)");
 }
 
@@ -129,26 +128,26 @@ fn test_fuzzing_case15() {
     let formula1 = "BBBuBu";
     let formula2 = "BB(C₄H₉)(C₄H₉)";
     let parsed1: ResidualFormula =
-        MolecularFormula::from_str(formula1).expect("Failed to parse formula");
+        ResidualFormula::from_str(formula1).expect("Failed to parse formula");
     let parsed2: ResidualFormula =
-        MolecularFormula::from_str(formula2).expect("Failed to parse formula");
+        ResidualFormula::from_str(formula2).expect("Failed to parse formula");
     assert_eq!(parsed1, parsed2);
 }
 
 #[test]
 fn test_fuzzing_case16() {
-    let formula = "S.166632998S.P";
-    let parsed: MolecularFormula<LargestTree> =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "S.166632998S.P");
+    let formula = "S.1998S.P";
+    let parsed: ChemicalFormula<u16, i16> =
+        ChemicalFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "S.1998S.P");
 }
 
 #[test]
 fn test_fuzzing_case17() {
-    let formula = "S.166632998S.P";
-    let parsed: ResidualFormula =
-        MolecularFormula::from_str(formula).expect("Failed to parse formula");
-    assert_eq!(parsed.to_string(), "S.166632998S.P");
+    let formula = "S.1998S.P";
+    let parsed: ResidualFormula<u16, i16> =
+        ResidualFormula::from_str(formula).expect("Failed to parse formula");
+    assert_eq!(parsed.to_string(), "S.1998S.P");
 }
 
 #[test]
@@ -157,10 +156,13 @@ fn test_fuzzing_case18() {
     // We expect this to fail parsing due to the second part
     // of the mixture being invalid.
     assert_eq!(
-        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
-        ParseError::EmptySequenceNotSupportedInCurrentTree
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::EmptyMolecularTree
     );
-    assert!(ResidualFormula::from_str(formula).is_err());
+    assert_eq!(
+        ResidualFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::EmptyMolecularTree
+    );
 }
 
 #[test]
@@ -168,18 +170,12 @@ fn test_fuzzing_case19() {
     let formula = "36[·VUU]U]U";
     // We expect this to fail parsing due to unbalanced brackets.
     assert_eq!(
-        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
-        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
-            Bracket::Square
-        ))
-        .into()
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(']')
     );
     assert_eq!(
-        ResidualFormula::from_str(formula).unwrap_err(),
-        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
-            Bracket::Square
-        ))
-        .into()
+        ResidualFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(']')
     );
 }
 
@@ -188,18 +184,12 @@ fn test_fuzzing_case20() {
     let formula = "H[]";
     // We expect this to fail parsing due to unbalanced brackets.
     assert_eq!(
-        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
-        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
-            Bracket::Square
-        ))
-        .into()
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(']')
     );
     assert_eq!(
-        ResidualFormula::from_str(formula).unwrap_err(),
-        TokenError::UnexpectedTerminatorWhileParsingTokens(Terminator::CloseBracket(
-            Bracket::Square
-        ))
-        .into()
+        ResidualFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(']')
     );
 }
 
@@ -208,12 +198,8 @@ fn test_fuzzing_case21() {
     let formula = "Se₂64";
     // We expect this to fail parsing due to invalid count.
     assert_eq!(
-        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
-        TokenError::InvalidSuccessor(
-            SubToken::SubscriptNumber(2u8.into()),
-            SubToken::BaselineNumber(64u8.into())
-        )
-        .into()
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter('6')
     );
 }
 
@@ -222,11 +208,7 @@ fn test_fuzzing_case22() {
     let formula = "Ni134₁";
     // We expect this to fail parsing due to invalid count.
     assert_eq!(
-        MolecularFormula::<LargestTree>::from_str(formula).unwrap_err(),
-        TokenError::InvalidSuccessor(
-            SubToken::BaselineNumber(134u8.into()),
-            SubToken::SubscriptNumber(1u8.into())
-        )
-        .into()
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter('₁')
     );
 }

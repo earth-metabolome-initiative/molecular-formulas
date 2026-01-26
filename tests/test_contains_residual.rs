@@ -14,13 +14,13 @@ const FORMULAS_WITHOUT_RESIDUALS: &[&str] =
 /// Test to check that the `contains_residuals` method works as expected
 fn test_residual_detection() {
     for formula in FORMULAS_WITH_RESIDUALS {
-        let formula = ResidualFormula::from_str(formula)
+        let formula: ResidualFormula = ResidualFormula::from_str(formula)
             .unwrap_or_else(|_| panic!("Failed to parse `{formula}`"));
         assert!(formula.contains_residuals(), "Expected {formula} to contain a residual",);
     }
 
     for formula in FORMULAS_WITHOUT_RESIDUALS {
-        let formula = ResidualFormula::from_str(formula).unwrap();
+        let formula: ResidualFormula = ResidualFormula::from_str(formula).unwrap();
         assert!(!formula.contains_residuals(), "Expected {formula} not to contain a residual");
     }
 }

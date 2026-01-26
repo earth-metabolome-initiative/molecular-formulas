@@ -2,7 +2,7 @@
 
 use std::str::FromStr;
 
-use molecular_formulas::MolecularFormula;
+use molecular_formulas::prelude::*;
 
 const MOLAR_MASSES: &[(&str, f64)] = &[
     ("H2O", 18.015),
@@ -16,7 +16,7 @@ const MOLAR_MASSES: &[(&str, f64)] = &[
 /// Test to check that the `molar_mass` method works as expected
 fn test_molar_mass() {
     for (formula, expected_molar_mass) in MOLAR_MASSES {
-        let formula: MolecularFormula = MolecularFormula::from_str(formula).unwrap();
+        let formula: ChemicalFormula = ChemicalFormula::from_str(formula).unwrap();
         let molar_mass = formula.molar_mass();
         assert!(
             (molar_mass - *expected_molar_mass).abs() < 1e-3,

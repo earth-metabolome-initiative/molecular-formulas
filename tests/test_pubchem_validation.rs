@@ -1,11 +1,6 @@
 //! Test suite for validating molecular formula parsing and mass calculations
 //! against PubChem CID-Mass data.
 //!
-//! # Overview
-//!
-//! This test module validates the molecular formula parser and mass calculation
-//! methods against the PubChem CID-Mass dataset.
-//!
 //! # Running Tests
 //!
 //! To run this test (validates all compounds):
@@ -24,7 +19,8 @@ use std::{
 use comfy_table::{Table, presets};
 use csv::ReaderBuilder;
 use indicatif::{ProgressBar, ProgressStyle};
-use molecular_formulas::MolecularFormula;
+use molecular_formulas::prelude::*;
+use num_traits::Zero;
 use serde::Deserialize;
 
 /// Entry for a mass mismatch to be stored in the top-k heap
@@ -64,7 +60,7 @@ struct PubChemCompound {
     /// PubChem Compound ID
     cid: u64,
     /// Molecular formula string
-    formula: MolecularFormula,
+    formula: ChemicalFormula,
     /// Monoisotopic mass from PubChem
     monoisotopic_mass: f64,
     /// Exact mass from PubChem (should be same as monoisotopic)
@@ -107,7 +103,10 @@ impl ValidationStats {
 
         for entry in entries {
             table.add_row(vec![
-                format!("[cid](https://pubchem.ncbi.nlm.nih.gov/compound/{cid})", cid = entry.cid),
+                format!(
+                    "[{cid}](https://pubchem.ncbi.nlm.nih.gov/compound/{cid})",
+                    cid = entry.cid
+                ),
                 format!("`{}`", entry.formula),
                 format!("{:.5}", entry.pubchem_mass),
                 format!("{:.5}", entry.calculated_mass),
@@ -190,8 +189,8 @@ fn validate_pubchem_data(
         pb.inc(1);
 
         let formula = &result.formula;
-        let is_ion = formula.charge() != 0.0;
-        let calculated_mass = formula.isotopologue_mass_without_charge();
+        let is_ion = !formula.charge().is_zero();
+        let calculated_mass = formula.isotopologue_mass();
         let mass_diff = (calculated_mass - result.monoisotopic_mass).abs();
 
         if mass_diff > mass_tolerance {

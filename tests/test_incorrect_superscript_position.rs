@@ -3,7 +3,7 @@
 
 use std::str::FromStr;
 
-use molecular_formulas::{DefaultTree, MolecularFormula, ParseError, TokenError};
+use molecular_formulas::{errors::ParserError, prelude::*};
 
 const INCORRECT_SUPERSCRIPT_POSITION: &[&str] = &["H²", "CH²"];
 
@@ -12,8 +12,10 @@ const INCORRECT_SUPERSCRIPT_POSITION: &[&str] = &["H²", "CH²"];
 /// position.
 fn test_incorrect_superscript_position() {
     for formula in INCORRECT_SUPERSCRIPT_POSITION {
-        let error: ParseError<i16, u16> =
-            MolecularFormula::<DefaultTree>::from_str(formula).unwrap_err();
-        assert_eq!(error, TokenError::UnexpectedEndOfInputWhileParsingTokens.into(),);
+        assert_eq!(
+            ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+            ParserError::UnexpectedEndOfInput,
+            "Failed to raise the correct error for formula `{formula}`"
+        )
     }
 }

@@ -22,3 +22,5 @@ target
 cobertura.xml
 CID-Mass
 CID-Mass.gz
+CID-InChI-Key
+CID-InChI-Key.gz

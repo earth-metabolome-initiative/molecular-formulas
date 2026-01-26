@@ -1,0 +1,163 @@
+//! Submodule providing the `MineralFormula` struct to represent molecular
+//! formulas of minerals.
+
+use alloc::vec::Vec;
+use core::fmt::Display;
+use core::iter::Peekable;
+
+use elements_rs::Isotope;
+
+use crate::{
+    BaselineMinus, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, Empty, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, errors::ParserError, parsable::CharacterMarker, prelude::ChemicalFormula
+};
+
+#[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+/// Represents a greek letter in a molecular formula.
+///
+/// These are not ALL of the greek letters, but only those which are used in
+/// mineral formulas, i.e. `'α'`, `'β'`, `'γ'`, `'δ'`, `'φ'`, `'ω'`, `'λ'`,
+/// `'μ'`, and `'π'`.
+pub enum PolymorphPrefix {
+    /// Alpha
+    Alpha,
+    /// Beta
+    Beta,
+    /// Gamma
+    Gamma,
+    /// Delta
+    Delta,
+    /// Phi
+    Phi,
+    /// Omega
+    Omega,
+    /// Lambda
+    Lambda,
+    /// Mu
+    Mu,
+    /// Pi
+    Pi,
+}
+
+impl From<PolymorphPrefix> for char {
+    fn from(letter: PolymorphPrefix) -> Self {
+        match letter {
+            PolymorphPrefix::Alpha => '\u{03b1}',
+            PolymorphPrefix::Beta => 'β',
+            PolymorphPrefix::Gamma => '\u{03b3}',
+            PolymorphPrefix::Delta => 'δ',
+            PolymorphPrefix::Phi => 'φ',
+            PolymorphPrefix::Omega => 'ω',
+            PolymorphPrefix::Lambda => 'λ',
+            PolymorphPrefix::Mu => 'μ',
+            PolymorphPrefix::Pi => 'π',
+        }
+    }
+}
+
+impl Display for PolymorphPrefix {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", char::from(*self))
+    }
+}
+
+impl TryFrom<char> for PolymorphPrefix {
+    type Error = ();
+
+    fn try_from(value: char) -> Result<Self, Self::Error> {
+        match value {
+            '\u{03b1}' => Ok(PolymorphPrefix::Alpha),
+            'β' => Ok(PolymorphPrefix::Beta),
+            '\u{03b3}' => Ok(PolymorphPrefix::Gamma),
+            'δ' => Ok(PolymorphPrefix::Delta),
+            'φ' => Ok(PolymorphPrefix::Phi),
+            'ω' => Ok(PolymorphPrefix::Omega),
+            'λ' => Ok(PolymorphPrefix::Lambda),
+            'μ' => Ok(PolymorphPrefix::Mu),
+            'π' => Ok(PolymorphPrefix::Pi),
+            _ => Err(()),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
+/// Struct representing a mineral formula, potentially with a greek letter
+/// prefix.
+pub struct MineralFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
+    /// Optional greek letter prefix for the mineral formula.
+    polymorph_prefix: Option<PolymorphPrefix>,
+    /// The rest of the chemical formula.
+    formula: ChemicalFormula<Count, Charge>,
+}
+
+impl<Count: CountLike, Charge: ChargeLike> MolecularFormulaMetadata
+    for MineralFormula<Count, Charge>
+{
+    type Count = Count;
+}
+
+impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for MineralFormula<Count, Charge> {
+    type Tree = ChemicalTree<Count, Charge, Empty>;
+
+    fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
+        self.formula.mixtures()
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> ChargedMolecularFormulaMetadata
+    for MineralFormula<Count, Charge>
+where
+    Charge: TryFrom<Count>,
+{
+    type Charge = Charge;
+}
+
+impl<Count: CountLike, Charge: ChargeLike> ParsableFormula for MineralFormula<Count, Charge>
+where
+    Isotope: TryFrom<(elements_rs::Element, Count), Error = elements_rs::errors::Error>,
+    Charge: TryFrom<Count>,
+{
+    type StartOutput = Option<PolymorphPrefix>;
+    type Tree = ChemicalTree<Count, Charge, Empty>;
+
+    fn on_start<J>(
+        chars: &mut Peekable<J>,
+    ) -> Result<<MineralFormula<Count, Charge> as crate::ParsableFormula>::StartOutput, ParserError>
+    where
+        J: Iterator<Item = char>,
+    {
+        let first_character = chars.peek().ok_or(ParserError::UnexpectedEndOfInput)?;
+        if let Ok(polymorph_prefix) = PolymorphPrefix::try_from(*first_character) {
+            chars.next();
+            // The polymorph prefix was found, but it must be followed by either an
+            // hyphen or something which an OCR would mistake for a hyphen. To have
+            // OCR-resilient parsing, we accept anything that looks like a "minus" sign.
+            let next_character = chars.next().ok_or(ParserError::UnexpectedEndOfInput)?;
+            if BaselineMinus::matches(next_character) {
+                Ok(Some(polymorph_prefix))
+            } else {
+                Err(ParserError::UnexpectedCharacter(next_character))
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn from_parsed(
+        start_output: Self::StartOutput,
+        mixtures: Vec<(Count, Self::Tree)>,
+    ) -> Result<Self, crate::errors::ParserError> {
+        let formula = ChemicalFormula::from_parsed((), mixtures)?;
+        Ok(MineralFormula { polymorph_prefix: start_output, formula })
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> Display for MineralFormula<Count, Charge> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        if let Some(prefix) = &self.polymorph_prefix {
+            write!(f, "{}", prefix)?;
+            write!(f, "-")?;
+        }
+        write!(f, "{}", self.formula)
+    }
+}

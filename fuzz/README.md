@@ -59,7 +59,7 @@ If the fuzzer finds a crash, it will save the crashing input in `hfuzz_workspace
 
 ```bash
 # Verify a specific crash file
-cargo hfuzz run-debug from_str hfuzz_workspace/from_str/SIGABRT.PC.7ffff7c9eb2c.STACK...fuzz
+cargo hfuzz run-debug from_str hfuzz_workspace/from_str/*.fuzz
 ```
 
 ## Interpretation of Results
