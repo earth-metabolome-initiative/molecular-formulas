@@ -41,7 +41,7 @@ pub enum ParserError {
     #[error("A number could not be processed neither as a charge nor as an isotopic number.")]
     UnprocessableNumber,
     /// A closing bracket was expected but not found.
-    #[error("A closing bracket '{0}' was expected but not found.")]
+    #[error("A closing bracket '{}' was expected but not found.", .0.closing())]
     MissingClosingBracket(Bracket),
     /// The molecular tree is empty.
     #[error("The molecular tree is empty.")]

@@ -72,4 +72,19 @@ mod tests {
         assert_eq!(Complex::try_from(['C', 'p']).unwrap(), Complex::Cyclopentadienyl);
         assert!(Complex::try_from(['X', 'x']).is_err());
     }
+
+    #[test]
+    fn test_complex_display() {
+        use alloc::string::ToString;
+
+        use super::Complex;
+
+        assert_eq!(Complex::Methyl.to_string(), "Me");
+        assert_eq!(Complex::Ethyl.to_string(), "Et");
+        assert_eq!(Complex::Butyl.to_string(), "Bu");
+        assert_eq!(Complex::Phenyl.to_string(), "Ph");
+        assert_eq!(Complex::Benzyl.to_string(), "Bn");
+        assert_eq!(Complex::Cyclohexyl.to_string(), "Cy");
+        assert_eq!(Complex::Cyclopentadienyl.to_string(), "Cp");
+    }
 }

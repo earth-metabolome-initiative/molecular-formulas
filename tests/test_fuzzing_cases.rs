@@ -298,3 +298,33 @@ fn test_fuzzing_case29() {
         ParserError::UnexpectedCharacter('⁺')
     );
 }
+
+#[test]
+fn test_fuzzing_case30() {
+    let formula = "[]²⁶⁷Hs]⁺³²⁷⁶⁷⁺";
+    // We expect this to fail parsing due to invalid charge.
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(']')
+    );
+}
+
+#[test]
+fn test_fuzzing_case31() {
+    let formula = "[)²⁶⁷Hs]⁺³²⁷⁶⁷⁺";
+    // We expect this to fail parsing due to invalid charge.
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(')')
+    );
+}
+
+#[test]
+fn test_fuzzing_case32() {
+    let formula = "()²⁶⁷Hs]⁺³²⁷⁶⁷⁺";
+    // We expect this to fail parsing due to invalid charge.
+    assert_eq!(
+        ChemicalFormula::<u16, i16>::from_str(formula).unwrap_err(),
+        ParserError::UnexpectedCharacter(')')
+    );
+}

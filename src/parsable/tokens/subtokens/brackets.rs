@@ -1,7 +1,5 @@
 //! Module defining brackets as allowed characters in a molecular formula.
 
-use core::fmt::Display;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
@@ -11,15 +9,6 @@ pub enum Bracket {
     Round,
     /// Square brackets: []
     Square,
-}
-
-impl Display for Bracket {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::Round => write!(f, "()"),
-            Self::Square => write!(f, "[]"),
-        }
-    }
 }
 
 impl Bracket {

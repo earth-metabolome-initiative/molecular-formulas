@@ -113,26 +113,10 @@ pub enum Digit {
     Nine,
 }
 
-impl Digit {
-    /// Returns true if the digit is zero.
-    #[must_use]
-    pub fn is_zero(&self) -> bool {
-        matches!(self, Digit::Zero)
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// Represents a baseline digit in a molecular formula.
 pub struct BaselineDigit(Digit);
-
-impl BaselineDigit {
-    /// Returns true if the digit is zero.
-    #[must_use]
-    pub fn is_zero(&self) -> bool {
-        self.0.is_zero()
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -143,23 +127,6 @@ pub struct SubscriptDigit(Digit);
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// Represents a superscript digit in a molecular formula.
 pub struct SuperscriptDigit(Digit);
-
-impl From<BaselineDigit> for char {
-    fn from(digit: BaselineDigit) -> Self {
-        match digit.0 {
-            Digit::Zero => '0',
-            Digit::One => '1',
-            Digit::Two => '2',
-            Digit::Three => '3',
-            Digit::Four => '4',
-            Digit::Five => '5',
-            Digit::Six => '6',
-            Digit::Seven => '7',
-            Digit::Eight => '8',
-            Digit::Nine => '9',
-        }
-    }
-}
 
 impl TryFrom<char> for BaselineDigit {
     type Error = ();
@@ -298,24 +265,6 @@ macro_rules! impl_digit_to_numeric {
 }
 
 impl_digit_to_numeric!(u8, u16, u32, i8, i16, i32);
-
-impl Display for SubscriptDigit {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", char::from(*self))
-    }
-}
-
-impl Display for SuperscriptDigit {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", char::from(*self))
-    }
-}
-
-impl Display for BaselineDigit {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", char::from(*self))
-    }
-}
 
 /// Tries to fold the stream of characters into the provided number type.
 pub fn try_fold_number<D, C, I>(
