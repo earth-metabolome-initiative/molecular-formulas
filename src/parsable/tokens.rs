@@ -20,7 +20,7 @@ use crate::{
 pub enum Token<Count: CountLike, Charge: ChargeLike, Extension> {
     /// An InChI-specific token.
     Inchi(InchiToken<Count>),
-    /// An isotope token, such as '[13C]'.
+    /// An isotope token, such as `[13C]`.
     Isotope(Isotope),
     /// A charge token, such as '+', '2-', etc.
     Charge(Charge),
