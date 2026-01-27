@@ -38,7 +38,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-molecular-formulas = "0.1.0"
+molecular-formulas = "0.1.2"
 ```
 
 ## Usage
