@@ -4,7 +4,7 @@
 use alloc::vec::Vec;
 use core::{fmt::Display, iter::Peekable};
 
-use elements_rs::Isotope;
+use elements_rs::{Element, Isotope};
 
 use crate::{
     BaselineMinus, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, Empty,
@@ -113,6 +113,18 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for MineralFormula<C
 
     fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
         self.formula.counted_mixtures()
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Element> for MineralFormula<Count, Charge> {
+    fn from(element: Element) -> Self {
+        Self { polymorph_prefix: None, formula: ChemicalFormula::from(element) }
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Isotope> for MineralFormula<Count, Charge> {
+    fn from(isotope: Isotope) -> Self {
+        Self { polymorph_prefix: None, formula: ChemicalFormula::from(isotope) }
     }
 }
 

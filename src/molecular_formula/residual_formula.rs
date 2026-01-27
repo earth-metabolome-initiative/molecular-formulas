@@ -4,7 +4,7 @@
 
 use alloc::vec::Vec;
 
-use elements_rs::Isotope;
+use elements_rs::{Element, Isotope};
 
 use crate::{
     ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, MolecularFormulaMetadata,
@@ -38,6 +38,18 @@ impl<Count: CountLike, Charge: ChargeLike> ResidualFormula<Count, Charge> {
             }
         }
         false
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Element> for ResidualFormula<Count, Charge> {
+    fn from(element: Element) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Element(element))] }
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Isotope> for ResidualFormula<Count, Charge> {
+    fn from(isotope: Isotope) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Isotope(isotope))] }
     }
 }
 

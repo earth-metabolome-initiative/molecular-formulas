@@ -22,7 +22,7 @@ pub trait MolecularFormulaMetadata: Sized {
 }
 
 /// Trait for computing various molecular properties.
-pub trait MolecularFormula: MolecularFormulaMetadata + Display {
+pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> {
     /// The tree type used in the molecular formula.
     type Tree: MolecularTree<Self::Count>;
 

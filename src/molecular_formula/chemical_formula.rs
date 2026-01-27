@@ -8,7 +8,7 @@ use core::{
     ops::{Add, AddAssign},
 };
 
-use elements_rs::Isotope;
+use elements_rs::{Element, Isotope};
 
 use crate::{
     ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, MolecularFormula,
@@ -63,6 +63,18 @@ impl<Count: CountLike, Charge: ChargeLike> From<ChemicalTree<Count, Charge, Empt
 {
     fn from(tree: ChemicalTree<Count, Charge, Empty>) -> Self {
         Self { mixtures: alloc::vec![(Count::one(), tree)] }
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Element> for ChemicalFormula<Count, Charge> {
+    fn from(element: Element) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Element(element))] }
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<Isotope> for ChemicalFormula<Count, Charge> {
+    fn from(isotope: Isotope) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Isotope(isotope))] }
     }
 }
 

@@ -5,6 +5,8 @@
 use alloc::vec::Vec;
 use core::fmt::Display;
 
+use elements_rs::Element;
+
 use crate::{
     CountLike, InChITree, MolecularFormula, MolecularFormulaMetadata, ParsableFormula,
     prelude::SequenceNode,
@@ -54,6 +56,14 @@ impl<Count: CountLike> InChIFormula<Count> {
 impl<Count: CountLike> From<SequenceNode<InChITree<Count>>> for InChIFormula<Count> {
     fn from(tree: SequenceNode<InChITree<Count>>) -> Self {
         Self { mixtures: alloc::vec![(Count::one(), tree)] }
+    }
+}
+
+impl<Count: CountLike> From<Element> for InChIFormula<Count> {
+    fn from(element: Element) -> Self {
+        let mut sequence = SequenceNode::empty();
+        sequence.push(element.into());
+        Self { mixtures: alloc::vec![(Count::one(), sequence)] }
     }
 }
 
