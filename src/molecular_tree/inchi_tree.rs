@@ -3,7 +3,7 @@
 use core::fmt::Display;
 
 use crate::{
-    CountLike, MolecularTree,
+    ChargeLike, ChemicalTree, CountLike, MolecularTree,
     prelude::{Element, RepeatNode},
 };
 
@@ -12,6 +12,21 @@ use crate::{
 /// A tree node representing molecular formulas in InChI format.
 pub struct InChITree<Count> {
     node: RepeatNode<Count, Element>,
+}
+
+impl<Count> From<InChITree<Count>> for RepeatNode<Count, Element> {
+    fn from(tree: InChITree<Count>) -> Self {
+        tree.node
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike, Extension> From<InChITree<Count>>
+    for ChemicalTree<Count, Charge, Extension>
+{
+    fn from(tree: InChITree<Count>) -> Self {
+        let count: RepeatNode<Count, Element> = tree.into();
+        count.into()
+    }
 }
 
 impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {

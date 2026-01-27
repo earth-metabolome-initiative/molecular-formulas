@@ -40,6 +40,11 @@ impl<N> SequenceNode<N> {
     pub(crate) fn iter(&self) -> core::slice::Iter<'_, N> {
         self.nodes.iter()
     }
+
+    /// Returns an into iterator over the nodes in the sequence.
+    pub(crate) fn into_iter(self) -> alloc::vec::IntoIter<N> {
+        self.nodes.into_iter()
+    }
 }
 
 impl<M, N> Supports<M> for SequenceNode<N>

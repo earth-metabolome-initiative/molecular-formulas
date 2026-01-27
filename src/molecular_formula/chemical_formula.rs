@@ -11,8 +11,8 @@ use core::{
 use elements_rs::{Element, Isotope};
 
 use crate::{
-    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, MolecularFormula,
-    MolecularFormulaMetadata, ParsableFormula, prelude::ChemicalTree,
+    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, InChIFormula, MolecularFormula,
+    MolecularFormulaMetadata, ParsableFormula, SequenceNode, prelude::ChemicalTree,
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
@@ -68,13 +68,32 @@ impl<Count: CountLike, Charge: ChargeLike> From<ChemicalTree<Count, Charge, Empt
 
 impl<Count: CountLike, Charge: ChargeLike> From<Element> for ChemicalFormula<Count, Charge> {
     fn from(element: Element) -> Self {
-        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Element(element))] }
+        Self { mixtures: alloc::vec![(Count::one(), element.into())] }
     }
 }
 
 impl<Count: CountLike, Charge: ChargeLike> From<Isotope> for ChemicalFormula<Count, Charge> {
     fn from(isotope: Isotope) -> Self {
-        Self { mixtures: alloc::vec![(Count::one(), ChemicalTree::Isotope(isotope))] }
+        Self { mixtures: alloc::vec![(Count::one(), isotope.into())] }
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<InChIFormula<Count>>
+    for ChemicalFormula<Count, Charge>
+{
+    fn from(inchi: InChIFormula<Count>) -> Self {
+        Self {
+            mixtures: inchi
+                .into_counted_mixtures()
+                .map(|(count, tree)| {
+                    let mut chem_tree = ChemicalTree::Sequence(SequenceNode::empty());
+                    for node in tree.into_iter() {
+                        chem_tree = chem_tree.push(node.into());
+                    }
+                    (count, chem_tree)
+                })
+                .collect(),
+        }
     }
 }
 
@@ -121,6 +140,12 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for ChemicalFormula<
         &self,
     ) -> impl Iterator<Item = (Self::Count, &ChemicalTree<Count, Charge, Empty>)> {
         self.mixtures.iter().map(|(count, tree)| (*count, tree))
+    }
+
+    fn into_counted_mixtures(
+        self,
+    ) -> impl Iterator<Item = (Self::Count, ChemicalTree<Count, Charge, Empty>)> {
+        self.mixtures.into_iter()
     }
 }
 

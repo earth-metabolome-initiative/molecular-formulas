@@ -34,6 +34,22 @@ pub enum ChemicalTree<Count: CountLike, Charge: ChargeLike, Extension> {
     Extension(Extension),
 }
 
+impl<Count: CountLike, Charge: ChargeLike, Extension> From<Element>
+    for ChemicalTree<Count, Charge, Extension>
+{
+    fn from(element: Element) -> Self {
+        Self::Element(element)
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike, Extension> From<Isotope>
+    for ChemicalTree<Count, Charge, Extension>
+{
+    fn from(isotope: Isotope) -> Self {
+        Self::Isotope(isotope)
+    }
+}
+
 impl<Count: CountLike, Charge: ChargeLike, Extension> ChemicalTree<Count, Charge, Extension> {
     /// Consumes the chemical tree and returns a version decorated with a
     /// left-hand side radical.

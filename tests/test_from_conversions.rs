@@ -55,3 +55,12 @@ fn test_inchi_formula_from_element() {
     let formula: InChIFormula = InChIFormula::from(element);
     assert_eq!(formula.to_string(), "N");
 }
+
+#[test]
+fn test_inchi_formula_to_chemical_formula() {
+    use std::str::FromStr;
+    // C2H6O
+    let inchi = InChIFormula::<u32>::from_str("C2H6O").unwrap();
+    let chemical: ChemicalFormula<u32, i32> = ChemicalFormula::from(inchi);
+    assert_eq!(chemical.to_string(), "C₂H₆O");
+}

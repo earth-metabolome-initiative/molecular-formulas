@@ -50,6 +50,31 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> {
     /// ```
     fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)>;
 
+    /// Into iterates over the counted mixtures in the molecular formula.
+    ///
+    /// # Implementation Notes
+    ///
+    /// Returns an iterator over the mixtures in the formula, each represented
+    /// as a tuple of (`Self::Tree`, `Self::Count`), where the first element is
+    /// the tree representing the mixture, and the second element is its
+    /// count.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("NaCl.2H2O").unwrap();
+    ///
+    /// let mixtures: Vec<_> = formula.clone().into_counted_mixtures().collect();
+    /// assert_eq!(mixtures.len(), 2);
+    /// let (count, tree) = &mixtures[1];
+    /// assert_eq!(*count, 2);
+    /// ```
+    fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)>;
+
     /// Iterates over the mixtures in the molecular formula, repeating them
     /// according to their counts.
     fn mixtures(&self) -> impl Iterator<Item = &Self::Tree> {

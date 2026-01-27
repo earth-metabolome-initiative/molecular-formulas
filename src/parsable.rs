@@ -11,9 +11,8 @@ use core::fmt::Debug;
 pub(crate) use parsable_formula::ParsableFormula;
 pub use tokens::*;
 
-use crate::parsable::{
-    molecule_parser::MoleculeParser, parsable_molecular_tree::ParsableMolecularTree,
-};
+use crate::parsable::molecule_parser::MoleculeParser;
+pub(crate) use crate::parsable::parsable_molecular_tree::ParsableMolecularTree;
 
 /// Trait for tokens used in parsing molecular formulas.
 pub(crate) trait TokenLike: Copy + Eq + Sized + Debug {

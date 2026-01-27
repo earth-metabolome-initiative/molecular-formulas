@@ -3,7 +3,9 @@
 
 use core::fmt::Display;
 
-use crate::{ChargedMolecularTree, CountLike, MolecularTree, subscript_digits_ltr};
+use crate::{
+    ChargeLike, ChargedMolecularTree, ChemicalTree, CountLike, MolecularTree, subscript_digits_ltr,
+};
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -17,6 +19,22 @@ pub struct RepeatNode<Count, T> {
 impl<Count, T> AsRef<T> for RepeatNode<Count, T> {
     fn as_ref(&self) -> &T {
         &self.node
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike, Extension, N> From<RepeatNode<Count, N>>
+    for ChemicalTree<Count, Charge, Extension>
+where
+    ChemicalTree<Count, Charge, Extension>: From<N>,
+{
+    fn from(repeat: RepeatNode<Count, N>) -> Self {
+        if repeat.count == Count::ONE {
+            return ChemicalTree::from(repeat.node);
+        }
+        ChemicalTree::Repeat(RepeatNode {
+            count: repeat.count,
+            node: alloc::boxed::Box::new(repeat.node.into()),
+        })
     }
 }
 
