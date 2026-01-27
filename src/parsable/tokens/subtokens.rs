@@ -178,7 +178,6 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
                 || SuperscriptPlus::matches(c)
                 || BaselinePlus::matches(c)
                 || BaselineMinus::matches(c)
-                || Radical::matches(c)
                 || SuperscriptDigit::try_from(c).is_ok()
         } else {
             false
