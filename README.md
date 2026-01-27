@@ -12,7 +12,7 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 ## Features
 
-- **Standard Parsing**: Supports nested groups (e.g., `C6H5(CH2)2OH`), hydrates, salts, isotopes (e.g., `[13C]H4` or `¹³CH₄`), and flexible charge notation (e.g., `SO4^2-`, `Fe+3`, `[OH]-`).
+- **Standard Parsing**: Supports nested groups (e.g., `C6H5(CH2)2OH`), hydrates, salts, isotopes (e.g., `[13C]H4` or `¹³CH₄`), and flexible charge notation (e.g., `Fe+3`, `[OH]-`).
 - **Modular AST**: The internal representation allows selecting integer types (`u8`, `u16`, `u32`) and enabling or disabling support for "Residuals" (wildcards) via types like `MolecularFormula` vs `ResidualFormula`. If something is missing, make a PR and we can modularly add it!
 - **Chemical Properties**:
   - Check [**Hill System**](https://en.wikipedia.org/wiki/Hill_system) sorting conformity.

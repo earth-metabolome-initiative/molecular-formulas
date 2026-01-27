@@ -95,7 +95,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Debug + Eq + Copy> From<Hy
 /// Iterator over the `Token`s found in a provided string.
 pub(crate) struct Tokens<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
 where
-    Extension: TryFrom<char>,
+    Extension: TryFrom<char> + Debug,
 {
     /// A peekable iterator over the allowed characters.
     stream: core::iter::Peekable<SubTokens<I, M, Extension>>,
@@ -104,7 +104,7 @@ where
 impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension> From<Peekable<I>>
     for Tokens<I, M, Extension>
 where
-    Extension: TryFrom<char>,
+    Extension: TryFrom<char> + Debug,
 {
     fn from(iter: Peekable<I>) -> Self {
         Self { stream: SubTokens::from(iter).peekable() }

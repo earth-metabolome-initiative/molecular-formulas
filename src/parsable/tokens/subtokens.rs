@@ -2,6 +2,7 @@
 //! the `Token`s found in a provided string.
 
 use core::{fmt::Display, iter::Peekable};
+use std::fmt::Debug;
 
 use elements_rs::{Element, isotopes::HydrogenIsotope};
 use num_traits::{CheckedAdd, CheckedNeg, ConstOne, One, Signed};
@@ -213,7 +214,7 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
 impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension> Iterator
     for SubTokens<I, M, Extension>
 where
-    Extension: TryFrom<char>,
+    Extension: TryFrom<char> + Debug,
 {
     type Item = Result<SubToken<M::Count, M::Charge, Extension>, ParserError>;
 
