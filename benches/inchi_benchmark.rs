@@ -14,6 +14,11 @@ fn criterion_benchmark(c: &mut Criterion) {
             let _: InChIFormula = InChIFormula::from_str(black_box(mixture)).unwrap();
         });
     });
+    c.bench_function("chemical formula mixture", |b| {
+        b.iter(|| {
+            let _: ChemicalFormula = ChemicalFormula::from_str(black_box(mixture)).unwrap();
+        });
+    });
 }
 
 criterion_group!(benches, criterion_benchmark);
