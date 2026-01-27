@@ -7,7 +7,10 @@ use molecular_formulas::{errors::ParserError, prelude::*};
 use num_traits::Zero;
 use strum::IntoEnumIterator;
 
-fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
+fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M)
+where
+    usize: From<M::Count>,
+{
     assert_eq!(m.number_of_mixtures(), 76);
     for element in m.elements() {
         let count = m.count_of_element::<M::Count>(element).unwrap();
@@ -32,6 +35,8 @@ fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     assert!(m.contains_non_hydrogens());
     assert_eq!(m.number_of_elements(), 938);
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
+    assert_eq!(m.number_of_non_hydrogens(), m.non_hydrogens().count());
+    assert_eq!(m.number_of_non_hydrogens(), 436);
 
     for isotope in HydrogenIsotope::iter() {
         assert!(!m.contains_isotope(isotope.into()));
@@ -46,7 +51,10 @@ fn test_all_charged_molecular_trait_method1<M: ChargedMolecularFormula>(m: &M) {
     assert!((m.molar_mass() - 6935.603).abs() < f64::EPSILON, "Found mass: {}", m.molar_mass());
 }
 
-fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
+fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M)
+where
+    usize: From<M::Count>,
+{
     assert_eq!(m.number_of_mixtures(), 1);
     for element in m.elements() {
         let count = m.count_of_element::<M::Count>(element).unwrap();
@@ -65,6 +73,8 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
     assert!(m.contains_elements());
     assert_eq!(m.number_of_elements(), 950);
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
+    assert_eq!(m.number_of_non_hydrogens(), m.non_hydrogens().count());
+    assert_eq!(m.number_of_non_hydrogens(), 546);
 
     assert!(
         (m.isotopologue_mass() - 9492.200799867811).abs() < f64::EPSILON,

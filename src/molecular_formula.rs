@@ -103,6 +103,27 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
             .sum()
     }
 
+    /// Returns the number of non-hydrogen elements present in the molecular
+    /// formula, counting repeating units according to their counts.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
+    ///
+    /// assert_eq!(formula.number_of_non_hydrogens(), 12);
+    /// ```
+    fn number_of_non_hydrogens(&self) -> usize
+    where
+        usize: From<Self::Count>,
+    {
+        self.number_of_elements() - self.count_of_element::<usize>(Element::H).unwrap_or(0)
+    }
+
     /// Iterates over the elements in the molecular formula.
     ///
     /// # Example
