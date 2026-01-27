@@ -17,8 +17,9 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use molecular_formulas::prelude::*;
 /// use std::str::FromStr;
+///
+/// use molecular_formulas::prelude::*;
 ///
 /// let formula = ResidualFormula::<u32, i32>::from_str("C6H5R").unwrap();
 /// assert!(formula.contains_residuals());

@@ -21,12 +21,13 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use molecular_formulas::prelude::*;
 /// use std::str::FromStr;
+///
+/// use molecular_formulas::prelude::*;
 ///
 /// let formula = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
 /// assert_eq!(formula.to_string(), "H₂O");
-/// 
+///
 /// let glucose = ChemicalFormula::<u32, i32>::from_str("C6H12O6").unwrap();
 /// assert_eq!(glucose.count_of_element(Element::C), Some(6u32));
 /// ```

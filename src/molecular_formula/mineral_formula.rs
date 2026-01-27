@@ -88,8 +88,9 @@ impl TryFrom<char> for PolymorphPrefix {
 /// # Examples
 ///
 /// ```
-/// use molecular_formulas::prelude::*;
 /// use std::str::FromStr;
+///
+/// use molecular_formulas::prelude::*;
 ///
 /// let quartz = MineralFormula::<u32, i32>::from_str("α-SiO2").unwrap();
 /// assert_eq!(quartz.to_string(), "α-SiO₂");

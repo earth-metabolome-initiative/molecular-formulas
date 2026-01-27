@@ -16,8 +16,9 @@ use crate::{
 /// # Examples
 ///
 /// ```
-/// use molecular_formulas::prelude::*;
 /// use std::str::FromStr;
+///
+/// use molecular_formulas::prelude::*;
 ///
 /// // InChI formulas must usually be Hill sorted (C, H, then alphabetical)
 /// let formula = InChIFormula::<u32>::from_str("C2H6O").unwrap();
