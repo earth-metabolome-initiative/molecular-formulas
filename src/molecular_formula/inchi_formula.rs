@@ -22,10 +22,39 @@ use crate::{
 ///
 /// // InChI formulas must usually be Hill sorted (C, H, then alphabetical)
 /// let formula = InChIFormula::<u32>::from_str("C2H6O").unwrap();
-/// assert_eq!(formula.to_string(), "C2H6O1");
+/// assert_eq!(formula.to_string(), "C2H6O");
 /// ```
 pub struct InChIFormula<Count: CountLike = u16> {
     mixtures: Vec<(Count, SequenceNode<InChITree<Count>>)>,
+}
+
+impl<Count: CountLike> InChIFormula<Count> {
+    /// Iterates on the sub-formulas in the InChI formula, repeating them
+    /// according to their counts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula = InChIFormula::<u32>::from_str("2C2H6O.ClNa").unwrap();
+    /// let subformulas: Vec<_> = formula.subformulas().collect();
+    /// assert_eq!(subformulas.len(), 3);
+    /// assert_eq!(subformulas[0].to_string(), "C2H6O");
+    /// assert_eq!(subformulas[1].to_string(), "C2H6O");
+    /// assert_eq!(subformulas[2].to_string(), "ClNa");
+    /// ```
+    pub fn subformulas(&self) -> impl Iterator<Item = Self> {
+        self.mixtures().cloned().map(Into::into)
+    }
+}
+
+impl<Count: CountLike> From<SequenceNode<InChITree<Count>>> for InChIFormula<Count> {
+    fn from(tree: SequenceNode<InChITree<Count>>) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), tree)] }
+    }
 }
 
 impl<Count: CountLike> MolecularFormulaMetadata for InChIFormula<Count> {
@@ -35,7 +64,7 @@ impl<Count: CountLike> MolecularFormulaMetadata for InChIFormula<Count> {
 impl<Count: CountLike> MolecularFormula for InChIFormula<Count> {
     type Tree = SequenceNode<InChITree<Count>>;
 
-    fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
+    fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
         self.mixtures.iter().map(|(count, tree)| (*count, tree))
     }
 }

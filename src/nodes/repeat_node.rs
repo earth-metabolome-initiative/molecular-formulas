@@ -85,6 +85,12 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     }
 
     #[inline]
+    fn number_of_elements(&self) -> usize {
+        let count: usize = self.count.try_into().ok().expect("Count too large for usize");
+        count * self.node.number_of_elements()
+    }
+
+    #[inline]
     fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
     where
         C: From<Count>

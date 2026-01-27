@@ -43,12 +43,20 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// use molecular_formulas::prelude::*;
     ///
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("NaCl.2H2O").unwrap();
-    /// let mixtures: Vec<_> = formula.mixtures().collect();
+    /// let mixtures: Vec<_> = formula.counted_mixtures().collect();
     /// assert_eq!(mixtures.len(), 2);
     /// let (count, tree) = &mixtures[1];
     /// assert_eq!(*count, 2);
     /// ```
-    fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)>;
+    fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)>;
+
+    /// Iterates over the mixtures in the molecular formula, repeating them
+    /// according to their counts.
+    fn mixtures(&self) -> impl Iterator<Item = &Self::Tree> {
+        self.counted_mixtures().flat_map(|(count, tree)| {
+            repeat_n(tree, count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?"))
+        })
+    }
 
     /// Returns the number of mixtures in the molecular formula.
     ///
@@ -63,11 +71,34 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert_eq!(formula.number_of_mixtures(), 3);
     /// ```
     fn number_of_mixtures(&self) -> usize {
-        self.mixtures()
+        self.counted_mixtures()
             .map(|(count, _)| {
                 let count: usize =
                     count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?");
                 count
+            })
+            .sum()
+    }
+
+    /// Returns the number of elements present in the molecular formula,
+    /// counting repeating units according to their counts.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
+    /// assert_eq!(formula.number_of_elements(), 24);
+    /// ```
+    fn number_of_elements(&self) -> usize {
+        self.counted_mixtures()
+            .map(|(count, tree)| {
+                let count: usize =
+                    count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?");
+                count * tree.number_of_elements()
             })
             .sum()
     }
@@ -87,7 +118,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert_eq!(elements, vec![Element::H, Element::H, Element::O]);
     /// ```
     fn elements(&self) -> impl Iterator<Item = Element> {
-        self.mixtures().flat_map(|(count, tree)| {
+        self.counted_mixtures().flat_map(|(count, tree)| {
             repeat_n(tree, count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?")).flat_map(MolecularTree::elements)
         })
     }
@@ -107,7 +138,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert_eq!(elements, vec![Element::C]);
     /// ```
     fn non_hydrogens(&self) -> impl Iterator<Item = Element> {
-        self.mixtures().flat_map(|(count, tree)| {
+        self.counted_mixtures().flat_map(|(count, tree)| {
             repeat_n(tree, count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?")).flat_map(MolecularTree::non_hydrogens)
         })
     }
@@ -125,7 +156,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(formula.contains_elements());
     /// ```
     fn contains_elements(&self) -> bool {
-        self.mixtures().any(|(_, tree)| tree.contains_elements())
+        self.counted_mixtures().any(|(_, tree)| tree.contains_elements())
     }
 
     /// Returns whether the molecular formula contains any non-hydrogen
@@ -144,7 +175,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(!h2.contains_non_hydrogens());
     /// ```
     fn contains_non_hydrogens(&self) -> bool {
-        self.mixtures().any(|(_, tree)| tree.contains_non_hydrogens())
+        self.counted_mixtures().any(|(_, tree)| tree.contains_non_hydrogens())
     }
 
     /// Returns whether the molecular formula contains the provided element.
@@ -162,7 +193,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(!formula.contains_element(Element::C));
     /// ```
     fn contains_element(&self, element: Element) -> bool {
-        self.mixtures().any(|(_, tree)| tree.contains_element(element))
+        self.counted_mixtures().any(|(_, tree)| tree.contains_element(element))
     }
 
     /// Returns whether the molecular formula contains any isotopes.
@@ -180,7 +211,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(!formula_no_iso.contains_isotopes());
     /// ```
     fn contains_isotopes(&self) -> bool {
-        self.mixtures().any(|(_, tree)| tree.contains_isotopes())
+        self.counted_mixtures().any(|(_, tree)| tree.contains_isotopes())
     }
 
     /// Returns whether the molecular formula contains the provided isotope.
@@ -197,7 +228,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u16)).unwrap()));
     /// ```
     fn contains_isotope(&self, isotope: Isotope) -> bool {
-        self.mixtures().any(|(_, tree)| tree.contains_isotope(isotope))
+        self.counted_mixtures().any(|(_, tree)| tree.contains_isotope(isotope))
     }
 
     /// Returns the number of elements of a specific type in the molecular
@@ -222,7 +253,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
         C: From<Self::Count> + CheckedAdd + CheckedMul + ConstZero,
     {
         let mut total: C = C::zero();
-        for (count, tree) in self.mixtures() {
+        for (count, tree) in self.counted_mixtures() {
             total = total.checked_add(
                 &C::from(count).checked_mul(&C::from(tree.count_of_element(element)?))?,
             )?;
@@ -254,7 +285,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
         C: From<Self::Count> + CheckedAdd + CheckedMul + ConstZero,
     {
         let mut total: C = C::zero();
-        for (count, tree) in self.mixtures() {
+        for (count, tree) in self.counted_mixtures() {
             total = total.checked_add(
                 &C::from(count).checked_mul(&C::from(tree.count_of_isotope(isotope)?))?,
             )?;
@@ -278,7 +309,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// ```
     fn isotopologue_mass(&self) -> f64 {
         let mut total_mass = 0.0;
-        for (count, tree) in self.mixtures() {
+        for (count, tree) in self.counted_mixtures() {
             let count: f64 = count.into();
             total_mass += count * tree.isotopologue_mass();
         }
@@ -300,7 +331,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// assert!(!water.is_noble_gas_compound());
     /// ```
     fn is_noble_gas_compound(&self) -> bool {
-        self.mixtures().all(|(_, tree)| tree.is_noble_gas_compound())
+        self.counted_mixtures().all(|(_, tree)| tree.is_noble_gas_compound())
     }
 
     /// Returns whether the molecular formula is sorted according to Hill
@@ -368,7 +399,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display {
     /// ```
     #[must_use]
     fn is_hill_sorted(&self) -> bool {
-        self.mixtures().all(|(_, tree)| tree.is_hill_sorted())
+        self.counted_mixtures().all(|(_, tree)| tree.is_hill_sorted())
     }
 
     /// Returns the element at the specified index in the molecular formula,
@@ -449,7 +480,7 @@ pub trait ChargedMolecularFormula:
     /// assert_eq!(neutral.charge(), 0.0);
     /// ```
     fn charge(&self) -> f64 {
-        self.mixtures()
+        self.counted_mixtures()
             .map(|(count, tree)| {
                 let count: f64 = count.into();
                 count * tree.charge()
@@ -473,7 +504,7 @@ pub trait ChargedMolecularFormula:
     /// assert!(cation.isotopologue_mass_with_charge() < neutral.isotopologue_mass_with_charge());
     /// ```
     fn isotopologue_mass_with_charge(&self) -> f64 {
-        self.mixtures()
+        self.counted_mixtures()
             .map(|(count, tree)| {
                 let count: f64 = count.into();
                 count * tree.isotopologue_mass_with_charge()
@@ -514,7 +545,7 @@ pub trait ChargedMolecularFormula:
     /// assert!(molar_mass > 18.0 && molar_mass < 18.02);
     /// ```
     fn molar_mass(&self) -> f64 {
-        self.mixtures()
+        self.counted_mixtures()
             .map(|(count, tree)| {
                 let count: f64 = count.into();
                 count * tree.molar_mass()

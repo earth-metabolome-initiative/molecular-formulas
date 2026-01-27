@@ -79,6 +79,11 @@ impl<Count: CountLike, Charge: ChargeLike, T: MolecularTree<Count>> MolecularTre
     }
 
     #[inline]
+    fn number_of_elements(&self) -> usize {
+        self.tree.number_of_elements()
+    }
+
+    #[inline]
     fn contains_element(&self, element: elements_rs::Element) -> bool {
         self.tree.contains_element(element)
     }

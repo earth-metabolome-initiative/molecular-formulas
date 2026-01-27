@@ -1,8 +1,10 @@
 //! Submodule creating the `TokenIter` struct, which is an iterator over
 //! the `Token`s found in a provided string.
 
-use core::{fmt::Display, iter::Peekable};
-use std::fmt::Debug;
+use core::{
+    fmt::{Debug, Display},
+    iter::Peekable,
+};
 
 use elements_rs::{Element, isotopes::HydrogenIsotope};
 use num_traits::{CheckedAdd, CheckedNeg, ConstOne, One, Signed};

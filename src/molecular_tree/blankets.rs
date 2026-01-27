@@ -51,6 +51,11 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
     }
 
     #[inline]
+    fn number_of_elements(&self) -> usize {
+        (**self).number_of_elements()
+    }
+
+    #[inline]
     fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
     where
         C: From<Count>

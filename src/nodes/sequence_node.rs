@@ -105,6 +105,10 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
         self.nodes.iter().any(|node: &T| node.contains_isotope(isotope))
     }
 
+    fn number_of_elements(&self) -> usize {
+        self.nodes.iter().map(|node: &T| node.number_of_elements()).sum()
+    }
+
     fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
     where
         C: From<Count>

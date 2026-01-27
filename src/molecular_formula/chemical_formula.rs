@@ -35,6 +35,37 @@ pub struct ChemicalFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     mixtures: Vec<(Count, ChemicalTree<Count, Charge, Empty>)>,
 }
 
+impl<Count: CountLike, Charge: ChargeLike> ChemicalFormula<Count, Charge> {
+    /// Iterates on the sub-formulas in the InChI formula, repeating them
+    /// according to their counts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula = ChemicalFormula::<u32, i32>::from_str("2H2O.NaCl").unwrap();
+    /// let subformulas: Vec<_> = formula.subformulas().collect();
+    /// assert_eq!(subformulas.len(), 3);
+    /// assert_eq!(subformulas[0].to_string(), "H₂O");
+    /// assert_eq!(subformulas[1].to_string(), "H₂O");
+    /// assert_eq!(subformulas[2].to_string(), "NaCl");
+    /// ```
+    pub fn subformulas(&self) -> impl Iterator<Item = Self> {
+        self.mixtures().cloned().map(Into::into)
+    }
+}
+
+impl<Count: CountLike, Charge: ChargeLike> From<ChemicalTree<Count, Charge, Empty>>
+    for ChemicalFormula<Count, Charge>
+{
+    fn from(tree: ChemicalTree<Count, Charge, Empty>) -> Self {
+        Self { mixtures: alloc::vec![(Count::one(), tree)] }
+    }
+}
+
 impl<Count: CountLike, Charge: ChargeLike> Add for ChemicalFormula<Count, Charge> {
     type Output = Self;
 
@@ -74,7 +105,9 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormulaMetadata
 impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for ChemicalFormula<Count, Charge> {
     type Tree = ChemicalTree<Count, Charge, Empty>;
 
-    fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &ChemicalTree<Count, Charge, Empty>)> {
+    fn counted_mixtures(
+        &self,
+    ) -> impl Iterator<Item = (Self::Count, &ChemicalTree<Count, Charge, Empty>)> {
         self.mixtures.iter().map(|(count, tree)| (*count, tree))
     }
 }

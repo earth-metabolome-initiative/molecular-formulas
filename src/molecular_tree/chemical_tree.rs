@@ -289,6 +289,19 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
         }
     }
 
+    fn number_of_elements(&self) -> usize {
+        match self {
+            Self::Element(e) => <Element as MolecularTree<Count>>::number_of_elements(e),
+            Self::Isotope(i) => <Isotope as MolecularTree<Count>>::number_of_elements(i),
+            Self::Radical(r) => r.number_of_elements(),
+            Self::Charge(c) => c.number_of_elements(),
+            Self::Repeat(r) => r.number_of_elements(),
+            Self::Sequence(s) => s.number_of_elements(),
+            Self::Unit(b) => b.number_of_elements(),
+            Self::Extension(_) => 0, // Empty node has no elements
+        }
+    }
+
     fn contains_isotopes(&self) -> bool {
         match self {
             Self::Element(e) => <Element as MolecularTree<Count>>::contains_isotopes(e),

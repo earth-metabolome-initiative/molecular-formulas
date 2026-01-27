@@ -138,7 +138,7 @@ mod tests {
         let s = "C2H6O";
         let formula = InChIFormula::from_str(s).unwrap();
         let serialized = serde_json::to_string(&formula).unwrap();
-        assert_eq!(serialized, "\"C2H6O1\"");
+        assert_eq!(serialized, "\"C2H6O\"");
         let deserialized: InChIFormula = serde_json::from_str(&serialized).unwrap();
         assert_eq!(formula, deserialized);
     }

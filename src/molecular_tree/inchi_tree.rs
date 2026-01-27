@@ -61,6 +61,11 @@ impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {
     }
 
     #[inline]
+    fn number_of_elements(&self) -> usize {
+        self.node.number_of_elements()
+    }
+
+    #[inline]
     fn count_of_element<C>(&self, element: Element) -> Option<C>
     where
         C: From<Count>
@@ -115,6 +120,10 @@ impl<Count> From<RepeatNode<Count, Element>> for InChITree<Count> {
 
 impl<Count: CountLike> Display for InChITree<Count> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}{}", self.node.node(), self.node.count())
+        if self.node.count().is_one() {
+            write!(f, "{}", self.node.node())
+        } else {
+            write!(f, "{}{}", self.node.node(), self.node.count())
+        }
     }
 }

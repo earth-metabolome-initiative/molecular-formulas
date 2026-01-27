@@ -79,6 +79,11 @@ impl<Count, T: crate::MolecularTree<Count>> crate::MolecularTree<Count> for Brac
     }
 
     #[inline]
+    fn number_of_elements(&self) -> usize {
+        self.tree.number_of_elements()
+    }
+
+    #[inline]
     fn contains_isotope(&self, isotope: elements_rs::Isotope) -> bool {
         self.tree.contains_isotope(isotope)
     }

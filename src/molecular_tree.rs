@@ -88,7 +88,8 @@ pub trait MolecularTree<Count>: Sized {
     fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
     where
         C: From<Count> + CheckedAdd + CheckedMul + ConstZero + ConstOne;
-
+    /// Returns the total number of elements in the molecular tree.
+    fn number_of_elements(&self) -> usize;
     /// Returns the isotopologue mass of the molecular tree without considering
     /// any charge.
     fn isotopologue_mass(&self) -> f64;

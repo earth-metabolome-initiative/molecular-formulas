@@ -111,8 +111,8 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormulaMetadata
 impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for MineralFormula<Count, Charge> {
     type Tree = ChemicalTree<Count, Charge, Empty>;
 
-    fn mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
-        self.formula.mixtures()
+    fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)> {
+        self.formula.counted_mixtures()
     }
 }
 
