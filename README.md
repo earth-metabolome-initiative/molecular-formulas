@@ -8,7 +8,7 @@
 
 A Rust crate for parsing, manipulating, and analyzing molecular formulas.
 
-It validates correctly against 120M compounds from [PubChem](https://pubchem.ncbi.nlm.nih.gov/) (99.46% mass accuracy) and is fuzzed for over 1 billion iterations (see the [`fuzz`](https://github.com/earth-metabolome-initiative/molecular-formulas/tree/main/fuzz) crate) to ensure we handle all sorts of textual input.
+It validates correctly against 120M compounds from [PubChem](https://pubchem.ncbi.nlm.nih.gov/) (99.46% mass accuracy) and is fuzzed for over 10 billion iterations (see the [`fuzz`](https://github.com/earth-metabolome-initiative/molecular-formulas/tree/main/fuzz) crate) to ensure we handle all sorts of textual input.
 
 ## Features
 
