@@ -104,7 +104,9 @@ mod tests {
         // Use pseudo-random bytes to ensure non-empty vectors are generated
         let mut bytes = Vec::with_capacity(4096);
         for i in 0u32..4096 {
-            bytes.push(i.wrapping_mul(31).wrapping_add(17) as u8);
+            // XOR with shifted index to break simple linear congruential generator patterns
+            // (like alternating parity)
+            bytes.push((i.wrapping_mul(31).wrapping_add(17) ^ (i >> 3)) as u8);
         }
         let mut u = Unstructured::new(&bytes);
 
@@ -131,7 +133,9 @@ mod tests {
         // Use pseudo-random bytes to ensure non-empty vectors are generated
         let mut bytes = Vec::with_capacity(4096);
         for i in 0u32..4096 {
-            bytes.push(i.wrapping_mul(31).wrapping_add(17) as u8);
+            // XOR with shifted index to break simple linear congruential generator patterns
+            // (like alternating parity)
+            bytes.push((i.wrapping_mul(31).wrapping_add(17) ^ (i >> 3)) as u8);
         }
         let mut u = Unstructured::new(&bytes);
 

@@ -219,3 +219,19 @@ fn test_helium_isotopes() {
     let residual_formula: ResidualFormula = "³He⁴He".parse().unwrap();
     assert_eq!(formula.to_string(), residual_formula.to_string());
 }
+
+#[test]
+/// Test illegal isotope numbers
+fn test_illegal_isotope_numbers() {
+    // ⁵⁰⁰H
+    assert!("⁵⁰⁰H".parse::<ChemicalFormula>().is_err());
+
+    // [500H]
+    assert!("[500H]".parse::<ChemicalFormula>().is_err());
+
+    // (500H)
+    assert!("(500H)".parse::<ChemicalFormula>().is_err());
+
+    // H[500]
+    assert!("H[500]".parse::<ChemicalFormula>().is_err());
+}

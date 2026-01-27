@@ -14,6 +14,12 @@ fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
         assert!(!count.is_zero());
         assert!(m.contains_element(element));
     }
+    for non_hydrogen in m.non_hydrogens() {
+        let count = m.count_of_element::<M::Count>(non_hydrogen).unwrap();
+        assert!(!count.is_zero());
+        assert!(m.contains_element(non_hydrogen));
+        assert!(non_hydrogen != Element::H);
+    }
     assert!(!m.contains_isotopes());
     assert!(m.contains_elements());
     assert!(
@@ -23,6 +29,7 @@ fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     );
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
+    assert!(m.contains_non_hydrogens());
 
     for isotope in HydrogenIsotope::iter() {
         assert!(!m.contains_isotope(isotope.into()));
@@ -44,6 +51,12 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
         assert!(!count.is_zero());
         assert!(m.contains_element(element));
     }
+    for non_hydrogen in m.non_hydrogens() {
+        let count = m.count_of_element::<M::Count>(non_hydrogen).unwrap();
+        assert!(!count.is_zero());
+        assert!(m.contains_element(non_hydrogen));
+        assert!(non_hydrogen != Element::H);
+    }
     assert!(m.contains_isotopes());
     assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
     assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Some(M::Count::zero()));
@@ -55,6 +68,7 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
     );
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
+    assert!(m.contains_non_hydrogens());
 }
 
 fn test_all_charged_molecular_trait_method2<M: ChargedMolecularFormula>(m: &M) {
