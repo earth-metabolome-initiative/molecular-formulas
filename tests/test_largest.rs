@@ -30,6 +30,8 @@ fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
     assert!(m.contains_non_hydrogens());
+    assert_eq!(m.number_of_elements(), 938);
+    assert_eq!(m.number_of_mixtures(), m.mixtures().count());
 
     for isotope in HydrogenIsotope::iter() {
         assert!(!m.contains_isotope(isotope.into()));
@@ -61,6 +63,9 @@ fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
     assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
     assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Some(M::Count::zero()));
     assert!(m.contains_elements());
+    assert_eq!(m.number_of_elements(), 950);
+    assert_eq!(m.number_of_mixtures(), m.mixtures().count());
+
     assert!(
         (m.isotopologue_mass() - 9492.200799867811).abs() < f64::EPSILON,
         "Found mass: {}",
