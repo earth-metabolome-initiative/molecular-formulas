@@ -150,10 +150,12 @@ Specifically, we download the `CID-Mass.gz` and `CID-InChI-Key.gz` documents, wh
 You can run the validation suites yourself:
 
 ```bash
-# Validate Mass Calculation (ChemicalFormula), takes about 55 seconds
+# Validate Mass Calculation (ChemicalFormula), takes about 55 seconds,
+# most of which is just I/O time
 cargo test --release --test test_pubchem_validation -- --ignored --nocapture
 
-# Validate InChI Parsing (InChIFormula), takes about 45 seconds
+# Validate InChI Parsing (InChIFormula), takes about 45 seconds,
+# most of which is just I/O time
 cargo test --release --test test_pubchem_inchi_validation -- --ignored --nocapture
 ```
 
