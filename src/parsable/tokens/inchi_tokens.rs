@@ -13,6 +13,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// Enumeration of the tokens specific to InChI molecular formulas.
 pub enum InchiToken<Count> {
     /// An element symbol.

@@ -10,14 +10,29 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = T::NonHydrogenElementIter<'a>
+    where
+        Self: 'a;
+
     #[inline]
     fn elements(&self) -> Self::ElementIter<'_> {
         (**self).elements()
     }
 
     #[inline]
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        (**self).non_hydrogens()
+    }
+
+    #[inline]
     fn contains_elements(&self) -> bool {
         (**self).contains_elements()
+    }
+
+    #[inline]
+    fn contains_non_hydrogens(&self) -> bool {
+        (**self).contains_non_hydrogens()
     }
 
     #[inline]
@@ -65,6 +80,14 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
 
     fn is_noble_gas_compound(&self) -> bool {
         (**self).is_noble_gas_compound()
+    }
+
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<elements_rs::Element>,
+        has_carbon: bool,
+    ) -> Result<Option<elements_rs::Element>, ()> {
+        (**self).check_hill_ordering(predecessor, has_carbon)
     }
 }
 

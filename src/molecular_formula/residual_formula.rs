@@ -13,6 +13,16 @@ use crate::{
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 /// A chemical formula which can contain residual notations.
+///
+/// # Examples
+///
+/// ```
+/// use molecular_formulas::prelude::*;
+/// use std::str::FromStr;
+///
+/// let formula = ResidualFormula::<u32, i32>::from_str("C6H5R").unwrap();
+/// assert!(formula.contains_residuals());
+/// ```
 pub struct ResidualFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     mixtures: Vec<(Count, ChemicalTree<Count, Charge, Residual>)>,
 }

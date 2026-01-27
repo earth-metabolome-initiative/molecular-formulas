@@ -1,5 +1,5 @@
 #![doc = include_str!("../README.md")]
-#![no_std]
+#![cfg_attr(not(feature = "fuzzing"), no_std)]
 
 /// The crate is solely dependent on the alloc crate,
 /// not the standard library.

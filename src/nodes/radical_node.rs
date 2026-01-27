@@ -59,14 +59,29 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = T::NonHydrogenElementIter<'a>
+    where
+        Self: 'a;
+
     #[inline]
     fn elements(&self) -> Self::ElementIter<'_> {
         self.node.elements()
     }
 
     #[inline]
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        self.node.non_hydrogens()
+    }
+
+    #[inline]
     fn contains_elements(&self) -> bool {
         self.node.contains_elements()
+    }
+
+    #[inline]
+    fn contains_non_hydrogens(&self) -> bool {
+        self.node.contains_non_hydrogens()
     }
 
     #[inline]
@@ -115,6 +130,15 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     #[inline]
     fn is_noble_gas_compound(&self) -> bool {
         self.node.is_noble_gas_compound()
+    }
+
+    #[inline]
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<elements_rs::Element>,
+        has_carbon: bool,
+    ) -> Result<Option<elements_rs::Element>, ()> {
+        self.node.check_hill_ordering(predecessor, has_carbon)
     }
 }
 

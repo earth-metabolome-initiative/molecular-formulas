@@ -68,12 +68,29 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = core::iter::FlatMap<
+        core::slice::Iter<'a, T>,
+        T::NonHydrogenElementIter<'a>,
+        fn(&'a T) -> T::NonHydrogenElementIter<'a>,
+    >
+    where
+        Self: 'a;
+
     fn elements(&self) -> Self::ElementIter<'_> {
         self.nodes.iter().flat_map(|node: &T| node.elements())
     }
 
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        self.nodes.iter().flat_map(|node: &T| node.non_hydrogens())
+    }
+
     fn contains_elements(&self) -> bool {
         self.nodes.iter().any(|node: &T| node.contains_elements())
+    }
+
+    fn contains_non_hydrogens(&self) -> bool {
+        self.nodes.iter().any(|node: &T| node.contains_non_hydrogens())
     }
 
     fn contains_isotopes(&self) -> bool {
@@ -124,6 +141,16 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
 
     fn is_noble_gas_compound(&self) -> bool {
         self.nodes.iter().all(MolecularTree::is_noble_gas_compound)
+    }
+    fn check_hill_ordering(
+        &self,
+        mut predecessor: Option<elements_rs::Element>,
+        has_carbon: bool,
+    ) -> Result<Option<elements_rs::Element>, ()> {
+        for node in &self.nodes {
+            predecessor = node.check_hill_ordering(predecessor, has_carbon)?;
+        }
+        Ok(predecessor)
     }
 }
 

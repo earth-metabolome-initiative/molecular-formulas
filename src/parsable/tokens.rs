@@ -16,6 +16,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// Enumeration of the tokens used in parsing chemical formulas.
 pub enum Token<Count: CountLike, Charge: ChargeLike, Extension> {
     /// An InChI-specific token.
@@ -187,33 +188,6 @@ where
     #[inline]
     fn element(self, element: elements_rs::Element) -> Self {
         self.push(Self::Element(element))
-    }
-}
-
-#[cfg(feature = "fuzzing")]
-impl<'a, Count, Charge, Extension> arbitrary::Arbitrary<'a> for Token<Count, Charge, Extension>
-where
-    Count: CountLike + arbitrary::Arbitrary<'a>,
-    Charge: ChargeLike + arbitrary::Arbitrary<'a>,
-    Extension: arbitrary::Arbitrary<'a>,
-{
-    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        let variant = u.int_in_range(0..=9)?;
-        Ok(match variant {
-            0 => elements_rs::Element::arbitrary(u)?.into(),
-            1 => {
-                let count = Count::arbitrary(u)?;
-                Token::Inchi(InchiToken::Count(count))
-            }
-            2 => Token::Inchi(InchiToken::Dot),
-            3 => elements_rs::Isotope::arbitrary(u)?.into(),
-            4 => Token::Charge(Charge::arbitrary(u)?),
-            5 => Token::Complex(<Complex as arbitrary::Arbitrary>::arbitrary(u)?),
-            6 => Token::Radical,
-            7 => Token::OpenBracket(Bracket::arbitrary(u)?),
-            8 => Token::CloseBracket(Bracket::arbitrary(u)?),
-            _ => Token::Extension(Extension::arbitrary(u)?),
-        })
     }
 }
 

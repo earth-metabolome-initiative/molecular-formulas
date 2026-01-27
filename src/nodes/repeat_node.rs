@@ -9,9 +9,9 @@ use crate::{ChargedMolecularTree, CountLike, MolecularTree, subscript_digits_ltr
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RepeatNode<Count, T> {
     /// The number of repetitions.
-    count: Count,
+    pub(crate) count: Count,
     /// The node being repeated.
-    node: T,
+    pub(crate) node: T,
 }
 
 impl<Count, T> AsRef<T> for RepeatNode<Count, T> {
@@ -22,18 +22,51 @@ impl<Count, T> AsRef<T> for RepeatNode<Count, T> {
 
 impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatNode<Count, T> {
     type ElementIter<'a>
-        = T::ElementIter<'a>
+        = core::iter::FlatMap<
+        core::iter::RepeatN<&'a T>,
+        T::ElementIter<'a>,
+        fn(&'a T) -> T::ElementIter<'a>,
+    >
+    where
+        Self: 'a;
+
+    type NonHydrogenElementIter<'a>
+        = core::iter::FlatMap<
+        core::iter::RepeatN<&'a T>,
+        T::NonHydrogenElementIter<'a>,
+        fn(&'a T) -> T::NonHydrogenElementIter<'a>,
+    >
     where
         Self: 'a;
 
     #[inline]
     fn elements(&self) -> Self::ElementIter<'_> {
-        self.node.elements()
+        let count: usize = self
+            .count
+            .try_into()
+            .ok()
+            .expect("Count too large for usize - do you have an extremely large repeat count?");
+        core::iter::repeat_n(&self.node, count).flat_map(T::elements)
+    }
+
+    #[inline]
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        let count: usize = self
+            .count
+            .try_into()
+            .ok()
+            .expect("Count too large for usize - do you have an extremely large repeat count?");
+        core::iter::repeat_n(&self.node, count).flat_map(T::non_hydrogens)
     }
 
     #[inline]
     fn contains_elements(&self) -> bool {
         self.node.contains_elements()
+    }
+
+    #[inline]
+    fn contains_non_hydrogens(&self) -> bool {
+        self.node.contains_non_hydrogens()
     }
 
     #[inline]
@@ -88,6 +121,14 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     #[inline]
     fn is_noble_gas_compound(&self) -> bool {
         self.node.is_noble_gas_compound()
+    }
+
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<elements_rs::Element>,
+        has_carbon: bool,
+    ) -> Result<Option<elements_rs::Element>, ()> {
+        self.node.check_hill_ordering(predecessor, has_carbon)
     }
 }
 

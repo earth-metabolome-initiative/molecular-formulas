@@ -84,6 +84,16 @@ impl TryFrom<char> for PolymorphPrefix {
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 /// Struct representing a mineral formula, potentially with a greek letter
 /// prefix.
+///
+/// # Examples
+///
+/// ```
+/// use molecular_formulas::prelude::*;
+/// use std::str::FromStr;
+///
+/// let quartz = MineralFormula::<u32, i32>::from_str("α-SiO2").unwrap();
+/// assert_eq!(quartz.to_string(), "α-SiO₂");
+/// ```
 pub struct MineralFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     /// Optional greek letter prefix for the mineral formula.
     polymorph_prefix: Option<PolymorphPrefix>,

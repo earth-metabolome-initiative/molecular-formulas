@@ -1,14 +1,11 @@
 //! Module providing fuzzing utilities for molecular formulas.
 #![cfg(feature = "fuzzing")]
-use alloc::{
-    string::{String, ToString},
-    vec::Vec,
-};
+use alloc::string::{String, ToString};
 use core::fmt::Display;
 
 use arbitrary::{Arbitrary, Result, Unstructured};
 
-use crate::{ChargeLike, CountLike, Token};
+use crate::{ChargeLike, CountLike, SubToken, Token};
 
 #[derive(Debug, Clone)]
 /// Wrapper struct for fuzzing molecular formulas.
@@ -37,15 +34,35 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> AsRef<str>
 impl<'a, Count: CountLike, Charge: ChargeLike, Extension: Display> Arbitrary<'a>
     for FuzzFormula<Count, Charge, Extension>
 where
-    Token<Count, Charge, Extension>: Arbitrary<'a>,
+    Count: Arbitrary<'a>,
+    Charge: Arbitrary<'a>,
+    Extension: Arbitrary<'a>,
 {
     fn arbitrary(u: &mut Unstructured<'a>) -> Result<Self> {
-        let tokens: Vec<Token<Count, Charge, Extension>> = u.arbitrary()?;
-        let mut s = String::new();
-        for token in tokens {
-            s.push_str(&token.to_string());
+        let len = u.int_in_range(0..=20)?;
+        let mut formula = String::with_capacity(len * 3);
+        let generate_token = u.arbitrary::<bool>()?;
+        let generate_subtoken = u.arbitrary::<bool>()?;
+        if generate_token {
+            // Generate only tokens, 50% chance
+            for _ in 0..len {
+                let token = u.arbitrary::<Token<Count, Charge, Extension>>()?;
+                formula.push_str(&token.to_string());
+            }
+        } else if generate_subtoken {
+            // Generate only subtokens, 25% chance
+            for _ in 0..len {
+                let subtoken = u.arbitrary::<SubToken<Count, Charge, Extension>>()?;
+                formula.push_str(&subtoken.to_string());
+            }
+        } else {
+            // Generate a completely random string of characters, 25% chance
+            for _ in 0..len {
+                formula.push(u.arbitrary::<char>()?);
+            }
         }
-        Ok(FuzzFormula { formula: s, _marker: core::marker::PhantomData })
+
+        Ok(FuzzFormula { formula, _marker: core::marker::PhantomData })
     }
 }
 

@@ -9,10 +9,7 @@ fn test_invalid_radicals() {
 
     assert_eq!(ChemicalFormula::<u16, i16>::try_from("·+"), Err(ParserError::EmptyMolecularTree));
 
-    assert_eq!(
-        ChemicalFormula::<u16, i16>::try_from("-·"),
-        Err(ParserError::EmptyMolecularTree)
-    );
+    assert_eq!(ChemicalFormula::<u16, i16>::try_from("-·"), Err(ParserError::EmptyMolecularTree));
 
     assert_eq!(
         ChemicalFormula::<u16, i16>::try_from("H2O··"),

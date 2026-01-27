@@ -5,15 +5,9 @@ use core::fmt::Display;
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 /// Marker for a residual group in a molecular formula.
 pub struct Residual;
-
-#[cfg(feature = "fuzzing")]
-impl<'a> arbitrary::Arbitrary<'a> for Residual {
-    fn arbitrary(_: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
-        Ok(Residual)
-    }
-}
 
 impl Display for Residual {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

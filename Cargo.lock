@@ -295,9 +295,9 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "elements_rs"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "557e4cb8317539fd4cf26dcb81ef354dd2e1de3d3ce79ad0d6fdb289edfa02e1"
+checksum = "afffb45c22eafd88e63959e55468632358dd53b963fe93d7dc4403da867b077c"
 dependencies = [
  "arbitrary",
  "serde",

@@ -25,7 +25,10 @@ fn test_standard_isotopes() {
 
     // We iterate over the elements in the formula and check they match expected
     // isotopes
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
+    assert_eq!(
+        formula.elements().collect::<Vec<_>>(),
+        vec![Element::C, Element::H, Element::H, Element::H, Element::H]
+    );
 
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.
@@ -50,7 +53,10 @@ fn test_bracket_isotopes() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
+    assert_eq!(
+        formula.elements().collect::<Vec<_>>(),
+        vec![Element::C, Element::H, Element::H, Element::H, Element::H]
+    );
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
 
@@ -77,7 +83,10 @@ fn test_round_bracket_isotopes() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
+    assert_eq!(
+        formula.elements().collect::<Vec<_>>(),
+        vec![Element::C, Element::H, Element::H, Element::H, Element::H]
+    );
     assert!(!formula.is_noble_gas_compound());
 
     // We check that the same formula can also be parsed by the
@@ -101,7 +110,7 @@ fn test_deuterium() {
     );
     assert!(formula.contains_isotope(HydrogenIsotope::D.into()));
     assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::D.into()), Some(2));
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::O]);
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::H, Element::O]);
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
 
@@ -125,7 +134,7 @@ fn test_tritium() {
     );
     assert!(formula.contains_isotope(HydrogenIsotope::T.into()));
     assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::T.into()), Some(2));
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H]);
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::H]);
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
 
@@ -152,7 +161,7 @@ fn test_other_bracket_isotopes() {
         (formula.isotopologue_mass() - formula.isotopologue_mass_with_charge()).abs()
             < f64::EPSILON
     );
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::O]);
+    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::H, Element::O]);
     assert!(!formula.is_noble_gas_compound());
 
     // We check that the same formula can also be parsed by the
@@ -174,7 +183,10 @@ fn test_c13_notation() {
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
         Some(1)
     );
-    assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::C, Element::H]);
+    assert_eq!(
+        formula.elements().collect::<Vec<_>>(),
+        vec![Element::C, Element::H, Element::H, Element::H, Element::H]
+    );
     assert!(!formula.is_noble_gas_compound());
     // We check that the same formula can also be parsed by the
     // ResidualFormula parser.

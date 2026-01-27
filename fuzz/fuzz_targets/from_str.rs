@@ -11,15 +11,17 @@ use honggfuzz::fuzz;
 use molecular_formulas::{fuzzing::FuzzFormula, prelude::*};
 use serde::{Serialize, de::DeserializeOwned};
 
+const TIMEOUT_SECONDS: f64 = 0.5;
+
 fn parse<M: FromStr>(candidate: &str) -> Option<M> {
     let start_time = std::time::Instant::now();
     let result = M::from_str(candidate);
     let elapsed = start_time.elapsed();
 
     if let Ok(formula) = result {
-        // If the parsing took more than 0.5 second, we raise an error
+        // If the parsing took more than TIMEOUT_SECONDS second, we raise an error
         // so to turn a timeout into a panic
-        if elapsed.as_secs_f64() > 0.5 {
+        if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
             panic!(
                 "Parsing candidate `{candidate}` type `{}` took too long: {} seconds",
                 stringify!(M),
@@ -36,6 +38,7 @@ fn round_trip<M: Display + FromStr<Err: Display> + Eq + Debug + Serialize + Dese
     candidate: &str,
     formula: &M,
 ) {
+    let start_time = std::time::Instant::now();
     // We check that the display works without panicking
     let display_string = formula.to_string();
 
@@ -62,10 +65,19 @@ fn round_trip<M: Display + FromStr<Err: Display> + Eq + Debug + Serialize + Dese
     if let Ok(serialized) = serde_json::to_string(formula) {
         let _: Result<M, _> = serde_json::from_str(&serialized);
     }
+
+    let elapsed = start_time.elapsed();
+    if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
+        panic!(
+            "Round trip for candidate `{candidate}` took too long: {} seconds",
+            elapsed.as_secs_f64()
+        );
+    }
 }
 
 /// Verifies that all common traits are well-behaved.
 fn fuzz_common_traits<M: Clone + PartialEq + Debug + Hash>(formula: &M) {
+    let start_time = std::time::Instant::now();
     // Test Clone + Eq
     assert_eq!(formula, &formula.clone(), "Formula should be equal to its clone");
 
@@ -79,22 +91,27 @@ fn fuzz_common_traits<M: Clone + PartialEq + Debug + Hash>(formula: &M) {
     let h2 = s2.finish();
 
     assert_eq!(h1, h2, "Hash of clone should match hash of original");
+
+    let elapsed = start_time.elapsed();
+    if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
+        panic!(
+            "Common traits check for formula `{:?}` took too long: {} seconds",
+            formula,
+            elapsed.as_secs_f64()
+        );
+    }
 }
 
 /// Verifies that all of the methods of the MolecularFormula trait can be called
 /// without panicking.
-fn fuzz_molecular_formula<M: MolecularFormula>(formula: &M)
+fn fuzz_molecular_formula<M: MolecularFormula + Debug>(formula: &M)
 where
     u64: From<M::Count>,
 {
+    let start_time = std::time::Instant::now();
     let _ = formula.isotopologue_mass();
     let _ = formula.is_noble_gas_compound();
     let _ = formula.is_hill_sorted();
-    let _ = formula.get_element(0);
-    // We test a large index to ensure it doesn't panic on OOB or iteration limits
-    let _ = formula.get_element(46);
-    let _ = formula.get_element_ignore_hydrogens(0);
-    let _ = formula.get_element_ignore_hydrogens(46);
     let _ = formula.contains_isotopes();
     let contains_elements = formula.contains_elements();
     let _ = formula.number_of_mixtures();
@@ -115,19 +132,38 @@ where
     // Test element/isotope queries
     let _ = formula.count_of_element::<u64>(Element::C);
     let _ = formula.count_of_element::<u64>(Element::H);
+    let _ = formula.elements().take(5).collect::<Vec<_>>();
+    let _ = formula.get_element(0);
+    let _ = formula.get_element(1);
     if let Ok(iso) = Isotope::try_from((Element::H, 1_u16)) {
         let _ = formula.contains_isotope(iso);
         let _ = formula.count_of_isotope::<u64>(iso);
+    }
+
+    let elapsed = start_time.elapsed();
+    if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
+        panic!(
+            "MolecularFormula methods check for formula `{formula}` ({formula:?}) took too long: {} seconds",
+            elapsed.as_secs_f64()
+        );
     }
 }
 
 /// Verifies that all of the methods of the ChargedMolecularFormula trait can be
 /// called without panicking.
-fn fuzz_charged_molecular_formula<M: ChargedMolecularFormula>(formula: &M) {
+fn fuzz_charged_molecular_formula<M: ChargedMolecularFormula + Debug>(formula: &M) {
+    let start_time = std::time::Instant::now();
     let _ = formula.molar_mass();
     let _ = formula.isotopologue_mass_with_charge();
     let _ = formula.isotopologue_mass_over_charge();
     let _ = formula.charge();
+    let elapsed = start_time.elapsed();
+    if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
+        panic!(
+            "ChargedMolecularFormula methods check for formula `{formula}` ({formula:?}) took too long: {} seconds",
+            elapsed.as_secs_f64()
+        );
+    }
 }
 
 /// We need to use an `u16` count type to ensure that all possible Isotope
@@ -138,6 +174,7 @@ type ChargeType = i8;
 
 /// Fuzz operations specific to ChemicalFormula (e.g. addition)
 fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
+    let start_time = std::time::Instant::now();
     // Test Addition
     let doubled = formula.clone() + formula.clone();
 
@@ -174,6 +211,14 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
                 "Doubled mass {doubled_mass} should be >= original mass {mass}"
             );
         }
+    }
+
+    let elapsed = start_time.elapsed();
+    if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
+        panic!(
+            "ChemicalFormula operations for formula `{formula}` ({formula:?}) took too long: {} seconds",
+            elapsed.as_secs_f64()
+        );
     }
 }
 

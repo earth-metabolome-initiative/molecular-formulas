@@ -10,7 +10,7 @@ use crate::{
 };
 
 mod chemical_tree_element_iter;
-use chemical_tree_element_iter::ChemicalTreeElementIter;
+use chemical_tree_element_iter::{ChemicalTreeElementIter, ChemicalTreeNonHydrogenElementIter};
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -250,7 +250,16 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = ChemicalTreeNonHydrogenElementIter<'a, Count, Charge, Extension>
+    where
+        Self: 'a;
+
     fn elements(&self) -> Self::ElementIter<'_> {
+        self.into()
+    }
+
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
         self.into()
     }
 
@@ -263,6 +272,19 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
             Self::Repeat(r) => r.contains_elements(),
             Self::Sequence(s) => s.contains_elements(),
             Self::Unit(b) => b.contains_elements(),
+            Self::Extension(_) => false, // Empty node has no elements
+        }
+    }
+
+    fn contains_non_hydrogens(&self) -> bool {
+        match self {
+            Self::Element(e) => <Element as MolecularTree<Count>>::contains_non_hydrogens(e),
+            Self::Isotope(i) => <Isotope as MolecularTree<Count>>::contains_non_hydrogens(i),
+            Self::Radical(r) => r.contains_non_hydrogens(),
+            Self::Charge(c) => c.contains_non_hydrogens(),
+            Self::Repeat(r) => r.contains_non_hydrogens(),
+            Self::Sequence(s) => s.contains_non_hydrogens(),
+            Self::Unit(b) => b.contains_non_hydrogens(),
             Self::Extension(_) => false, // Empty node has no elements
         }
     }
@@ -379,6 +401,27 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
             Self::Sequence(s) => s.is_noble_gas_compound(),
             Self::Unit(b) => b.is_noble_gas_compound(),
             Self::Extension(_) => false, // Empty node has no noble gas compounds
+        }
+    }
+
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<Element>,
+        has_carbon: bool,
+    ) -> Result<Option<Element>, ()> {
+        match self {
+            Self::Element(e) => {
+                <Element as MolecularTree<Count>>::check_hill_ordering(e, predecessor, has_carbon)
+            }
+            Self::Isotope(i) => {
+                <Isotope as MolecularTree<Count>>::check_hill_ordering(i, predecessor, has_carbon)
+            }
+            Self::Radical(r) => r.check_hill_ordering(predecessor, has_carbon),
+            Self::Charge(c) => c.check_hill_ordering(predecessor, has_carbon),
+            Self::Repeat(r) => r.check_hill_ordering(predecessor, has_carbon),
+            Self::Sequence(s) => s.check_hill_ordering(predecessor, has_carbon),
+            Self::Unit(b) => b.check_hill_ordering(predecessor, has_carbon),
+            Self::Extension(_) => Ok(predecessor),
         }
     }
 }

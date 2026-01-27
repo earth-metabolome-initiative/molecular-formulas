@@ -11,14 +11,29 @@ impl<Count> MolecularTree<Count> for Isotope {
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = core::iter::Filter<core::iter::Once<Element>, fn(&Element) -> bool>
+    where
+        Self: 'a;
+
     #[inline]
     fn elements(&self) -> Self::ElementIter<'_> {
         core::iter::once(self.element())
     }
 
     #[inline]
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        core::iter::once(self.element()).filter(|&e| e != Element::H)
+    }
+
+    #[inline]
     fn contains_elements(&self) -> bool {
         true
+    }
+
+    #[inline]
+    fn contains_non_hydrogens(&self) -> bool {
+        self.element() != Element::H
     }
 
     #[inline]
@@ -67,6 +82,19 @@ impl<Count> MolecularTree<Count> for Isotope {
     #[inline]
     fn is_noble_gas_compound(&self) -> bool {
         self.is_noble_gas()
+    }
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<Element>,
+        has_carbon: bool,
+    ) -> Result<Option<Element>, ()> {
+        let element = self.element();
+        if let Some(prev) = predecessor
+            && !crate::molecular_tree::is_hill_sorted_pair(prev, element, has_carbon)
+        {
+            return Err(());
+        }
+        Ok(Some(element))
     }
 }
 

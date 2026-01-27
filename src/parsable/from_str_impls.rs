@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn test_inchi_formula_from_str() {
         let input = "C2H5";
-        let expected = "1C2H5"; // InChI formula explicitly prints count
+        let expected = "C2H5"; // InChI formula explicitly prints count
         let formula = InChIFormula::<u32>::from_str(input).unwrap();
         assert_eq!(formula.to_string(), expected);
     }

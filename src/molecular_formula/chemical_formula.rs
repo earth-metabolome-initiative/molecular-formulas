@@ -17,6 +17,19 @@ use crate::{
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 /// A chemical formula representing molecular formulas
+///
+/// # Examples
+///
+/// ```
+/// use molecular_formulas::prelude::*;
+/// use std::str::FromStr;
+///
+/// let formula = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
+/// assert_eq!(formula.to_string(), "H₂O");
+/// 
+/// let glucose = ChemicalFormula::<u32, i32>::from_str("C6H12O6").unwrap();
+/// assert_eq!(glucose.count_of_element(Element::C), Some(6u32));
+/// ```
 pub struct ChemicalFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     mixtures: Vec<(Count, ChemicalTree<Count, Charge, Empty>)>,
 }

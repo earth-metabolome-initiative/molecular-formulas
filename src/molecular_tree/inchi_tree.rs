@@ -20,14 +20,29 @@ impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {
     where
         Self: 'a;
 
+    type NonHydrogenElementIter<'a>
+        = <RepeatNode<Count, Element> as MolecularTree<Count>>::NonHydrogenElementIter<'a>
+    where
+        Self: 'a;
+
     #[inline]
     fn elements(&self) -> Self::ElementIter<'_> {
         self.node.elements()
     }
 
     #[inline]
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_> {
+        self.node.non_hydrogens()
+    }
+
+    #[inline]
     fn contains_elements(&self) -> bool {
         self.node.contains_elements()
+    }
+
+    #[inline]
+    fn contains_non_hydrogens(&self) -> bool {
+        self.node.contains_non_hydrogens()
     }
 
     #[inline]
@@ -75,6 +90,14 @@ impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {
 
     fn is_noble_gas_compound(&self) -> bool {
         self.node.is_noble_gas_compound()
+    }
+
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<Element>,
+        has_carbon: bool,
+    ) -> Result<Option<Element>, ()> {
+        self.node.check_hill_ordering(predecessor, has_carbon)
     }
 }
 

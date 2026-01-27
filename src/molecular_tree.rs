@@ -9,10 +9,38 @@ pub(crate) use chemical_tree::ChemicalTree;
 pub(crate) use inchi_tree::InChITree;
 use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
 
+/// Helper to check if two elements are in Hill order.
+#[must_use]
+pub fn is_hill_sorted_pair(prev: Element, next: Element, has_carbon: bool) -> bool {
+    if has_carbon {
+        match (prev, next) {
+            (Element::C, Element::C) | (Element::H, Element::H) => false,
+            (Element::C, _) => true,
+            (_, Element::C) => false,
+            (Element::H, _) => true,
+            (_, Element::H) => false,
+            (a, b) => {
+                let a_str: &str = a.as_ref();
+                let b_str: &str = b.as_ref();
+                a_str < b_str
+            }
+        }
+    } else {
+        let prev_str: &str = prev.as_ref();
+        let next_str: &str = next.as_ref();
+        prev_str < next_str
+    }
+}
+
 /// Trait for computing various molecular properties.
 pub trait MolecularTree<Count>: Sized {
     /// Type of the element iterator.
     type ElementIter<'a>: Iterator<Item = Element>
+    where
+        Self: 'a;
+
+    /// Type of the non-hydrogen element iterator.
+    type NonHydrogenElementIter<'a>: Iterator<Item = Element>
     where
         Self: 'a;
 
@@ -27,8 +55,14 @@ pub trait MolecularTree<Count>: Sized {
     /// If the formula contains residuals, they are ignored.
     fn elements(&self) -> Self::ElementIter<'_>;
 
+    /// Iterates over the non-hydrogen elements in the molecular formula.
+    fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_>;
+
     /// Returns whether the molecular tree contains any elements.
     fn contains_elements(&self) -> bool;
+
+    /// Returns whether the molecular tree contains any non-hydrogen elements.
+    fn contains_non_hydrogens(&self) -> bool;
 
     /// Returns whether the molecular tree contains the provided element.
     fn contains_element(&self, element: Element) -> bool;
@@ -62,56 +96,29 @@ pub trait MolecularTree<Count>: Sized {
     /// Returns whether the molecular tree is a noble gas compound.
     fn is_noble_gas_compound(&self) -> bool;
 
+    /// Checks if the tree is Hill sorted given context about Carbon presence.
+    ///
+    /// The `predecessor` is the element that appeared immediately before the
+    /// current subtree traversal.
+    ///
+    /// Returns `Ok(Some(last_element))` if the subtree is sorted and non-empty.
+    /// Returns `Ok(predecessor)` (or `Ok(None)` if predecessor was None) if the
+    /// subtree is empty. Returns `Err(())` if unsorted.
+    ///
+    /// # Errors
+    ///
+    /// Returns `Err(())` if the molecular tree is not Hill sorted.
+    #[allow(clippy::result_unit_err)]
+    fn check_hill_ordering(
+        &self,
+        predecessor: Option<Element>,
+        has_carbon: bool,
+    ) -> Result<Option<Element>, ()>;
+
     /// Returns whether the molecular tree is Hill sorted.
     fn is_hill_sorted(&self) -> bool {
-        let mut elements = self.elements().peekable();
-
-        if elements.peek() == Some(&Element::C) {
-            elements.next();
-            // C cannot appear again
-            if elements.peek() == Some(&Element::C) {
-                return false;
-            }
-
-            if elements.peek() == Some(&Element::H) {
-                elements.next();
-                // H cannot appear again
-                if elements.peek() == Some(&Element::H) {
-                    return false;
-                }
-            }
-
-            let mut previous_element: Option<Element> = None;
-            for element in elements {
-                if matches!(element, Element::C | Element::H) {
-                    return false;
-                }
-                if let Some(prev) = previous_element {
-                    let current_str: &str = element.as_ref();
-                    let prev_str: &str = prev.as_ref();
-                    if current_str <= prev_str {
-                        return false;
-                    }
-                }
-                previous_element = Some(element);
-            }
-        } else {
-            let mut previous_element: Option<Element> = None;
-            for element in elements {
-                if element == Element::C {
-                    return false;
-                }
-                if let Some(prev) = previous_element {
-                    let current_str: &str = element.as_ref();
-                    let prev_str: &str = prev.as_ref();
-                    if current_str <= prev_str {
-                        return false;
-                    }
-                }
-                previous_element = Some(element);
-            }
-        }
-        true
+        let has_carbon = self.contains_element(Element::C);
+        self.check_hill_ordering(None, has_carbon).is_ok()
     }
 }
 

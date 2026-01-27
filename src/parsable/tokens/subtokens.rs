@@ -1,7 +1,7 @@
 //! Submodule creating the `TokenIter` struct, which is an iterator over
 //! the `Token`s found in a provided string.
 
-use core::iter::Peekable;
+use core::{fmt::Display, iter::Peekable};
 
 use elements_rs::{Element, isotopes::HydrogenIsotope};
 use num_traits::{CheckedAdd, CheckedNeg, ConstOne, One, Signed};
@@ -12,7 +12,7 @@ mod typesetting;
 pub use typesetting::{Baseline, Subscript, Superscript, TypeSetting};
 
 use crate::{
-    ChargedMolecularFormulaMetadata,
+    ChargedMolecularFormulaMetadata, display_charge, display_isotope,
     errors::{NumericError, ParserError},
     parsable::tokens::inchi_tokens::InchiToken,
     prelude::Radical,
@@ -34,6 +34,7 @@ pub use markers::{
 
 /// Enumeration of allowed characters in a molecular formula.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
 pub enum SubToken<Count: CountLike, Charge: ChargeLike, Extension> {
     /// Enumeration of characters allowed in InChI strings.
     Inchi(InchiToken<Count>),
@@ -54,6 +55,30 @@ pub enum SubToken<Count: CountLike, Charge: ChargeLike, Extension> {
     CloseBracket(Bracket),
     /// An extension token.
     Extension(Extension),
+}
+
+impl<Count: CountLike, Charge: ChargeLike, Extension> Display for SubToken<Count, Charge, Extension>
+where
+    Extension: Display,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            SubToken::Inchi(token) => write!(f, "{token}"),
+            SubToken::HydrogenIsotope(isotope) => display_isotope((*isotope).into(), f),
+            SubToken::Radical => write!(f, "•"),
+            SubToken::Charge(charge) => display_charge(*charge, f),
+            SubToken::Complex(complex) => write!(f, "{complex}"),
+            SubToken::SuperscriptDigit(count) => {
+                for digit_char in superscript_digits_ltr(*count) {
+                    write!(f, "{digit_char}")?;
+                }
+                Ok(())
+            }
+            SubToken::OpenBracket(bracket) => write!(f, "{}", bracket.opening()),
+            SubToken::CloseBracket(bracket) => write!(f, "{}", bracket.closing()),
+            SubToken::Extension(extension) => write!(f, "{extension}"),
+        }
+    }
 }
 
 impl<Count: CountLike, Charge: ChargeLike, Extension> From<Complex>
@@ -331,5 +356,38 @@ where
             ')' => Some(Ok(SubToken::CloseBracket(Bracket::Round))),
             _ => Some(Err(ParserError::UnexpectedCharacter(next_char))),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::ToString;
+
+    use elements_rs::{Element, isotopes::HydrogenIsotope};
+
+    use super::*;
+    use crate::parsable::tokens::inchi_tokens::InchiToken;
+
+    #[test]
+    fn test_display() {
+        assert_eq!(
+            SubToken::<u32, i32, char>::Inchi(InchiToken::from(Element::C)).to_string(),
+            "C"
+        );
+        assert_eq!(SubToken::<u32, i32, char>::Inchi(InchiToken::Count(42)).to_string(), "42");
+        assert_eq!(
+            SubToken::<u32, i32, char>::HydrogenIsotope(HydrogenIsotope::D).to_string(),
+            "[²H]"
+        );
+        assert_eq!(SubToken::<u32, i32, char>::Radical.to_string(), "•");
+        assert_eq!(SubToken::<u32, i32, char>::Charge(1).to_string(), "⁺");
+        assert_eq!(SubToken::<u32, i32, char>::Charge(-1).to_string(), "⁻");
+        assert_eq!(SubToken::<u32, i32, char>::Charge(2).to_string(), "²⁺");
+        assert_eq!(SubToken::<u32, i32, char>::Charge(-2).to_string(), "²⁻");
+        assert_eq!(SubToken::<u32, i32, char>::Complex(Complex::Methyl).to_string(), "Me");
+        assert_eq!(SubToken::<u32, i32, char>::SuperscriptDigit(5).to_string(), "⁵");
+        assert_eq!(SubToken::<u32, i32, char>::OpenBracket(Bracket::Round).to_string(), "(");
+        assert_eq!(SubToken::<u32, i32, char>::CloseBracket(Bracket::Square).to_string(), "]");
+        assert_eq!(SubToken::<u32, i32, char>::Extension('x').to_string(), "x");
     }
 }

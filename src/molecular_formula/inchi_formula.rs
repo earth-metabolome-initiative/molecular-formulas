@@ -12,6 +12,17 @@ use crate::{
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 /// A chemical formula representing molecular formulas in InChI format.
+///
+/// # Examples
+///
+/// ```
+/// use molecular_formulas::prelude::*;
+/// use std::str::FromStr;
+///
+/// // InChI formulas must usually be Hill sorted (C, H, then alphabetical)
+/// let formula = InChIFormula::<u32>::from_str("C2H6O").unwrap();
+/// assert_eq!(formula.to_string(), "C2H6O1");
+/// ```
 pub struct InChIFormula<Count: CountLike = u16> {
     mixtures: Vec<(Count, SequenceNode<InChITree<Count>>)>,
 }
@@ -62,7 +73,11 @@ impl<Count: CountLike> Display for InChIFormula<Count> {
             if i > 0 {
                 write!(f, ".")?;
             }
-            write!(f, "{count}{tree}")?;
+            if !count.is_one() {
+                write!(f, "{count}")?;
+            }
+
+            write!(f, "{tree}")?;
         }
         Ok(())
     }
