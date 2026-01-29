@@ -78,6 +78,10 @@ impl<Count: CountLike> MolecularFormula for InChIFormula<Count> {
         self.mixtures.iter().map(|(count, tree)| (*count, tree))
     }
 
+    fn counted_mixtures_mut(&mut self) -> impl Iterator<Item = (Self::Count, &mut Self::Tree)> {
+        self.mixtures.iter_mut().map(|(count, tree)| (*count, tree))
+    }
+
     fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)> {
         self.mixtures.into_iter()
     }

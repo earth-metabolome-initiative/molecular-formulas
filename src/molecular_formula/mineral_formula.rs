@@ -115,6 +115,10 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for MineralFormula<C
         self.formula.counted_mixtures()
     }
 
+    fn counted_mixtures_mut(&mut self) -> impl Iterator<Item = (Self::Count, &mut Self::Tree)> {
+        self.formula.counted_mixtures_mut()
+    }
+
     fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)> {
         self.formula.into_counted_mixtures()
     }

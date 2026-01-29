@@ -151,6 +151,11 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
     fn is_noble_gas_compound(&self) -> bool {
         self.nodes.iter().all(MolecularTree::is_noble_gas_compound)
     }
+
+    fn isotopic_normalization(&self) -> Self {
+        Self { nodes: self.nodes.iter().map(MolecularTree::isotopic_normalization).collect() }
+    }
+
     fn check_hill_ordering(
         &self,
         mut predecessor: Option<elements_rs::Element>,

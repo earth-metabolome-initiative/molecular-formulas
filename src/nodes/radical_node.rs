@@ -137,6 +137,10 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
         self.node.is_noble_gas_compound()
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        Self { node: self.node.isotopic_normalization(), left_side: self.left_side }
+    }
+
     #[inline]
     fn check_hill_ordering(
         &self,

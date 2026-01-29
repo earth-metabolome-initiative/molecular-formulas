@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[allow(clippy::type_complexity)]
-pub enum ChemicalTreeElementIter<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: 'a>
+pub enum ChemicalTreeElementIter<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone + 'a>
 {
     /// An atom (element)
     Element(<Element as MolecularTree<Count>>::ElementIter<'a>),
@@ -32,7 +32,7 @@ pub enum ChemicalTreeElementIter<'a, Count: CountLike + 'a, Charge: ChargeLike +
     Extension(Empty<Element>),
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension>
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone>
     From<&'a ChemicalTree<Count, Charge, Extension>>
     for ChemicalTreeElementIter<'a, Count, Charge, Extension>
 {
@@ -56,7 +56,7 @@ impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension>
     }
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: 'a> Iterator
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone + 'a> Iterator
     for ChemicalTreeElementIter<'a, Count, Charge, Extension>
 {
     type Item = Element;
@@ -81,7 +81,7 @@ pub enum ChemicalTreeNonHydrogenElementIter<
     'a,
     Count: CountLike + 'a,
     Charge: ChargeLike + 'a,
-    Extension: 'a,
+    Extension: Clone + 'a,
 > {
     /// An atom (element)
     Element(<Element as MolecularTree<Count>>::NonHydrogenElementIter<'a>),
@@ -101,7 +101,7 @@ pub enum ChemicalTreeNonHydrogenElementIter<
     Extension(Empty<Element>),
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension>
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone>
     From<&'a ChemicalTree<Count, Charge, Extension>>
     for ChemicalTreeNonHydrogenElementIter<'a, Count, Charge, Extension>
 {
@@ -141,7 +141,7 @@ impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension>
     }
 }
 
-impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: 'a> Iterator
+impl<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone + 'a> Iterator
     for ChemicalTreeNonHydrogenElementIter<'a, Count, Charge, Extension>
 {
     type Item = Element;

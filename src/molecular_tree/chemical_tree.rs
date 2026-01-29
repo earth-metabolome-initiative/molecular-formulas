@@ -8,6 +8,7 @@ use crate::{
     errors::{NumericError, ParserError},
     prelude::{BracketNode, ChargeNode, Element, Isotope, RadicalNode, RepeatNode, SequenceNode},
 };
+use elements_rs::ElementVariant;
 
 mod chemical_tree_element_iter;
 use chemical_tree_element_iter::{ChemicalTreeElementIter, ChemicalTreeNonHydrogenElementIter};
@@ -258,7 +259,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> ChemicalTree<Count, Charge
     }
 }
 
-impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
+impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count>
     for ChemicalTree<Count, Charge, Extension>
 {
     type ElementIter<'a>
@@ -433,6 +434,19 @@ impl<Count: CountLike, Charge: ChargeLike, Extension> MolecularTree<Count>
         }
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        match self {
+            Self::Element(e) => Self::Element(*e),
+            Self::Isotope(i) => Self::Element(i.element()),
+            Self::Radical(r) => Self::Radical(r.isotopic_normalization()),
+            Self::Charge(c) => Self::Charge(c.isotopic_normalization()),
+            Self::Repeat(r) => Self::Repeat(r.isotopic_normalization()),
+            Self::Sequence(s) => Self::Sequence(s.isotopic_normalization()),
+            Self::Unit(b) => Self::Unit(b.isotopic_normalization()),
+            Self::Extension(_) => self.clone(),
+        }
+    }
+
     fn check_hill_ordering(
         &self,
         predecessor: Option<Element>,
@@ -472,7 +486,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Display> Display
     }
 }
 
-impl<Count: CountLike, Charge: ChargeLike, Extension> ChargedMolecularTree<Count, Charge>
+impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> ChargedMolecularTree<Count, Charge>
     for ChemicalTree<Count, Charge, Extension>
 {
     fn charge(&self) -> f64 {

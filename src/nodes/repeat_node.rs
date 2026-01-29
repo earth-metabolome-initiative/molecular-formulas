@@ -147,6 +147,10 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
         self.node.is_noble_gas_compound()
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        Self { node: self.node.isotopic_normalization(), count: self.count }
+    }
+
     fn check_hill_ordering(
         &self,
         predecessor: Option<elements_rs::Element>,

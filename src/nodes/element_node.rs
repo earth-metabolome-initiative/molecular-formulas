@@ -91,6 +91,10 @@ impl<Count> MolecularTree<Count> for Element {
         self.is_noble_gas()
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        *self
+    }
+
     fn check_hill_ordering(
         &self,
         predecessor: Option<Element>,

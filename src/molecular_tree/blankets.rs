@@ -87,6 +87,10 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
         (**self).is_noble_gas_compound()
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        Box::new((**self).isotopic_normalization())
+    }
+
     fn check_hill_ordering(
         &self,
         predecessor: Option<elements_rs::Element>,

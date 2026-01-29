@@ -125,6 +125,10 @@ impl<Count: CountLike, Charge: ChargeLike, T: MolecularTree<Count>> MolecularTre
         self.tree.is_noble_gas_compound()
     }
 
+    fn isotopic_normalization(&self) -> Self {
+        Self { tree: self.tree.isotopic_normalization(), charge: self.charge }
+    }
+
     fn check_hill_ordering(
         &self,
         predecessor: Option<elements_rs::Element>,

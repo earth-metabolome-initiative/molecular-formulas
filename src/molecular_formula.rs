@@ -22,7 +22,7 @@ pub trait MolecularFormulaMetadata: Sized {
 }
 
 /// Trait for computing various molecular properties.
-pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> {
+pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> + Clone {
     /// The tree type used in the molecular formula.
     type Tree: MolecularTree<Self::Count>;
 
@@ -49,6 +49,9 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> {
     /// assert_eq!(*count, 2);
     /// ```
     fn counted_mixtures(&self) -> impl Iterator<Item = (Self::Count, &Self::Tree)>;
+
+    /// Iterates mutably over the counted mixtures in the molecular formula.
+    fn counted_mixtures_mut(&mut self) -> impl Iterator<Item = (Self::Count, &mut Self::Tree)>;
 
     /// Into iterates over the counted mixtures in the molecular formula.
     ///
@@ -497,6 +500,32 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> {
         self.non_hydrogens()
             .enumerate()
             .find_map(|(i, element)| if i == index { Some(element) } else { None })
+    }
+
+    /// Returns a version of the molecular formula with all isotopes converted
+    /// to their elemental forms.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("[13C]H4").unwrap();
+    /// let elemental = formula.isotopic_normalization();
+    /// assert_eq!(elemental.to_string(), "CH₄");
+    /// 
+    /// let mixed_formula: ChemicalFormula = ChemicalFormula::from_str("[13C]T4.O[18O]").unwrap();
+    /// let mixed_elemental = mixed_formula.isotopic_normalization();
+    /// assert_eq!(mixed_elemental.to_string(), "CH₄.OO");
+    /// ```
+    fn isotopic_normalization(&self) -> Self {
+        let mut formula = self.clone();
+        for (_, tree) in formula.counted_mixtures_mut() {
+            *tree = tree.isotopic_normalization();
+        }
+        formula
     }
 }
 

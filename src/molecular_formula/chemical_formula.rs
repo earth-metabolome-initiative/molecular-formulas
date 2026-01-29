@@ -142,6 +142,12 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for ChemicalFormula<
         self.mixtures.iter().map(|(count, tree)| (*count, tree))
     }
 
+    fn counted_mixtures_mut(
+        &mut self,
+    ) -> impl Iterator<Item = (Self::Count, &mut ChemicalTree<Count, Charge, Empty>)> {
+        self.mixtures.iter_mut().map(|(count, tree)| (*count, tree))
+    }
+
     fn into_counted_mixtures(
         self,
     ) -> impl Iterator<Item = (Self::Count, ChemicalTree<Count, Charge, Empty>)> {
