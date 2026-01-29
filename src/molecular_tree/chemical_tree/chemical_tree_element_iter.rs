@@ -12,8 +12,12 @@ use crate::{
 };
 
 #[allow(clippy::type_complexity)]
-pub enum ChemicalTreeElementIter<'a, Count: CountLike + 'a, Charge: ChargeLike + 'a, Extension: Clone + 'a>
-{
+pub enum ChemicalTreeElementIter<
+    'a,
+    Count: CountLike + 'a,
+    Charge: ChargeLike + 'a,
+    Extension: Clone + 'a,
+> {
     /// An atom (element)
     Element(<Element as MolecularTree<Count>>::ElementIter<'a>),
     /// An isotope (element with mass number)

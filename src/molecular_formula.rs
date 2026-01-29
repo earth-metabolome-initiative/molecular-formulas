@@ -515,7 +515,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("[13C]H4").unwrap();
     /// let elemental = formula.isotopic_normalization();
     /// assert_eq!(elemental.to_string(), "CH₄");
-    /// 
+    ///
     /// let mixed_formula: ChemicalFormula = ChemicalFormula::from_str("[13C]T4.O[18O]").unwrap();
     /// let mixed_elemental = mixed_formula.isotopic_normalization();
     /// assert_eq!(mixed_elemental.to_string(), "CH₄.OO");

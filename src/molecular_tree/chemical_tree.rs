@@ -3,12 +3,13 @@
 use alloc::boxed::Box;
 use core::fmt::Display;
 
+use elements_rs::ElementVariant;
+
 use crate::{
     ChargeLike, ChargedMolecularTree, Complex, CountLike, MolecularTree, display_isotope,
     errors::{NumericError, ParserError},
     prelude::{BracketNode, ChargeNode, Element, Isotope, RadicalNode, RepeatNode, SequenceNode},
 };
-use elements_rs::ElementVariant;
 
 mod chemical_tree_element_iter;
 use chemical_tree_element_iter::{ChemicalTreeElementIter, ChemicalTreeNonHydrogenElementIter};
