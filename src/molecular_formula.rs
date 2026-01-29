@@ -520,6 +520,7 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// let mixed_elemental = mixed_formula.isotopic_normalization();
     /// assert_eq!(mixed_elemental.to_string(), "CH₄.OO");
     /// ```
+    #[must_use]
     fn isotopic_normalization(&self) -> Self {
         let mut formula = self.clone();
         for (_, tree) in formula.counted_mixtures_mut() {

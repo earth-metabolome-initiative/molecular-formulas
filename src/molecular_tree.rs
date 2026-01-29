@@ -97,6 +97,7 @@ pub trait MolecularTree<Count>: Sized {
     /// Returns whether the molecular tree is a noble gas compound.
     fn is_noble_gas_compound(&self) -> bool;
 
+    #[must_use]
     /// Returns a new molecular tree with isotopic normalization applied.
     fn isotopic_normalization(&self) -> Self;
 
