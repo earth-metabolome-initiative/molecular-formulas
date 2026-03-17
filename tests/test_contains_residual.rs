@@ -25,7 +25,7 @@ fn test_residual_detection() {
     for formula in FORMULAS_WITH_RESIDUALS {
         let formula: ResidualFormula = ResidualFormula::from_str(formula)
             .unwrap_or_else(|_| panic!("Failed to parse `{formula}`"));
-        assert!(formula.contains_residuals(), "Expected {formula} to contain a residual",);
+        assert!(formula.contains_residuals(), "Expected {formula} to contain a residual");
     }
 
     for formula in FORMULAS_WITHOUT_RESIDUALS {
