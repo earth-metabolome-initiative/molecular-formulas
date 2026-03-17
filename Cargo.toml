@@ -20,7 +20,7 @@ arbitrary = { version = "1.4", optional = true, features = ["derive"] }
 
 [dev-dependencies]
 strum = {version = "0.27.2", features = ["derive"]}
-criterion = "0.8.1"
+criterion = "0.8.2"
 csv = "1.1"
 indicatif = "0.18"
 comfy-table = "7.2.2"
