@@ -446,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "molecular-formulas"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "arbitrary",
  "comfy-table",
