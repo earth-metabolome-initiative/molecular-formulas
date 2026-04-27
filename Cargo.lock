@@ -294,9 +294,9 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
 name = "elements_rs"
-version = "0.2.4"
+version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d973c518d8c5e751929ffe67dd2dd49b95a38b79c8a687c8ca797fd98cb32f83"
+checksum = "77820a480754a90361b7cc3258696817cbccab6457a80e509c21dad19d1c661c"
 dependencies = [
  "arbitrary",
  "serde",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "molecular-formulas"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "arbitrary",
  "comfy-table",
