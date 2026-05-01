@@ -1,6 +1,6 @@
 //! Properties that can be computed from trees of molecular nodes.
 
-use crate::prelude::Element;
+use crate::{errors::CountError, prelude::Element};
 mod blankets;
 mod chemical_tree;
 mod inchi_tree;
@@ -76,16 +76,22 @@ pub trait MolecularTree<Count>: Sized {
     /// Returns the number of elements of a specific type in the molecular
     /// tree.
     ///
-    /// Returns None if the provided data type C cannot represent the count.
-    fn count_of_element<C>(&self, element: Element) -> Option<C>
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count cannot be computed or represented
+    /// by the requested type.
+    fn count_of_element<C>(&self, element: Element) -> Result<C, CountError>
     where
         C: From<Count> + CheckedAdd + CheckedMul + ConstZero + ConstOne;
 
     /// Returns the number of isotopes of a specific type in the molecular
     /// tree.
     ///
-    /// Returns None if the provided data type C cannot represent the count.
-    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count cannot be computed or represented
+    /// by the requested type.
+    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Result<C, CountError>
     where
         C: From<Count> + CheckedAdd + CheckedMul + ConstZero + ConstOne;
     /// Returns the total number of elements in the molecular tree.

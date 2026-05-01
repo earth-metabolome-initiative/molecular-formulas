@@ -17,7 +17,7 @@ where
         assert!(formula.contains_elements(), "Formula {formula_str} does not contain elements");
         assert_eq!(
             formula.count_of_element::<u32>(element),
-            Some(2),
+            Ok(2),
             "Formula {formula_str} has incorrect count for element {element:?}"
         );
     }
@@ -43,7 +43,7 @@ where
         );
         assert_eq!(
             formula.count_of_element::<u32>(isotope.element()),
-            Some(2),
+            Ok(2),
             "Formula {formula_str} has incorrect count for element {isotope:?}"
         );
     }

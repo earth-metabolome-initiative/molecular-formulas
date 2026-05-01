@@ -94,7 +94,10 @@ impl<Count: CountLike, Charge: ChargeLike, T: MolecularTree<Count>> MolecularTre
     }
 
     #[inline]
-    fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
+    fn count_of_element<C>(
+        &self,
+        element: elements_rs::Element,
+    ) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -106,7 +109,10 @@ impl<Count: CountLike, Charge: ChargeLike, T: MolecularTree<Count>> MolecularTre
     }
 
     #[inline]
-    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
+    fn count_of_isotope<C>(
+        &self,
+        isotope: elements_rs::Isotope,
+    ) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd

@@ -7,7 +7,7 @@ use elements_rs::ElementVariant;
 
 use crate::{
     ChargeLike, ChargedMolecularTree, Complex, CountLike, MolecularTree, display_isotope,
-    errors::{NumericError, ParserError},
+    errors::{CountError, NumericError, ParserError},
     prelude::{BracketNode, ChargeNode, Element, Isotope, RadicalNode, RepeatNode, SequenceNode},
 };
 
@@ -360,7 +360,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count
     }
 
     #[inline]
-    fn count_of_element<C>(&self, element: Element) -> Option<C>
+    fn count_of_element<C>(&self, element: Element) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -380,12 +380,12 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count
             Self::Repeat(r) => r.count_of_element::<C>(element),
             Self::Sequence(s) => s.count_of_element::<C>(element),
             Self::Unit(b) => b.count_of_element::<C>(element),
-            Self::Extension(_) => None,
+            Self::Extension(_) => Err(CountError::UncountableExtension),
         }
     }
 
     #[inline]
-    fn count_of_isotope<C>(&self, isotope: Isotope) -> Option<C>
+    fn count_of_isotope<C>(&self, isotope: Isotope) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -405,7 +405,7 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count
             Self::Repeat(r) => r.count_of_isotope::<C>(isotope),
             Self::Sequence(s) => s.count_of_isotope::<C>(isotope),
             Self::Unit(b) => b.count_of_isotope::<C>(isotope),
-            Self::Extension(_) => None,
+            Self::Extension(_) => Err(CountError::UncountableExtension),
         }
     }
 

@@ -68,11 +68,11 @@ fn parse_mixture_with_complex_zncl2_2etoh() -> Result<(), Box<dyn std::error::Er
     // C: 2 * 2 = 4 (EtOH is C2H5OH - C2H6O)
     // H: 2 * 6 = 12
     // O: 2 * 1 = 2
-    assert_eq!(formula.count_of_element(Element::Zn), Some(1), "Zn count incorrect");
-    assert_eq!(formula.count_of_element(Element::Cl), Some(2), "Cl count incorrect");
-    assert_eq!(formula.count_of_element(Element::C), Some(4), "C count incorrect");
-    assert_eq!(formula.count_of_element(Element::H), Some(12), "H count incorrect");
-    assert_eq!(formula.count_of_element(Element::O), Some(2), "O count incorrect");
+    assert_eq!(formula.count_of_element(Element::Zn), Ok(1), "Zn count incorrect");
+    assert_eq!(formula.count_of_element(Element::Cl), Ok(2), "Cl count incorrect");
+    assert_eq!(formula.count_of_element(Element::C), Ok(4), "C count incorrect");
+    assert_eq!(formula.count_of_element(Element::H), Ok(12), "H count incorrect");
+    assert_eq!(formula.count_of_element(Element::O), Ok(2), "O count incorrect");
 
     Ok(())
 }
@@ -91,11 +91,11 @@ fn parse_mixture_with_complex_sncl4_2et2o() -> Result<(), Box<dyn std::error::Er
     // Sn: 1
     // Cl: 4
 
-    assert_eq!(formula.count_of_element(Element::Sn), Some(1), "Sn count incorrect");
-    assert_eq!(formula.count_of_element(Element::Cl), Some(4), "Cl count incorrect");
-    assert_eq!(formula.count_of_element(Element::C), Some(8), "C count incorrect");
-    assert_eq!(formula.count_of_element(Element::H), Some(20), "H count incorrect");
-    assert_eq!(formula.count_of_element(Element::O), Some(2), "O count incorrect");
+    assert_eq!(formula.count_of_element(Element::Sn), Ok(1), "Sn count incorrect");
+    assert_eq!(formula.count_of_element(Element::Cl), Ok(4), "Cl count incorrect");
+    assert_eq!(formula.count_of_element(Element::C), Ok(8), "C count incorrect");
+    assert_eq!(formula.count_of_element(Element::H), Ok(20), "H count incorrect");
+    assert_eq!(formula.count_of_element(Element::O), Ok(2), "O count incorrect");
 
     Ok(())
 }
@@ -112,10 +112,10 @@ fn parse_mixture_complex_organic() -> Result<(), Box<dyn std::error::Error>> {
     // N: 1
     // O: 5 + 3*1 = 8
 
-    assert_eq!(formula.count_of_element(Element::C), Some(27), "C count incorrect");
-    assert_eq!(formula.count_of_element(Element::H), Some(41), "H count incorrect");
-    assert_eq!(formula.count_of_element(Element::N), Some(1), "N count incorrect");
-    assert_eq!(formula.count_of_element(Element::O), Some(8), "O count incorrect");
+    assert_eq!(formula.count_of_element(Element::C), Ok(27), "C count incorrect");
+    assert_eq!(formula.count_of_element(Element::H), Ok(41), "H count incorrect");
+    assert_eq!(formula.count_of_element(Element::N), Ok(1), "N count incorrect");
+    assert_eq!(formula.count_of_element(Element::O), Ok(8), "O count incorrect");
 
     Ok(())
 }

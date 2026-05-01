@@ -29,7 +29,7 @@ use crate::{
 /// assert_eq!(formula.to_string(), "H₂O");
 ///
 /// let glucose = ChemicalFormula::<u32, i32>::from_str("C6H12O6").unwrap();
-/// assert_eq!(glucose.count_of_element(Element::C), Some(6u32));
+/// assert_eq!(glucose.count_of_element(Element::C), Ok(6u32));
 /// ```
 pub struct ChemicalFormula<Count: CountLike = u16, Charge: ChargeLike = i16> {
     mixtures: Vec<(Count, ChemicalTree<Count, Charge, Empty>)>,

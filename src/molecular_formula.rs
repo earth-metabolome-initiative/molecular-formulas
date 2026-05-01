@@ -1,8 +1,13 @@
 //! Properties that can be computed from molecular formulas.
 
+use alloc::vec::Vec;
 use core::{fmt::Display, iter::repeat_n};
 
-use crate::{ChargeLike, ChargedMolecularTree, CountLike, MolecularTree, prelude::Element};
+use crate::{
+    ChargeLike, ChargedMolecularTree, CountLike, MolecularTree,
+    errors::{CountError, NumericError},
+    prelude::Element,
+};
 
 mod chemical_formula;
 mod inchi_formula;
@@ -12,8 +17,13 @@ pub use chemical_formula::*;
 use elements_rs::Isotope;
 pub use inchi_formula::*;
 pub use mineral_formula::*;
-use num_traits::{CheckedAdd, CheckedMul, ConstZero};
+use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
 pub use residual_formula::*;
+
+fn elements_by_atomic_number() -> impl Iterator<Item = Element> {
+    (1..=u8::from(Element::Og))
+        .map(|atomic_number| Element::try_from(atomic_number).expect("Element must exist"))
+}
 
 /// Trait defining metadata associated with a molecular formula.
 pub trait MolecularFormulaMetadata: Sized {
@@ -245,6 +255,73 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
         self.counted_mixtures().any(|(_, tree)| tree.contains_element(element))
     }
 
+    /// Returns a one-hot-style vector of the elements present in the formula.
+    ///
+    /// The vector is ordered by atomic number: index 0 represents hydrogen
+    /// (`H`) and index 117 represents oganesson (`Og`). Isotopes are encoded
+    /// as their base elements.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use elements_rs::Element;
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
+    /// let vector = formula.element_one_hot_vector();
+    ///
+    /// assert!(vector[usize::from(Element::H) - 1]);
+    /// assert!(vector[usize::from(Element::O) - 1]);
+    /// assert!(!vector[usize::from(Element::C) - 1]);
+    /// ```
+    fn element_one_hot_vector(&self) -> Vec<bool> {
+        elements_by_atomic_number().map(|element| self.contains_element(element)).collect()
+    }
+
+    /// Returns a vector of element counts for the formula.
+    ///
+    /// The vector is ordered by atomic number: index 0 represents hydrogen
+    /// (`H`) and index 117 represents oganesson (`Og`). Isotopes are counted
+    /// as their base elements.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if one of the computed counts cannot be
+    /// determined or represented by the requested count type.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use elements_rs::Element;
+    /// use molecular_formulas::{
+    ///     errors::{CountError, NumericError},
+    ///     prelude::*,
+    /// };
+    ///
+    /// let formula: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
+    /// let vector = formula.element_count_vector::<u32>().unwrap();
+    ///
+    /// assert_eq!(vector[usize::from(Element::H) - 1], 2);
+    /// assert_eq!(vector[usize::from(Element::O) - 1], 1);
+    /// assert_eq!(vector[usize::from(Element::C) - 1], 0);
+    ///
+    /// let oversized: ChemicalFormula = ChemicalFormula::from_str("300H300").unwrap();
+    /// assert_eq!(
+    ///     oversized.element_count_vector::<u16>(),
+    ///     Err(CountError::Numeric(NumericError::PositiveOverflow))
+    /// );
+    /// ```
+    fn element_count_vector<C>(&self) -> Result<Vec<C>, CountError>
+    where
+        C: From<Self::Count> + CheckedAdd + CheckedMul + ConstOne + ConstZero,
+    {
+        elements_by_atomic_number().map(|element| self.count_of_element(element)).collect()
+    }
+
     /// Returns whether the molecular formula contains any isotopes.
     ///
     /// # Example
@@ -283,7 +360,10 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// Returns the number of elements of a specific type in the molecular
     /// formula.
     ///
-    /// Returns None if the provided data type C cannot represent the count.
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count cannot be computed or represented
+    /// by the requested type.
     ///
     /// # Example
     ///
@@ -294,26 +374,31 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// use molecular_formulas::prelude::*;
     ///
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
-    /// assert_eq!(formula.count_of_element::<u32>(Element::H), Some(2));
-    /// assert_eq!(formula.count_of_element::<u32>(Element::O), Some(1));
+    /// assert_eq!(formula.count_of_element::<u32>(Element::H), Ok(2));
+    /// assert_eq!(formula.count_of_element::<u32>(Element::O), Ok(1));
     /// ```
-    fn count_of_element<C>(&self, element: Element) -> Option<C>
+    fn count_of_element<C>(&self, element: Element) -> Result<C, CountError>
     where
-        C: From<Self::Count> + CheckedAdd + CheckedMul + ConstZero,
+        C: From<Self::Count> + CheckedAdd + CheckedMul + ConstOne + ConstZero,
     {
         let mut total: C = C::zero();
         for (count, tree) in self.counted_mixtures() {
-            total = total.checked_add(
-                &C::from(count).checked_mul(&C::from(tree.count_of_element(element)?))?,
-            )?;
+            let mixture_count = C::from(count);
+            let tree_count = tree.count_of_element::<C>(element)?;
+            let counted_tree =
+                mixture_count.checked_mul(&tree_count).ok_or(NumericError::PositiveOverflow)?;
+            total = total.checked_add(&counted_tree).ok_or(NumericError::PositiveOverflow)?;
         }
-        Some(total)
+        Ok(total)
     }
 
     /// Returns the number of isotopes of a specific type in the molecular
     /// formula.
     ///
-    /// Returns None if the provided data type C cannot represent the count.
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count cannot be computed or represented
+    /// by the requested type.
     ///
     /// # Example
     ///
@@ -326,20 +411,22 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("[13C]2H4").unwrap();
     /// assert_eq!(
     ///     formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u16)).unwrap()),
-    ///     Some(2)
+    ///     Ok(2)
     /// );
     /// ```
-    fn count_of_isotope<C>(&self, isotope: Isotope) -> Option<C>
+    fn count_of_isotope<C>(&self, isotope: Isotope) -> Result<C, CountError>
     where
-        C: From<Self::Count> + CheckedAdd + CheckedMul + ConstZero,
+        C: From<Self::Count> + CheckedAdd + CheckedMul + ConstOne + ConstZero,
     {
         let mut total: C = C::zero();
         for (count, tree) in self.counted_mixtures() {
-            total = total.checked_add(
-                &C::from(count).checked_mul(&C::from(tree.count_of_isotope(isotope)?))?,
-            )?;
+            let mixture_count = C::from(count);
+            let tree_count = tree.count_of_isotope::<C>(isotope)?;
+            let counted_tree =
+                mixture_count.checked_mul(&tree_count).ok_or(NumericError::PositiveOverflow)?;
+            total = total.checked_add(&counted_tree).ok_or(NumericError::PositiveOverflow)?;
         }
-        Some(total)
+        Ok(total)
     }
 
     /// Returns the isotopologue mass of the molecular formula without

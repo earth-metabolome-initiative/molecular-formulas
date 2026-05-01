@@ -18,7 +18,7 @@ fn test_standard_isotopes() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
@@ -51,7 +51,7 @@ fn test_bracket_isotopes() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert_eq!(
         formula.elements().collect::<Vec<_>>(),
@@ -81,7 +81,7 @@ fn test_round_bracket_isotopes() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert_eq!(
         formula.elements().collect::<Vec<_>>(),
@@ -109,7 +109,7 @@ fn test_deuterium() {
             < f64::EPSILON
     );
     assert!(formula.contains_isotope(HydrogenIsotope::D.into()));
-    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::D.into()), Some(2));
+    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::D.into()), Ok(2));
     assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::H, Element::O]);
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
@@ -133,7 +133,7 @@ fn test_tritium() {
             < f64::EPSILON
     );
     assert!(formula.contains_isotope(HydrogenIsotope::T.into()));
-    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::T.into()), Some(2));
+    assert_eq!(formula.count_of_isotope::<u32>(HydrogenIsotope::T.into()), Ok(2));
     assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::H, Element::H]);
     assert!(!formula.is_noble_gas_compound());
     assert!(formula.charge().is_zero());
@@ -155,7 +155,7 @@ fn test_other_bracket_isotopes() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::O, 18u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::O, 18u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert!(
         (formula.isotopologue_mass() - formula.isotopologue_mass_with_charge()).abs()
@@ -181,7 +181,7 @@ fn test_c13_notation() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::C, 13u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::C, 13u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert_eq!(
         formula.elements().collect::<Vec<_>>(),
@@ -205,11 +205,11 @@ fn test_helium_isotopes() {
     assert!(formula.contains_isotope(Isotope::try_from((Element::He, 4u8)).unwrap()));
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::He, 3u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert_eq!(
         formula.count_of_isotope::<u32>(Isotope::try_from((Element::He, 4u8)).unwrap()),
-        Some(1)
+        Ok(1)
     );
     assert_eq!(formula.elements().collect::<Vec<_>>(), vec![Element::He, Element::He]);
     assert!(formula.is_noble_gas_compound());

@@ -6,7 +6,10 @@ use alloc::vec::Vec;
 use core::fmt::Display;
 
 use super::{Node, Supports};
-use crate::{ChargeLike, ChargedMolecularTree, CountLike, MolecularTree};
+use crate::{
+    ChargeLike, ChargedMolecularTree, CountLike, MolecularTree,
+    errors::{CountError, NumericError},
+};
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -114,7 +117,7 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
         self.nodes.iter().map(|node: &T| node.number_of_elements()).sum()
     }
 
-    fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
+    fn count_of_element<C>(&self, element: elements_rs::Element) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -124,12 +127,14 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
     {
         let mut total = C::ZERO;
         for node in &self.nodes {
-            total = total.checked_add(&node.count_of_element::<C>(element)?)?;
+            total = total
+                .checked_add(&node.count_of_element::<C>(element)?)
+                .ok_or(NumericError::PositiveOverflow)?;
         }
-        Some(total)
+        Ok(total)
     }
 
-    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
+    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -139,9 +144,11 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
     {
         let mut total = C::ZERO;
         for node in &self.nodes {
-            total = total.checked_add(&node.count_of_isotope::<C>(isotope)?)?;
+            total = total
+                .checked_add(&node.count_of_isotope::<C>(isotope)?)
+                .ok_or(NumericError::PositiveOverflow)?;
         }
-        Some(total)
+        Ok(total)
     }
 
     fn isotopologue_mass(&self) -> f64 {

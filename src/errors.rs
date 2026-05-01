@@ -18,6 +18,18 @@ pub enum NumericError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
+/// Errors associated with formula count operations.
+pub enum CountError {
+    /// An error regarding numeric operations occurred.
+    #[error("Numeric error: {0}")]
+    Numeric(#[from] NumericError),
+    /// The formula contains an extension whose element counts cannot be
+    /// determined.
+    #[error("Cannot determine element counts for an extension node.")]
+    UncountableExtension,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, thiserror::Error)]
 /// Error enumeration when parsing a molecular formula.
 pub enum ParserError {
     /// Unexpected end of input reached while parsing tokens.

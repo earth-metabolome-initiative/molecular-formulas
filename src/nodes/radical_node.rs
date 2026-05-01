@@ -105,7 +105,10 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     }
 
     #[inline]
-    fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
+    fn count_of_element<C>(
+        &self,
+        element: elements_rs::Element,
+    ) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -117,7 +120,10 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     }
 
     #[inline]
-    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
+    fn count_of_isotope<C>(
+        &self,
+        isotope: elements_rs::Isotope,
+    ) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd

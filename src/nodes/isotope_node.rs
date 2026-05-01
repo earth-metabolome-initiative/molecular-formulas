@@ -57,7 +57,7 @@ impl<Count> MolecularTree<Count> for Isotope {
     }
 
     #[inline]
-    fn count_of_element<C>(&self, element: Element) -> Option<C>
+    fn count_of_element<C>(&self, element: Element) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -65,11 +65,11 @@ impl<Count> MolecularTree<Count> for Isotope {
             + num_traits::ConstZero
             + num_traits::ConstOne,
     {
-        Some(if self.element() == element { C::ONE } else { C::ZERO })
+        Ok(if self.element() == element { C::ONE } else { C::ZERO })
     }
 
     #[inline]
-    fn count_of_isotope<C>(&self, isotope: Isotope) -> Option<C>
+    fn count_of_isotope<C>(&self, isotope: Isotope) -> Result<C, crate::errors::CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -77,7 +77,7 @@ impl<Count> MolecularTree<Count> for Isotope {
             + num_traits::ConstZero
             + num_traits::ConstOne,
     {
-        Some(if *self == isotope { C::ONE } else { C::ZERO })
+        Ok(if *self == isotope { C::ONE } else { C::ZERO })
     }
 
     fn isotopologue_mass(&self) -> f64 {

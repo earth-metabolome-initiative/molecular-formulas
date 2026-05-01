@@ -4,7 +4,9 @@
 use core::fmt::Display;
 
 use crate::{
-    ChargeLike, ChargedMolecularTree, ChemicalTree, CountLike, MolecularTree, subscript_digits_ltr,
+    ChargeLike, ChargedMolecularTree, ChemicalTree, CountLike, MolecularTree,
+    errors::{CountError, NumericError},
+    subscript_digits_ltr,
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
@@ -109,7 +111,7 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     }
 
     #[inline]
-    fn count_of_element<C>(&self, element: elements_rs::Element) -> Option<C>
+    fn count_of_element<C>(&self, element: elements_rs::Element) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -119,11 +121,11 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     {
         let node_count = self.node.count_of_element::<C>(element)?;
         let count_as_c: C = C::from(self.count);
-        node_count.checked_mul(&count_as_c)
+        Ok(node_count.checked_mul(&count_as_c).ok_or(NumericError::PositiveOverflow)?)
     }
 
     #[inline]
-    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Option<C>
+    fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Result<C, CountError>
     where
         C: From<Count>
             + num_traits::CheckedAdd
@@ -133,7 +135,7 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     {
         let node_count = self.node.count_of_isotope::<C>(isotope)?;
         let count_as_c: C = C::from(self.count);
-        node_count.checked_mul(&count_as_c)
+        Ok(node_count.checked_mul(&count_as_c).ok_or(NumericError::PositiveOverflow)?)
     }
 
     #[inline]

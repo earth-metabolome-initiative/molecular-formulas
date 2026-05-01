@@ -40,7 +40,7 @@ where
 
     for isotope in HydrogenIsotope::iter() {
         assert!(!m.contains_isotope(isotope.into()));
-        assert_eq!(m.count_of_isotope::<M::Count>(isotope.into()), Some(M::Count::zero()));
+        assert_eq!(m.count_of_isotope::<M::Count>(isotope.into()), Ok(M::Count::zero()));
     }
 }
 
@@ -69,7 +69,7 @@ where
     }
     assert!(m.contains_isotopes());
     assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
-    assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Some(M::Count::zero()));
+    assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Ok(M::Count::zero()));
     assert!(m.contains_elements());
     assert_eq!(m.number_of_elements(), 950);
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
