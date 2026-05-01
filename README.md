@@ -12,25 +12,7 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 ## Features
 
-- **Standard Parsing**: Supports nested groups (e.g., `C6H5(CH2)2OH`), hydrates, salts, isotopes (e.g., `[13C]H4` or `¹³CH₄`), and flexible charge notation (e.g., `Fe+3`, `[OH]-`).
-- **Modular AST**: The internal representation allows selecting integer types (`u8`, `u16`, `u32`) and enabling or disabling support for "Residuals" (wildcards) via types like `MolecularFormula` vs `ResidualFormula`. If something is missing, make a PR and we can modularly add it!
-- **Chemical Properties**:
-  - Check [**Hill System**](https://en.wikipedia.org/wiki/Hill_system) sorting conformity.
-  - Identify chemical classes (noble gas compounds).
-  - **Charge**: Calculate and inspect total charge.
-- **Composition Analysis**:
-  - **Isotopes**: Check for presence of specific isotopes.
-  - **Mixtures**: Handle and inspect molecular mixtures.
-- **Mass Calculations**:
-  - **Monoisotopic Mass** (Isotopologue mass).
-  - **Average Molar Mass**.
-  - **Mass over Charge** (m/z) ratio.
-- **Validation**: Tested against the entire [PubChem](https://pubchem.ncbi.nlm.nih.gov/) compound database (123M+ entries).
-- **Ecosystem**:
-  - Built on [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs) for accurate element and isotope data.
-  - Uses [`thiserror`](https://crates.io/crates/thiserror) for ergonomic error handling.
-  - Optional [`serde`](https://crates.io/crates/serde) support for serialization/deserialization.
-- **Embedded Compatible**: `#![no_std]` capable (requires `alloc`), making it suitable for WASM and embedded applications.
+`molecular-formulas` supports nested groups, hydrates, salts, isotope notation, flexible charge notation, and strict InChI-style formula validation. It provides typed formula variants for general chemical formulas, Hill-sorted InChI formula layers, residual groups, and mineral polymorph prefixes. The crate can inspect elements, isotopes, mixtures, Hill ordering, charge, isotopologue mass, molar mass, and m/z values. Element and isotope data come from [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs); optional features include `serde`, `arbitrary`/`fuzzing`, `mem_size`, and `mem_dbg`. The crate is `no_std` with `alloc` unless `fuzzing` or `mem_dbg` is enabled.
 
 ## Installation
 
@@ -38,7 +20,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-molecular-formulas = "0.1.2"
+molecular-formulas = "0.1.8"
 ```
 
 ## Usage
