@@ -16,6 +16,8 @@ use chemical_tree_element_iter::{ChemicalTreeElementIter, ChemicalTreeNonHydroge
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
 /// Enumeration of chemical tree nodes.
 pub enum ChemicalTree<Count: CountLike, Charge: ChargeLike, Extension> {
     /// An atom (element)

@@ -11,6 +11,8 @@ use crate::{
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
 pub struct RepeatNode<Count, T> {
     /// The number of repetitions.
     pub(crate) count: Count,

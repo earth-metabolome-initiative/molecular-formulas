@@ -7,6 +7,8 @@ const ELECTRON_MASS: f64 = 0.000548579909065;
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
 /// Extension tree for molecular formulas that can contain charges.
 pub struct ChargeNode<C, T> {
     /// The charge amount.

@@ -5,6 +5,9 @@ use core::fmt::Display;
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "fuzzing", derive(arbitrary::Arbitrary))]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
+#[cfg_attr(feature = "mem_size", mem_size(flat))]
 /// Marker type for an empty node.
 pub struct Empty;
 

@@ -14,6 +14,9 @@ use crate::{
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
+#[cfg_attr(feature = "mem_size", mem_size(flat))]
 /// Represents a greek letter in a molecular formula.
 ///
 /// These are not ALL of the greek letters, but only those which are used in
@@ -82,6 +85,8 @@ impl TryFrom<char> for PolymorphPrefix {
 }
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
+#[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
 /// Struct representing a mineral formula, potentially with a greek letter
 /// prefix.
 ///
