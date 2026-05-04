@@ -94,7 +94,7 @@ fn test_all_charged_molecular_trait_method2<M: ChargedMolecularFormula>(m: &M) {
         m.isotopologue_mass_with_charge()
     );
     assert!(
-        (m.molar_mass() - 8686.916942536453).abs() < f64::EPSILON,
+        (m.molar_mass() - 8686.920914878454).abs() < f64::EPSILON,
         "Found mass: {}",
         m.molar_mass()
     );
