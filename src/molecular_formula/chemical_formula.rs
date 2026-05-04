@@ -11,8 +11,10 @@ use core::{
 use elements_rs::{Element, Isotope};
 
 use crate::{
-    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, InChIFormula, MolecularFormula,
-    MolecularFormulaMetadata, ParsableFormula, SequenceNode, prelude::ChemicalTree,
+    ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, InChIFormula,
+    MergedFormulaCounts, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, RepeatNode,
+    SequenceNode, errors::CountError, hill_ordered_elements, merged_formula_counts,
+    prelude::ChemicalTree,
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
@@ -155,6 +157,44 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for ChemicalFormula<
     ) -> impl Iterator<Item = (Self::Count, ChemicalTree<Count, Charge, Empty>)> {
         self.mixtures.into_iter()
     }
+
+    fn merge_mixtures(&self) -> Result<Self, CountError> {
+        if self.mixtures.len() == 1 && self.mixtures[0].0.is_one() {
+            return Ok(self.clone());
+        }
+        Ok(chemical_tree_from_atom_counts(merged_formula_counts(self)?).into())
+    }
+}
+
+fn chemical_tree_from_atom_counts<Count: CountLike, Charge: ChargeLike>(
+    mut counts: MergedFormulaCounts<Count>,
+) -> ChemicalTree<Count, Charge, Empty> {
+    let mut tree = ChemicalTree::Sequence(SequenceNode::empty());
+    for element in hill_ordered_elements(counts.has_carbon()) {
+        if let Some(count) = counts.elements.remove(&element) {
+            tree = tree.push(counted_element(element, count));
+        }
+        for &isotope in element.isotopes() {
+            if let Some(count) = counts.isotopes.remove(&isotope) {
+                tree = tree.push(counted_isotope(isotope, count));
+            }
+        }
+    }
+    tree
+}
+
+fn counted_element<Count: CountLike, Charge: ChargeLike>(
+    element: Element,
+    count: Count,
+) -> ChemicalTree<Count, Charge, Empty> {
+    if count.is_one() { element.into() } else { RepeatNode::new(count, element).into() }
+}
+
+fn counted_isotope<Count: CountLike, Charge: ChargeLike>(
+    isotope: Isotope,
+    count: Count,
+) -> ChemicalTree<Count, Charge, Empty> {
+    if count.is_one() { isotope.into() } else { RepeatNode::new(count, isotope).into() }
 }
 
 impl<Count: CountLike, Charge: ChargeLike> ChargedMolecularFormulaMetadata

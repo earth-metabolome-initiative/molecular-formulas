@@ -8,8 +8,10 @@ use elements_rs::{Element, Isotope};
 
 use crate::{
     BaselineMinus, ChargeLike, ChargedMolecularFormulaMetadata, ChemicalTree, CountLike, Empty,
-    MolecularFormula, MolecularFormulaMetadata, ParsableFormula, errors::ParserError,
-    parsable::CharacterMarker, prelude::ChemicalFormula,
+    MolecularFormula, MolecularFormulaMetadata, ParsableFormula,
+    errors::{CountError, ParserError},
+    parsable::CharacterMarker,
+    prelude::ChemicalFormula,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, PartialOrd, Ord, Hash)]
@@ -126,6 +128,13 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for MineralFormula<C
 
     fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)> {
         self.formula.into_counted_mixtures()
+    }
+
+    fn merge_mixtures(&self) -> Result<Self, CountError> {
+        Ok(Self {
+            polymorph_prefix: self.polymorph_prefix,
+            formula: self.formula.merge_mixtures()?,
+        })
     }
 }
 

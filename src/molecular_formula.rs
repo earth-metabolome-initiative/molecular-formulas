@@ -1,6 +1,6 @@
 //! Properties that can be computed from molecular formulas.
 
-use alloc::vec::Vec;
+use alloc::{collections::BTreeMap, vec::Vec};
 use core::{fmt::Display, iter::repeat_n};
 
 use crate::{
@@ -14,10 +14,10 @@ mod inchi_formula;
 mod mineral_formula;
 mod residual_formula;
 pub use chemical_formula::*;
-use elements_rs::Isotope;
+use elements_rs::{ElementVariant, Isotope};
 pub use inchi_formula::*;
 pub use mineral_formula::*;
-use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
+use num_traits::{CheckedAdd, CheckedMul, CheckedSub, ConstOne, ConstZero};
 pub use residual_formula::*;
 
 fn elements_by_atomic_number() -> impl Iterator<Item = Element> {
@@ -87,6 +87,34 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// assert_eq!(*count, 2);
     /// ```
     fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)>;
+
+    /// Returns a formula whose mixtures are folded into one molecular tree.
+    ///
+    /// The merged formula preserves aggregate element and isotope counts: for a
+    /// mixture `x1.x2`, every atom or isotope count in the result is the sum of
+    /// the corresponding counts in `x1` and `x2`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if any aggregate count cannot be determined or
+    /// represented by the formula count type.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use elements_rs::Element;
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let formula = ChemicalFormula::<u32, i32>::from_str("CuSO4.5H2O").unwrap();
+    /// let merged = formula.merge_mixtures().unwrap();
+    ///
+    /// assert_eq!(merged.number_of_mixtures(), 1);
+    /// assert_eq!(merged.count_of_element::<u32>(Element::H), Ok(10));
+    /// assert_eq!(merged.count_of_element::<u32>(Element::O), Ok(9));
+    /// ```
+    fn merge_mixtures(&self) -> Result<Self, CountError>;
 
     /// Iterates over the mixtures in the molecular formula, repeating them
     /// according to their counts.
@@ -615,6 +643,55 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
         }
         formula
     }
+}
+
+pub(crate) struct MergedFormulaCounts<Count> {
+    pub(crate) elements: BTreeMap<Element, Count>,
+    pub(crate) isotopes: BTreeMap<Isotope, Count>,
+}
+
+impl<Count: CountLike> MergedFormulaCounts<Count> {
+    pub(crate) fn new() -> Self {
+        Self { elements: BTreeMap::new(), isotopes: BTreeMap::new() }
+    }
+
+    pub(crate) fn has_carbon(&self) -> bool {
+        self.elements.contains_key(&Element::C)
+            || self.isotopes.keys().any(|isotope| isotope.element() == Element::C)
+    }
+}
+
+pub(crate) fn hill_ordered_elements(has_carbon: bool) -> Vec<Element> {
+    let mut elements: Vec<_> = elements_by_atomic_number().collect();
+    elements.sort_by(|left, right| {
+        crate::molecular_tree::compare_hill_order(*left, *right, has_carbon)
+    });
+    elements
+}
+
+pub(crate) fn merged_formula_counts<F>(
+    formula: &F,
+) -> Result<MergedFormulaCounts<F::Count>, CountError>
+where
+    F: MolecularFormula,
+{
+    let mut counts = MergedFormulaCounts::new();
+    for element in elements_by_atomic_number() {
+        let mut element_count = formula.count_of_element::<F::Count>(element)?;
+        for &isotope in element.isotopes() {
+            let isotope_count = formula.count_of_isotope::<F::Count>(isotope)?;
+            if isotope_count == F::Count::ZERO {
+                continue;
+            }
+            counts.isotopes.insert(isotope, isotope_count);
+            element_count =
+                element_count.checked_sub(&isotope_count).ok_or(NumericError::NegativeOverflow)?;
+        }
+        if element_count != F::Count::ZERO {
+            counts.elements.insert(element, element_count);
+        }
+    }
+    Ok(counts)
 }
 
 /// A molecular formula that can hold a charge.

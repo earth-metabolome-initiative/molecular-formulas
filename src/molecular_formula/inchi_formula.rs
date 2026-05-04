@@ -8,8 +8,8 @@ use core::fmt::Display;
 use elements_rs::Element;
 
 use crate::{
-    CountLike, InChITree, MolecularFormula, MolecularFormulaMetadata, ParsableFormula,
-    prelude::SequenceNode,
+    CountLike, InChITree, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, RepeatNode,
+    errors::CountError, hill_ordered_elements, merged_formula_counts, prelude::SequenceNode,
 };
 
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
@@ -86,6 +86,20 @@ impl<Count: CountLike> MolecularFormula for InChIFormula<Count> {
 
     fn into_counted_mixtures(self) -> impl Iterator<Item = (Self::Count, Self::Tree)> {
         self.mixtures.into_iter()
+    }
+
+    fn merge_mixtures(&self) -> Result<Self, CountError> {
+        if self.mixtures.len() == 1 && self.mixtures[0].0.is_one() {
+            return Ok(self.clone());
+        }
+        let mut counts = merged_formula_counts(self)?;
+        let mut sequence = SequenceNode::empty();
+        for element in hill_ordered_elements(counts.has_carbon()) {
+            if let Some(count) = counts.elements.remove(&element) {
+                sequence.push(RepeatNode::new(count, element).into());
+            }
+        }
+        Ok(sequence.into())
     }
 }
 

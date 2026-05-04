@@ -1,5 +1,7 @@
 //! Properties that can be computed from trees of molecular nodes.
 
+use core::cmp::Ordering;
+
 use crate::{errors::CountError, prelude::Element};
 mod blankets;
 mod chemical_tree;
@@ -12,24 +14,30 @@ use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
 /// Helper to check if two elements are in Hill order.
 #[must_use]
 pub fn is_hill_sorted_pair(prev: Element, next: Element, has_carbon: bool) -> bool {
+    compare_hill_order(prev, next, has_carbon) == Ordering::Less
+}
+
+/// Compares two elements according to Hill ordering.
+#[must_use]
+pub(crate) fn compare_hill_order(left: Element, right: Element, has_carbon: bool) -> Ordering {
     if has_carbon {
-        match (prev, next) {
-            (Element::C, Element::C) | (Element::H, Element::H) => false,
-            (Element::C, _) => true,
-            (_, Element::C) => false,
-            (Element::H, _) => true,
-            (_, Element::H) => false,
-            (a, b) => {
-                let a_str: &str = a.as_ref();
-                let b_str: &str = b.as_ref();
-                a_str < b_str
-            }
+        match (left, right) {
+            (Element::C, Element::C) | (Element::H, Element::H) => Ordering::Equal,
+            (Element::C, _) => Ordering::Less,
+            (_, Element::C) => Ordering::Greater,
+            (Element::H, _) => Ordering::Less,
+            (_, Element::H) => Ordering::Greater,
+            _ => compare_element_symbols(left, right),
         }
     } else {
-        let prev_str: &str = prev.as_ref();
-        let next_str: &str = next.as_ref();
-        prev_str < next_str
+        compare_element_symbols(left, right)
     }
+}
+
+fn compare_element_symbols(left: Element, right: Element) -> Ordering {
+    let left: &str = left.as_ref();
+    let right: &str = right.as_ref();
+    left.cmp(right)
 }
 
 /// Trait for computing various molecular properties.
