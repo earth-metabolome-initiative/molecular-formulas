@@ -32,6 +32,20 @@ jobs:
     - name: Check mem_dbg feature
       run: cargo check --no-default-features --features mem_dbg
 
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust 1.92 (MSRV)
+      uses: dtolnay/rust-toolchain@1.92.0
+    - name: Check on MSRV
+      run: cargo check --all-features
+    - name: Check mem_size feature on MSRV
+      run: cargo check --no-default-features --features mem_size
+    - name: Check mem_dbg feature on MSRV
+      run: cargo check --no-default-features --features mem_dbg
+
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
