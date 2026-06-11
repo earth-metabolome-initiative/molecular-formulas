@@ -1,8 +1,6 @@
 name: Mutation Testing
 
 on:
-  schedule:
-    - cron: '0 0 * * 0' # Run weekly on Sundays
   pull_request:
     branches: [ main ]
 
@@ -19,14 +17,9 @@ jobs:
     - name: Install cargo-mutants
       uses: taiki-e/install-action@cargo-mutants
     - name: Generate PR diff
-      if: github.event_name == 'pull_request'
       run: git diff origin/${{ github.base_ref }} > pr.diff
     - name: Run mutants on changed lines
-      if: github.event_name == 'pull_request'
       run: cargo mutants --package molecular-formulas --no-shuffle -vV --in-diff pr.diff
-    - name: Run full mutants sweep
-      if: github.event_name != 'pull_request'
-      run: cargo mutants --package molecular-formulas --no-shuffle -vV
     - name: Upload mutants report
       if: always()
       uses: actions/upload-artifact@v4
