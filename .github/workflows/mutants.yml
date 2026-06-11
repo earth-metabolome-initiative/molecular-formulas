@@ -1,0 +1,28 @@
+name: Mutation Testing
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  mutants:
+    name: cargo-mutants
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install cargo-mutants
+      uses: taiki-e/install-action@cargo-mutants
+    - name: Generate PR diff
+      run: git diff origin/${{ github.base_ref }} > pr.diff
+    - name: Run mutants on changed lines
+      run: cargo mutants --package molecular-formulas --no-shuffle -vV --in-diff pr.diff
+    - name: Upload mutants report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: mutants-out
+        path: mutants.out

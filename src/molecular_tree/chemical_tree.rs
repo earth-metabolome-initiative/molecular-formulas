@@ -283,19 +283,6 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count
         self.into()
     }
 
-    fn contains_elements(&self) -> bool {
-        match self {
-            Self::Element(e) => <Element as MolecularTree<Count>>::contains_elements(e),
-            Self::Isotope(i) => <Isotope as MolecularTree<Count>>::contains_elements(i),
-            Self::Radical(r) => r.contains_elements(),
-            Self::Charge(c) => c.contains_elements(),
-            Self::Repeat(r) => r.contains_elements(),
-            Self::Sequence(s) => s.contains_elements(),
-            Self::Unit(b) => b.contains_elements(),
-            Self::Extension(_) => false, // Empty node has no elements
-        }
-    }
-
     fn contains_non_hydrogens(&self) -> bool {
         match self {
             Self::Element(e) => <Element as MolecularTree<Count>>::contains_non_hydrogens(e),

@@ -66,11 +66,6 @@ impl<Count: CountLike, Charge: ChargeLike, T: MolecularTree<Count>> MolecularTre
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        self.tree.contains_elements()
-    }
-
-    #[inline]
     fn contains_non_hydrogens(&self) -> bool {
         self.tree.contains_non_hydrogens()
     }

@@ -80,11 +80,6 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        self.node.contains_elements()
-    }
-
-    #[inline]
     fn number_of_elements(&self) -> usize {
         self.node.number_of_elements()
     }

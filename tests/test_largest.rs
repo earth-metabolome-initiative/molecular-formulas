@@ -21,10 +21,10 @@ where
         let count = m.count_of_element::<M::Count>(non_hydrogen).unwrap();
         assert!(!count.is_zero());
         assert!(m.contains_element(non_hydrogen));
-        assert!(non_hydrogen != Element::H);
+        assert_ne!(non_hydrogen, Element::H);
     }
     assert!(!m.contains_isotopes());
-    assert!(m.contains_elements());
+    assert!(m.number_of_elements() > 0);
     assert!(
         (m.isotopologue_mass() - 6928.64091608618).abs() < f64::EPSILON,
         "Found mass: {}",
@@ -65,12 +65,12 @@ where
         let count = m.count_of_element::<M::Count>(non_hydrogen).unwrap();
         assert!(!count.is_zero());
         assert!(m.contains_element(non_hydrogen));
-        assert!(non_hydrogen != Element::H);
+        assert_ne!(non_hydrogen, Element::H);
     }
     assert!(m.contains_isotopes());
     assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
     assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Ok(M::Count::zero()));
-    assert!(m.contains_elements());
+    assert!(m.number_of_elements() > 0);
     assert_eq!(m.number_of_elements(), 950);
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
     assert_eq!(m.number_of_non_hydrogens(), m.non_hydrogens().count());

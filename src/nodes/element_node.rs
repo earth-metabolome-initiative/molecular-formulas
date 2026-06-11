@@ -28,11 +28,6 @@ impl<Count> MolecularTree<Count> for Element {
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        true
-    }
-
-    #[inline]
     fn contains_non_hydrogens(&self) -> bool {
         *self != Element::H
     }

@@ -53,11 +53,6 @@ impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        self.node.contains_elements()
-    }
-
-    #[inline]
     fn contains_non_hydrogens(&self) -> bool {
         self.node.contains_non_hydrogens()
     }

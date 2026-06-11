@@ -61,11 +61,6 @@ impl<Count, T: crate::MolecularTree<Count>> crate::MolecularTree<Count> for Brac
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        self.tree.contains_elements()
-    }
-
-    #[inline]
     fn contains_non_hydrogens(&self) -> bool {
         self.tree.contains_non_hydrogens()
     }
