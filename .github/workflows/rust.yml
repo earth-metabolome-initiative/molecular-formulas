@@ -27,10 +27,18 @@ jobs:
       run: cargo test
     - name: Run all-feature tests
       run: cargo test --all-features
-    - name: Check mem_size feature
-      run: cargo check --no-default-features --features mem_size
-    - name: Check mem_dbg feature
-      run: cargo check --no-default-features --features mem_dbg
+
+  feature-powerset:
+    name: Feature powerset
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install cargo-hack
+      uses: taiki-e/install-action@cargo-hack
+    - name: Check every feature combination
+      run: cargo hack check --feature-powerset --no-dev-deps
 
   msrv:
     name: MSRV
