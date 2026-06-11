@@ -230,22 +230,6 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
         })
     }
 
-    /// Returns whether the molecular formula contains any elements.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use std::str::FromStr;
-    ///
-    /// use molecular_formulas::prelude::*;
-    ///
-    /// let formula: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
-    /// assert!(formula.contains_elements());
-    /// ```
-    fn contains_elements(&self) -> bool {
-        self.counted_mixtures().any(|(_, tree)| tree.contains_elements())
-    }
-
     /// Returns whether the molecular formula contains any non-hydrogen
     /// elements.
     ///

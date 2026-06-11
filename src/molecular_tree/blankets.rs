@@ -26,11 +26,6 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
     }
 
     #[inline]
-    fn contains_elements(&self) -> bool {
-        (**self).contains_elements()
-    }
-
-    #[inline]
     fn contains_non_hydrogens(&self) -> bool {
         (**self).contains_non_hydrogens()
     }

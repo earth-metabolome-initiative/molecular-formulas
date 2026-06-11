@@ -95,10 +95,6 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
         self.nodes.iter().flat_map(|node: &T| node.non_hydrogens())
     }
 
-    fn contains_elements(&self) -> bool {
-        self.nodes.iter().any(|node: &T| node.contains_elements())
-    }
-
     fn contains_non_hydrogens(&self) -> bool {
         self.nodes.iter().any(|node: &T| node.contains_non_hydrogens())
     }

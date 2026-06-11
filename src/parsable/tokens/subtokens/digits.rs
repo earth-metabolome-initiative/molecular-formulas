@@ -334,44 +334,43 @@ where
 ///
 /// let digits: Vec<Digit> = digits_ltr(10).collect();
 /// assert_eq!(digits, vec![Digit::One, Digit::Zero]);
+///
+/// let digits: Vec<Digit> = digits_ltr(5).collect();
+/// assert_eq!(digits, vec![Digit::Five]);
+///
+/// let digits: Vec<Digit> = digits_ltr(906).collect();
+/// assert_eq!(digits, vec![Digit::Nine, Digit::Zero, Digit::Six]);
 /// ```
 pub fn digits_ltr<D: Into<i64>>(number: D) -> impl Iterator<Item = Digit> {
-    let mut number: i64 = number.into();
-    number = number.abs();
+    let number: i64 = number.into().abs();
 
-    let mut div = 1;
-    while number / 10 >= div {
-        div *= 10;
-    }
+    // The number of decimal digits to emit. Zero is rendered as a single `0`.
+    let digit_count: u32 = if number == 0 { 1 } else { number.ilog10() + 1 };
 
-    core::iter::from_fn(move || {
-        if div == 0 {
-            None
+    (0..digit_count).map(move |index| {
+        // Emit the most-significant digit first.
+        let divisor = 10_i64.pow(digit_count - 1 - index);
+        let d = number / divisor % 10;
+        if d == 0 {
+            Digit::Zero
+        } else if d == 1 {
+            Digit::One
+        } else if d == 2 {
+            Digit::Two
+        } else if d == 3 {
+            Digit::Three
+        } else if d == 4 {
+            Digit::Four
+        } else if d == 5 {
+            Digit::Five
+        } else if d == 6 {
+            Digit::Six
+        } else if d == 7 {
+            Digit::Seven
+        } else if d == 8 {
+            Digit::Eight
         } else {
-            let d = number / div;
-            number %= div;
-            div /= 10;
-            Some(if d == 0 {
-                Digit::Zero
-            } else if d == 1 {
-                Digit::One
-            } else if d == 2 {
-                Digit::Two
-            } else if d == 3 {
-                Digit::Three
-            } else if d == 4 {
-                Digit::Four
-            } else if d == 5 {
-                Digit::Five
-            } else if d == 6 {
-                Digit::Six
-            } else if d == 7 {
-                Digit::Seven
-            } else if d == 8 {
-                Digit::Eight
-            } else {
-                Digit::Nine
-            })
+            Digit::Nine
         }
     })
 }

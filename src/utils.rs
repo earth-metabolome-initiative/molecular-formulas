@@ -84,5 +84,8 @@ mod tests {
         assert_eq!(ChargeWrapper(-2).to_string(), "²⁻");
         assert_eq!(ChargeWrapper(10).to_string(), "¹⁰⁺");
         assert_eq!(ChargeWrapper(-10).to_string(), "¹⁰⁻");
+        // A zero charge is rendered with the positive sign: this pins the
+        // `charge < 0` boundary (distinguishing `<` from `<=`).
+        assert_eq!(ChargeWrapper(0).to_string(), "⁺");
     }
 }

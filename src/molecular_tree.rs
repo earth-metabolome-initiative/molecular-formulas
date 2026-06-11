@@ -66,9 +66,6 @@ pub trait MolecularTree<Count>: Sized {
     /// Iterates over the non-hydrogen elements in the molecular formula.
     fn non_hydrogens(&self) -> Self::NonHydrogenElementIter<'_>;
 
-    /// Returns whether the molecular tree contains any elements.
-    fn contains_elements(&self) -> bool;
-
     /// Returns whether the molecular tree contains any non-hydrogen elements.
     fn contains_non_hydrogens(&self) -> bool;
 

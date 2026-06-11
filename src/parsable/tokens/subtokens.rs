@@ -7,7 +7,7 @@ use core::{
 };
 
 use elements_rs::{Element, isotopes::HydrogenIsotope};
-use num_traits::{CheckedAdd, CheckedNeg, ConstOne, One, Signed};
+use num_traits::{CheckedAdd, CheckedNeg, ConstOne, Signed};
 
 mod complex;
 pub use complex::Complex;
@@ -160,26 +160,38 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
     where
         M::Charge: From<CS::Digit>,
     {
-        // There might be one of more signs in some notations.
-        let mut sign_count: M::Charge = <M::Charge as ConstOne>::ONE;
+        // There might be one or more signs in some notations. We accumulate the
+        // signed magnitude directly (rather than counting positively and negating
+        // at the end) so that an overflow is classified with the correct sign and
+        // so that the full negative range of the charge type remains usable.
+        let unit: M::Charge = if CS::POSITIVE {
+            <M::Charge as ConstOne>::ONE
+        } else {
+            <M::Charge as ConstOne>::ONE.checked_neg().ok_or(NumericError::NegativeOverflow)?
+        };
+        let overflow = if CS::POSITIVE {
+            NumericError::PositiveOverflow
+        } else {
+            NumericError::NegativeOverflow
+        };
+        let mut sign_count: M::Charge = unit;
         while self.stream.peek().copied().is_some_and(|c| CS::matches(c)) {
-            sign_count = sign_count
-                .checked_add(&<M::Charge as ConstOne>::ONE)
-                .ok_or(NumericError::PositiveOverflow)?;
+            sign_count = sign_count.checked_add(&unit).ok_or(overflow)?;
             self.stream.next();
         }
 
-        // If the sign count is, in absolute value, equal to one, it may be followed
-        // by an optional number.
-        if sign_count.abs().is_one()
+        // If exactly one sign was seen, it may be followed by an optional number
+        // giving the explicit magnitude. Comparing against `unit` avoids calling
+        // `abs()`, which would overflow on the most negative charge value.
+        if sign_count == unit
             && let Some(count) = try_fold_number::<M::Charge, CS::Digit, _>(&mut self.stream)
         {
-            sign_count = count?;
-        }
-
-        // We adjust the sign of the charge according to the sign marker.
-        if !CS::POSITIVE {
-            sign_count = sign_count.checked_neg().ok_or(NumericError::NegativeOverflow)?;
+            let magnitude = count?;
+            sign_count = if CS::POSITIVE {
+                magnitude
+            } else {
+                magnitude.checked_neg().ok_or(NumericError::NegativeOverflow)?
+            };
         }
 
         Ok(sign_count)
