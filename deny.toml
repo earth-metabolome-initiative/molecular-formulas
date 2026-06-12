@@ -1,0 +1,35 @@
+# cargo-deny configuration. Run with `cargo deny check`.
+
+[advisories]
+# Fail on crates with a RustSec security advisory (this replaces cargo-audit)
+# or that have been yanked from the registry.
+yanked = "deny"
+
+[licenses]
+# Some allowed licenses below only appear inside `OR` expressions that resolve
+# to MIT/Apache, so they are never the "encountered" license; do not warn about
+# those unused-but-harmless allowances.
+unused-allowed-license = "allow"
+# Only permissive licenses are allowed. Anything not listed (notably copyleft
+# licenses such as GPL) fails the check, so a GPL dependency cannot slip back in.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSL-1.0",
+    "Unicode-3.0",
+    "Unlicense",
+    "WTFPL",
+]
+# The local fuzz crate is `publish = false` and intentionally has no license;
+# skip license checks for our own unpublished workspace members.
+private = { ignore = true }
+
+[bans]
+# Surface, but do not fail on, multiple versions of the same crate.
+multiple-versions = "warn"
+
+[sources]
+# Only allow crates from crates.io.
+unknown-registry = "deny"
+unknown-git = "deny"
