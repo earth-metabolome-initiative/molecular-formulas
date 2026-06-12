@@ -2,19 +2,21 @@ name: Security Audit
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Run weekly on Sundays
+    - cron: '0 0 * * 0' # Run weekly on Sundays to catch newly disclosed advisories
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
 
 jobs:
-  audit:
-    name: Security Audit
+  cargo-deny:
+    name: cargo-deny
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Run security audit
-      uses: rustsec/audit-check@v2
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install cargo-deny
+      uses: taiki-e/install-action@cargo-deny
+    - name: Run cargo-deny
+      run: cargo deny check
