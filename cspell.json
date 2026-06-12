@@ -1,0 +1,41 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "clippy",
+    "rustfmt",
+    "rustdoc",
+    "rustdocflags",
+    "doctest",
+    "doctests",
+    "msrv",
+    "semver",
+    "dtolnay",
+    "taiki",
+    "kenobi",
+    "rustsec",
+    "tarpaulin",
+    "codecov",
+    "taplo",
+    "machete",
+    "honggfuzz",
+    "mem",
+    "isotopologue",
+    "isotopologues",
+    "monoisotopic",
+    "pubchem",
+    "inchi",
+    "residual",
+    "noble",
+    "strum",
+    "subtoken",
+    "subtokens",
+    "blankets",
+    "Cappelletti"
+  ],
+  "ignorePaths": [
+    "target/**",
+    "Cargo.lock",
+    "**/*.svg"
+  ]
+}
