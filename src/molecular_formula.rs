@@ -267,6 +267,21 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
         self.counted_mixtures().any(|(_, tree)| tree.contains_element(element))
     }
 
+    /// Returns the set of elements present in the formula.
+    ///
+    /// Isotopes are encoded as their base elements. Residuals are ignored.
+    fn present_elements(&self) -> Vec<Element> {
+        let mut result = Vec::new();
+        for (_, tree) in self.counted_mixtures() {
+            for element in tree.elements() {
+                if !result.contains(&element) {
+                    result.push(element);
+                }
+            }
+        }
+        result
+    }
+
     /// Returns a one-hot-style vector of the elements present in the formula.
     ///
     /// The vector is ordered by atomic number: index 0 represents hydrogen
@@ -367,6 +382,58 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// ```
     fn contains_isotope(&self, isotope: Isotope) -> bool {
         self.counted_mixtures().any(|(_, tree)| tree.contains_isotope(isotope))
+    }
+
+    /// Returns whether this formula contains all elements and isotopes of
+    /// another formula with at least the same counts.
+    ///
+    /// Elements and isotopes are tracked separately: an isotope requirement in
+    /// `other` cannot be satisfied by an unlabeled element in `self`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let glucose: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
+    /// let water: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
+    ///
+    /// assert!(glucose.contains(&water));
+    /// assert!(!water.contains(&glucose));
+    /// ```
+    fn contains(&self, other: &Self) -> bool {
+        let Ok(self_counts) = merged_formula_counts(self) else { return false };
+        let Ok(other_counts) = merged_formula_counts(other) else { return false };
+        formula_contains(&self_counts, &other_counts)
+    }
+
+    /// Returns how many times another formula is contained in this one.
+    ///
+    /// This is the floor of the minimum ratio of element and isotope counts
+    /// in `self` to the corresponding counts in `other`. Returns `0` if
+    /// `other` is not contained in `self` or if `other` is empty.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use std::str::FromStr;
+    ///
+    /// use molecular_formulas::prelude::*;
+    ///
+    /// let glucose: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
+    /// let water: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
+    ///
+    /// assert_eq!(glucose.contains_count(&water), 6);
+    /// ```
+    fn contains_count(&self, other: &Self) -> usize {
+        let Ok(self_counts) = merged_formula_counts(self) else { return 0 };
+        let Ok(other_counts) = merged_formula_counts(other) else { return 0 };
+        if !formula_contains(&self_counts, &other_counts) {
+            return 0;
+        }
+        formula_contains_count::<Self::Count>(&self_counts, &other_counts)
     }
 
     /// Returns the number of elements of a specific type in the molecular
@@ -660,22 +727,71 @@ where
     F: MolecularFormula,
 {
     let mut counts = MergedFormulaCounts::new();
-    for element in elements_by_atomic_number() {
+    let has_isotopes = formula.contains_isotopes();
+    for element in formula.present_elements() {
         let mut element_count = formula.count_of_element::<F::Count>(element)?;
-        for &isotope in element.isotopes() {
-            let isotope_count = formula.count_of_isotope::<F::Count>(isotope)?;
-            if isotope_count == F::Count::ZERO {
-                continue;
+        if has_isotopes {
+            for &isotope in element.isotopes() {
+                let isotope_count = formula.count_of_isotope::<F::Count>(isotope)?;
+                if isotope_count == F::Count::ZERO {
+                    continue;
+                }
+                counts.isotopes.insert(isotope, isotope_count);
+                element_count = element_count
+                    .checked_sub(&isotope_count)
+                    .ok_or(NumericError::NegativeOverflow)?;
             }
-            counts.isotopes.insert(isotope, isotope_count);
-            element_count =
-                element_count.checked_sub(&isotope_count).ok_or(NumericError::NegativeOverflow)?;
         }
         if element_count != F::Count::ZERO {
             counts.elements.insert(element, element_count);
         }
     }
     Ok(counts)
+}
+
+fn for_each_other_count<Count: CountLike, F>(
+    self_counts: &MergedFormulaCounts<Count>,
+    other_counts: &MergedFormulaCounts<Count>,
+    mut f: F,
+) where
+    F: FnMut(Count, Count),
+{
+    for (key, other_count) in &other_counts.elements {
+        let self_count = self_counts.elements.get(key).copied().unwrap_or(Count::ZERO);
+        f(self_count, *other_count);
+    }
+    for (key, other_count) in &other_counts.isotopes {
+        let self_count = self_counts.isotopes.get(key).copied().unwrap_or(Count::ZERO);
+        f(self_count, *other_count);
+    }
+}
+
+fn formula_contains<Count: CountLike>(
+    self_counts: &MergedFormulaCounts<Count>,
+    other_counts: &MergedFormulaCounts<Count>,
+) -> bool {
+    let mut result = true;
+    for_each_other_count(self_counts, other_counts, |self_count, other_count| {
+        if self_count < other_count {
+            result = false;
+        }
+    });
+    result
+}
+
+fn formula_contains_count<Count: CountLike>(
+    self_counts: &MergedFormulaCounts<Count>,
+    other_counts: &MergedFormulaCounts<Count>,
+) -> usize {
+    let mut min_count = usize::MAX;
+    for_each_other_count(self_counts, other_counts, |self_count, other_count| {
+        let self_usize: usize = self_count.try_into().unwrap_or(0);
+        let other_usize: usize = other_count.try_into().unwrap_or(usize::MAX);
+        if let Some(ratio) = self_usize.checked_div(other_usize) {
+            min_count = min_count.min(ratio);
+        }
+    });
+    if min_count == usize::MAX { 0 } else { min_count }
 }
 
 /// A molecular formula that can hold a charge.
