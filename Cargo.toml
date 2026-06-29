@@ -87,3 +87,7 @@ harness = false
 [[bench]]
 name = "chemical_formula_benchmark"
 harness = false
+
+[[bench]]
+name = "contains_benchmark"
+harness = false
