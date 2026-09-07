@@ -135,8 +135,9 @@ where
             SubToken::CloseBracket(bracket) => Token::CloseBracket(bracket),
             SubToken::Extension(extension) => Token::Extension(extension),
             SubToken::SuperscriptDigit(candidate_isotopic_number) => {
-                // A superscript number must be followed by an element to be valid,
-                // and be the isotopic number of that element.
+                // A superscript number must be followed by an element to be
+                // valid, and be the isotopic number of that
+                // element.
                 let next = match self.stream.next() {
                     Some(Ok(subtoken)) => subtoken,
                     Some(Err(e)) => return Some(Err(e)),

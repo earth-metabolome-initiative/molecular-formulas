@@ -161,9 +161,10 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
         M::Charge: From<CS::Digit>,
     {
         // There might be one or more signs in some notations. We accumulate the
-        // signed magnitude directly (rather than counting positively and negating
-        // at the end) so that an overflow is classified with the correct sign and
-        // so that the full negative range of the charge type remains usable.
+        // signed magnitude directly (rather than counting positively and
+        // negating at the end) so that an overflow is classified with
+        // the correct sign and so that the full negative range of the
+        // charge type remains usable.
         let unit: M::Charge = if CS::POSITIVE {
             <M::Charge as ConstOne>::ONE
         } else {
@@ -180,9 +181,10 @@ impl<I: Iterator<Item = char>, M: ChargedMolecularFormulaMetadata, Extension>
             self.stream.next();
         }
 
-        // If exactly one sign was seen, it may be followed by an optional number
-        // giving the explicit magnitude. Comparing against `unit` avoids calling
-        // `abs()`, which would overflow on the most negative charge value.
+        // If exactly one sign was seen, it may be followed by an optional
+        // number giving the explicit magnitude. Comparing against
+        // `unit` avoids calling `abs()`, which would overflow on the
+        // most negative charge value.
         if sign_count == unit
             && let Some(count) = try_fold_number::<M::Charge, CS::Digit, _>(&mut self.stream)
         {
@@ -235,9 +237,10 @@ where
     #[allow(clippy::too_many_lines)]
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(count) = try_fold_number::<M::Count, BaselineDigit, _>(&mut self.stream) {
-            // If we have found a baseline number, we return it as a count token.
-            // But first, we check that it is not further followed by a subscript digit,
-            // which would indicate an incorrect formula.
+            // If we have found a baseline number, we return it as a count
+            // token. But first, we check that it is not further
+            // followed by a subscript digit, which would indicate
+            // an incorrect formula.
             if self.stream.peek().copied().is_some_and(|c| SubscriptDigit::try_from(c).is_ok()) {
                 return Some(Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap())));
             }
@@ -245,9 +248,10 @@ where
             return Some(count.map(|c| InchiToken::Count(c).into()).map_err(Into::into));
         }
         if let Some(count) = try_fold_number::<M::Count, SubscriptDigit, _>(&mut self.stream) {
-            // If we have found a subscript number, we return it as a count token.
-            // But first, we check that it is not further followed by a baseline digit,
-            // which would indicate an incorrect formula.
+            // If we have found a subscript number, we return it as a count
+            // token. But first, we check that it is not further
+            // followed by a baseline digit, which would indicate an
+            // incorrect formula.
             if self.stream.peek().copied().is_some_and(|c| BaselineDigit::try_from(c).is_ok()) {
                 return Some(Err(ParserError::UnexpectedCharacter(self.stream.next().unwrap())));
             }
@@ -350,7 +354,8 @@ where
             'T' => Some(Ok(HydrogenIsotope::T.into())),
             'D' => Some(Ok(HydrogenIsotope::D.into())),
             '[' => {
-                // We check that it is not immediately followed by a closed bracket.
+                // We check that it is not immediately followed by a closed
+                // bracket.
                 if self.stream.peek().copied() == Some(']') {
                     return Some(Err(ParserError::UnexpectedCharacter(
                         self.stream.next().unwrap(),
@@ -360,7 +365,8 @@ where
             }
             ']' => Some(Ok(SubToken::CloseBracket(Bracket::Square))),
             '(' => {
-                // We check that it is not immediately followed by a closed bracket.
+                // We check that it is not immediately followed by a closed
+                // bracket.
                 if self.stream.peek().copied() == Some(')') {
                     return Some(Err(ParserError::UnexpectedCharacter(
                         self.stream.next().unwrap(),

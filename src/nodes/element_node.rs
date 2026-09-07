@@ -45,7 +45,8 @@ impl<Count> MolecularTree<Count> for Element {
     #[inline]
     fn contains_isotope(&self, _isotope: elements_rs::Isotope) -> bool {
         // TODO: Ask Pierre whether this is the desired behavior or
-        // it should check whether the isotope is the natural one of the element.
+        // it should check whether the isotope is the natural one of the
+        // element.
         false
     }
 

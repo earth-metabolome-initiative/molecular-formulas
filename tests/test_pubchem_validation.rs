@@ -202,11 +202,12 @@ fn validate_pubchem_data(
                 error: mass_diff,
             };
 
-            // Maintain top-k heap (min-heap of Reverse<MismatchEntry> keeps smallest error
-            // of the top-k at top) We want to keep the LARGEST errors.
-            // BinaryHeap is a max-heap. Reverse reverts the comparison.
-            // So heap.peek() is the SMALLEST error currently in the heap.
-            // If new error > heap.peek(), we pop the smallest and push the new one.
+            // Maintain top-k heap (min-heap of Reverse<MismatchEntry> keeps
+            // smallest error of the top-k at top) We want to keep
+            // the LARGEST errors. BinaryHeap is a max-heap. Reverse
+            // reverts the comparison. So heap.peek() is the
+            // SMALLEST error currently in the heap. If new error >
+            // heap.peek(), we pop the smallest and push the new one.
 
             if stats.top_mismatches.len() < k_worst {
                 stats.top_mismatches.push(Reverse(entry));

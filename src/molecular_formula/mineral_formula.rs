@@ -175,9 +175,10 @@ where
         let first_character = chars.peek().ok_or(ParserError::UnexpectedEndOfInput)?;
         if let Ok(polymorph_prefix) = PolymorphPrefix::try_from(*first_character) {
             chars.next();
-            // The polymorph prefix was found, but it must be followed by either an
-            // hyphen or something which an OCR would mistake for a hyphen. To have
-            // OCR-resilient parsing, we accept anything that looks like a "minus" sign.
+            // The polymorph prefix was found, but it must be followed by either
+            // an hyphen or something which an OCR would mistake for
+            // a hyphen. To have OCR-resilient parsing, we accept
+            // anything that looks like a "minus" sign.
             let next_character = chars.next().ok_or(ParserError::UnexpectedEndOfInput)?;
             if BaselineMinus::matches(next_character) {
                 Ok(Some(polymorph_prefix))
@@ -230,9 +231,9 @@ mod tests {
         ];
 
         // Testing with simple "SiO2".
-        // Note: The Display implementation for ChemicalFormula uses subscripts (SiO₂).
-        // To ensure roundtrip equality (string -> parse -> string == string), we use
-        // the subscript version as input.
+        // Note: The Display implementation for ChemicalFormula uses subscripts
+        // (SiO₂). To ensure roundtrip equality (string -> parse ->
+        // string == string), we use the subscript version as input.
         let formula_part = "SiO₂";
 
         for (prefix, char_representation) in cases {
@@ -252,7 +253,8 @@ mod tests {
             Err(ParserError::UnexpectedCharacter('S'))
         );
 
-        // defined prefix character but wrong separator (space is not a BaselineMinus)
+        // defined prefix character but wrong separator (space is not a
+        // BaselineMinus)
         assert_eq!(
             MineralFormula::<u32, i32>::from_str("α SiO2"),
             Err(ParserError::UnexpectedCharacter(' '))

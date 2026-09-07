@@ -154,8 +154,9 @@ fn hill_ordering_through_wrappers() {
         assert!(chem(s).is_hill_sorted(), "{s} should be Hill sorted");
     }
     // Unsorted (carbon not first / wrong alpha order), via various nodes. The
-    // `O[13C]` case routes Hill ordering through the isotope node (a 13C isotope
-    // ordered after O is out of order, since carbon must come first).
+    // `O[13C]` case routes Hill ordering through the isotope node (a 13C
+    // isotope ordered after O is out of order, since carbon must come
+    // first).
     for s in ["OC", "(OC)", "OC·", "H2OC", "OC⁻", "HCl", "O[13C]"] {
         assert!(!chem(s).is_hill_sorted(), "{s} should not be Hill sorted");
     }
@@ -167,8 +168,8 @@ fn hill_ordering_through_wrappers() {
 fn has_carbon_via_merge() {
     // Merging a formula whose only carbon is an isotope must still treat it as
     // carbon-bearing, so Hill ordering puts carbon first. Boron sorts before
-    // carbon alphabetically, so if `has_carbon` wrongly returned false the merged
-    // display would start with boron instead. This exercises the
+    // carbon alphabetically, so if `has_carbon` wrongly returned false the
+    // merged display would start with boron instead. This exercises the
     // `isotope.element() == Element::C` branch of `has_carbon`.
     let merged = chem("[13C]H4.B2H6").merge_mixtures().unwrap();
     assert!(merged.contains_isotope(Isotope::try_from((Element::C, 13u16)).unwrap()));

@@ -44,8 +44,8 @@ where
                     self.consume_token()?; // Consume the opening square bracket
 
                     // If the next_token is a count, this could be an isotope
-                    // specifier. We need to further check whether the next token
-                    // is a closing square bracket.
+                    // specifier. We need to further check whether the next
+                    // token is a closing square bracket.
                     if let Some(mass_number) = self.consume_count()? {
                         if self.peek_token()? == Some(Token::CloseBracket(Bracket::Square)) {
                             tree = tree.isotope(Isotope::try_from((element, mass_number))?);
@@ -54,8 +54,10 @@ where
                         } else {
                             tree = tree.element(element);
 
-                            // Otherwise, we are parsing a new square bracket group, from which we
-                            // have already consumed the opening square bracket and the first token.
+                            // Otherwise, we are parsing a new square bracket
+                            // group, from which we
+                            // have already consumed the opening square bracket
+                            // and the first token.
                             let new_tree = self.parse_sequence(
                                 Token::CloseBracket(Bracket::Square),
                                 Some(Token::Inchi(InchiToken::Count(mass_number))),
@@ -71,8 +73,10 @@ where
                     } else {
                         tree = tree.element(element);
 
-                        // Otherwise, we are parsing a new square bracket group, from which we
-                        // have already consumed the opening square bracket and the first token.
+                        // Otherwise, we are parsing a new square bracket group,
+                        // from which we have already
+                        // consumed the opening square bracket and the first
+                        // token.
                         let new_tree =
                             self.parse_sequence(Token::CloseBracket(Bracket::Square), None)?;
 
@@ -89,9 +93,10 @@ where
                 }
             }
             Token::Inchi(InchiToken::Count(count)) => {
-                // A repeat always decorates the previous unit. Only at the start
-                // of a new mixture can there be a repeat without a preceding unit
-                // which is handled in `Self::parse_mixture`. The only exception is
+                // A repeat always decorates the previous unit. Only at the
+                // start of a new mixture can there be a repeat
+                // without a preceding unit which is handled in
+                // `Self::parse_mixture`. The only exception is
                 // when this repeat is followed by an `Element`,
                 // in which case it is an isotope specifier.
                 if !tree.is_empty() {
@@ -103,9 +108,10 @@ where
                 }
             }
             Token::Radical => {
-                // A radical at the beginning of a unit decorates the entire unit
-                // that follows it, while it wraps up the entire unit if it is at
-                // some point inside the unit.
+                // A radical at the beginning of a unit decorates the entire
+                // unit that follows it, while it wraps up the
+                // entire unit if it is at some point inside the
+                // unit.
                 if tree.is_empty() {
                     // If the unit is empty, we parse the following unit
                     // and then decorate it with the radical.

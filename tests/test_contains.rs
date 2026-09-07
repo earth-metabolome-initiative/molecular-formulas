@@ -93,8 +93,8 @@ fn test_contains_isotope_insufficient() {
 
 #[test]
 fn test_contains_mixture() {
-    // CuSO4.5H2O contains H2O (10 H, 5 O from hydrate + 4 O from sulfate = 10 H, 9
-    // O total)
+    // CuSO4.5H2O contains H2O (10 H, 5 O from hydrate + 4 O from sulfate = 10
+    // H, 9 O total)
     let hydrate: ChemicalFormula = ChemicalFormula::from_str("CuSO4.5H2O").unwrap();
     let water: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
 

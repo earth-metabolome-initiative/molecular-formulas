@@ -19,8 +19,8 @@ fn parse<M: FromStr>(candidate: &str) -> Option<M> {
     let elapsed = start_time.elapsed();
 
     if let Ok(formula) = result {
-        // If the parsing took more than TIMEOUT_SECONDS second, we raise an error
-        // so to turn a timeout into a panic
+        // If the parsing took more than TIMEOUT_SECONDS second, we raise an
+        // error so to turn a timeout into a panic
         if elapsed.as_secs_f64() > TIMEOUT_SECONDS {
             panic!(
                 "Parsing candidate `{candidate}` type `{}` took too long: {} seconds",

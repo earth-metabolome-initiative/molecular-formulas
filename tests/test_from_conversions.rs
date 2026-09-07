@@ -30,8 +30,8 @@ fn test_chemical_formula_from_element() {
 fn test_chemical_formula_from_isotope() {
     let isotope = Isotope::try_from((Element::O, 18u16)).expect("Could not create isotope");
     let formula: ChemicalFormula = ChemicalFormula::from(isotope);
-    // ChemicalFormula display uses [¹⁸O] style if it delegates to the tree which
-    // handles isotopes
+    // ChemicalFormula display uses [¹⁸O] style if it delegates to the tree
+    // which handles isotopes
     assert_eq!(formula.to_string(), "[¹⁸O]");
 }
 
