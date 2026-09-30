@@ -33,3 +33,12 @@ If a crash is found, the input is saved in `fuzz/artifacts/from_str/`. Crashes s
 ```bash
 cargo +nightly fuzz run from_str fuzz/artifacts/from_str/crash-<hash>
 ```
+
+## Seed corpus
+
+Each target keeps a minimised seed corpus in `fuzz/seeds/<target>/`, which ClusterFuzzLite packs into the build so every run starts from known coverage. The ClusterFuzzLite build fails for a target without seeds, so a new target lands together with its seed directory. The seeds are raw `Arbitrary` inputs grown by the fuzzer, so refresh them by fuzzing into the directory and minimising it again. Minimising on edges alone, without hit counts, keeps the directory small while it still reaches every covered edge:
+
+```bash
+cargo +nightly fuzz run from_str fuzz/seeds/from_str -- -max_total_time=600
+cargo +nightly fuzz cmin from_str fuzz/seeds/from_str -- -set_cover_merge=1 -use_counters=0
+```
