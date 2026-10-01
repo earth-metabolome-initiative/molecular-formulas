@@ -1,5 +1,7 @@
 //! Submodule for fuzzing molecular formulas from strings.
 
+#![no_main]
+
 use std::{
     collections::hash_map::DefaultHasher,
     fmt::{Debug, Display},
@@ -7,7 +9,7 @@ use std::{
     str::FromStr,
 };
 
-use honggfuzz::fuzz;
+use libfuzzer_sys::fuzz_target;
 use molecular_formulas::{fuzzing::FuzzFormula, prelude::*};
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -113,21 +115,10 @@ where
     let _ = formula.is_noble_gas_compound();
     let _ = formula.is_hill_sorted();
     let _ = formula.contains_isotopes();
-    let contains_elements = formula.contains_elements();
     let _ = formula.number_of_mixtures();
 
-    // Check elements consistency
-    if contains_elements {
-        assert!(
-            formula.elements().next().is_some(),
-            "contains_elements is true but elements() is empty"
-        );
-    } else {
-        assert!(
-            formula.elements().next().is_none(),
-            "contains_elements is false but elements() is not empty"
-        );
-    }
+    // Every formula the parser accepts holds at least one element
+    assert!(formula.elements().next().is_some(), "elements() is empty");
 
     // Test element/isotope queries
     let _ = formula.count_of_element::<u64>(Element::C);
@@ -184,10 +175,10 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
         let count = formula.count_of_element::<u64>(element);
         let doubled_count = doubled.count_of_element::<u64>(element);
         match (count, doubled_count) {
-            (Some(c), Some(dc)) => {
+            (Ok(c), Ok(dc)) => {
                 assert_eq!(c * 2, dc, "Doubling formula should double element count for {element}");
             }
-            (None, None) => {}
+            (Err(_), Err(_)) => {}
             _ => panic!("Count overflow or mismatch in addition fuzzing for {element}"),
         }
     }
@@ -200,17 +191,14 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
         assert!(diff < 1e-4, "Charge addition mismatch: {charge} * 2 != {doubled_charge}");
     }
 
-    // Check mass comparison
-    if formula.contains_elements() {
-        // Molar mass should be roughly doubling
-        let mass = formula.molar_mass();
-        let doubled_mass = doubled.molar_mass();
-        if mass.is_finite() && doubled_mass.is_finite() {
-            assert!(
-                doubled_mass >= mass,
-                "Doubled mass {doubled_mass} should be >= original mass {mass}"
-            );
-        }
+    // Molar mass should be roughly doubling
+    let mass = formula.molar_mass();
+    let doubled_mass = doubled.molar_mass();
+    if mass.is_finite() && doubled_mass.is_finite() {
+        assert!(
+            doubled_mass >= mass,
+            "Doubled mass {doubled_mass} should be >= original mass {mass}"
+        );
     }
 
     let elapsed = start_time.elapsed();
@@ -222,37 +210,33 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
     }
 }
 
-fn main() {
-    loop {
-        fuzz!(|data: FuzzFormula<CountType, ChargeType, Residual>| {
-            if let Some(formula) = parse::<ChemicalFormula<CountType, ChargeType>>(&data.as_ref()) {
-                round_trip(&data.as_ref(), &formula);
-                fuzz_common_traits(&formula);
-                fuzz_molecular_formula(&formula);
-                fuzz_charged_molecular_formula(&formula);
-                fuzz_chemical_formula_ops(&formula);
-            }
-
-            if let Some(formula) = parse::<MineralFormula<CountType, ChargeType>>(&data.as_ref()) {
-                round_trip(&data.as_ref(), &formula);
-                fuzz_common_traits(&formula);
-                fuzz_molecular_formula(&formula);
-                fuzz_charged_molecular_formula(&formula);
-            }
-
-            if let Some(formula) = parse::<InChIFormula<CountType>>(&data.as_ref()) {
-                round_trip(&data.as_ref(), &formula);
-                fuzz_common_traits(&formula);
-                fuzz_molecular_formula(&formula);
-            }
-
-            // Fuzz ResidualFormula - Has subset of methods
-            if let Some(formula) = parse::<ResidualFormula<CountType, ChargeType>>(&data.as_ref()) {
-                round_trip(&data.as_ref(), &formula);
-                fuzz_common_traits(&formula);
-                // Specific methods
-                let _ = formula.contains_residuals();
-            }
-        });
+fuzz_target!(|data: FuzzFormula<CountType, ChargeType, Residual>| {
+    if let Some(formula) = parse::<ChemicalFormula<CountType, ChargeType>>(&data.as_ref()) {
+        round_trip(&data.as_ref(), &formula);
+        fuzz_common_traits(&formula);
+        fuzz_molecular_formula(&formula);
+        fuzz_charged_molecular_formula(&formula);
+        fuzz_chemical_formula_ops(&formula);
     }
-}
+
+    if let Some(formula) = parse::<MineralFormula<CountType, ChargeType>>(&data.as_ref()) {
+        round_trip(&data.as_ref(), &formula);
+        fuzz_common_traits(&formula);
+        fuzz_molecular_formula(&formula);
+        fuzz_charged_molecular_formula(&formula);
+    }
+
+    if let Some(formula) = parse::<InChIFormula<CountType>>(&data.as_ref()) {
+        round_trip(&data.as_ref(), &formula);
+        fuzz_common_traits(&formula);
+        fuzz_molecular_formula(&formula);
+    }
+
+    // Fuzz ResidualFormula - Has subset of methods
+    if let Some(formula) = parse::<ResidualFormula<CountType, ChargeType>>(&data.as_ref()) {
+        round_trip(&data.as_ref(), &formula);
+        fuzz_common_traits(&formula);
+        // Specific methods
+        let _ = formula.contains_residuals();
+    }
+});

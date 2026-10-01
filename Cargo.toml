@@ -40,10 +40,8 @@ mem_dbg = ["mem_size", "mem_dbg/std", "elements_rs/mem_dbg"]
 workspace = true
 
 [workspace]
-members = [
-	".",
-	"fuzz",
-]
+members = ["."]
+exclude = ["fuzz"]
 
 [workspace.lints.rust]
 missing_docs = "forbid"
