@@ -1,0 +1,41 @@
+# cargo-mutants configuration.
+#
+# Run with every feature enabled so that feature-gated code (notably the
+# `fuzzing` module) is compiled and exercised by its tests; otherwise its
+# mutants are reported as missed simply because the code is not built.
+additional_cargo_args = ["--all-features"]
+
+# The full test suite includes the (slow) PubChem validation tests. Under the
+# parallel mutant sweep these can be slow enough to be misclassified as timeouts,
+# which cargo-mutants treats as failures. We give the per-test timeout generous
+# headroom so that a slow-but-finite suite completes and the mutant is caught.
+timeout_multiplier = 5.0
+minimum_test_timeout = 120
+
+# Mutants that no test can distinguish from the original code. Each regex is
+# matched against the mutant names shown by `cargo mutants --list`.
+exclude_re = [
+    # `on_start` (for ChemicalFormula, InChIFormula, ResidualFormula) has a
+    # `StartOutput` of `()` and a body of `Ok(())`, which is byte-for-byte
+    # identical to the mutated `Ok(Default::default())`.
+    "on_start -> Result<Self::StartOutput, crate::errors::ParserError> with Ok\\(Default::default\\(\\)\\)",
+    # `Empty`'s `Display` body is `write!(f, "")`, which writes nothing and
+    # returns `Ok(())` exactly like the mutated `Ok(Default::default())`.
+    "impl Display for Empty>::fmt -> core::fmt::Result with Ok\\(Default::default\\(\\)\\)",
+    # The tree-level charge-accumulation branch in `ChemicalTree::charge`
+    # (line 99) is unreachable: two charge tokens can never be adjacent because
+    # `parse_any_illegal_charge_successor` rejects a charge that immediately
+    # follows another charge, so a charged tree is never combined with a further
+    # charge. Its sign-classification operators therefore cannot be observed.
+    # The reachable charge-overflow logic lives in `parse_charge` and is tested.
+    # These regexes target only those operators (the `>` comparisons occur only
+    # on line 99; the `&&` is line-anchored to avoid the line-92 empty-sequence
+    # guard).
+    "replace > with (==|<|>=) in ChemicalTree<Count, Charge, Extension>::charge",
+    "chemical_tree.rs:99:.*replace && with \\|\\| in ChemicalTree<Count, Charge, Extension>::charge",
+    # InChI notation cannot express isotopes (the parser rejects isotope syntax
+    # such as `[13C]`), so an InChI tree never contains an isotope. Both
+    # `contains_isotopes` and `contains_isotope` are therefore always `false`,
+    # identical to the mutated constant.
+    "for InChITree<Count>>::contains_isotopes? -> bool with false",
+]

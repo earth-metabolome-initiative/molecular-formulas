@@ -1,0 +1,27 @@
+[package]
+name = "molecular_formulas_fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+serde = "1.0"
+serde_json = "1.0"
+molecular-formulas = { path = "../", features = ["serde", "fuzzing"] }
+
+# Outside the parent workspace, whose release profile turns on fat LTO, and
+# LTO drops the sanitizer coverage symbols the fuzz binaries link against.
+[workspace]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "from_str"
+path = "fuzz_targets/from_str.rs"
+test = false
+doc = false
