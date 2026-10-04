@@ -23,5 +23,5 @@ debug = 1
 [[bin]]
 name = "from_str"
 path = "fuzz_targets/from_str.rs"
-test = false
+test = true
 doc = false

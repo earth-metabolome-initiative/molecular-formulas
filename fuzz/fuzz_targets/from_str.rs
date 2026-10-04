@@ -1,6 +1,6 @@
 //! Submodule for fuzzing molecular formulas from strings.
 
-#![no_main]
+#![cfg_attr(not(test), no_main)]
 
 use std::{
     collections::hash_map::DefaultHasher,
@@ -10,7 +10,7 @@ use std::{
 };
 
 use libfuzzer_sys::fuzz_target;
-use molecular_formulas::{fuzzing::FuzzFormula, prelude::*};
+use molecular_formulas::{errors::NumericError, fuzzing::FuzzFormula, prelude::*};
 use serde::{Serialize, de::DeserializeOwned};
 
 const TIMEOUT_SECONDS: f64 = 0.5;
@@ -174,13 +174,12 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
     for element in elements_to_check {
         let count = formula.count_of_element::<u64>(element);
         let doubled_count = doubled.count_of_element::<u64>(element);
-        match (count, doubled_count) {
-            (Ok(c), Ok(dc)) => {
-                assert_eq!(c * 2, dc, "Doubling formula should double element count for {element}");
-            }
-            (Err(_), Err(_)) => {}
-            _ => panic!("Count overflow or mismatch in addition fuzzing for {element}"),
-        }
+        let expected_count =
+            count.and_then(|c| c.checked_mul(2).ok_or(NumericError::PositiveOverflow.into()));
+        assert_eq!(
+            doubled_count, expected_count,
+            "Doubling formula should double element count for {element}",
+        );
     }
 
     // Check charge doubles (approximately, allowing for float precision)
@@ -211,32 +210,76 @@ fn fuzz_chemical_formula_ops(formula: &ChemicalFormula<CountType, ChargeType>) {
 }
 
 fuzz_target!(|data: FuzzFormula<CountType, ChargeType, Residual>| {
-    if let Some(formula) = parse::<ChemicalFormula<CountType, ChargeType>>(&data.as_ref()) {
-        round_trip(&data.as_ref(), &formula);
+    if let Some(formula) = parse::<ChemicalFormula<CountType, ChargeType>>(data.as_ref()) {
+        round_trip(data.as_ref(), &formula);
         fuzz_common_traits(&formula);
         fuzz_molecular_formula(&formula);
         fuzz_charged_molecular_formula(&formula);
         fuzz_chemical_formula_ops(&formula);
     }
 
-    if let Some(formula) = parse::<MineralFormula<CountType, ChargeType>>(&data.as_ref()) {
-        round_trip(&data.as_ref(), &formula);
+    if let Some(formula) = parse::<MineralFormula<CountType, ChargeType>>(data.as_ref()) {
+        round_trip(data.as_ref(), &formula);
         fuzz_common_traits(&formula);
         fuzz_molecular_formula(&formula);
         fuzz_charged_molecular_formula(&formula);
     }
 
-    if let Some(formula) = parse::<InChIFormula<CountType>>(&data.as_ref()) {
-        round_trip(&data.as_ref(), &formula);
+    if let Some(formula) = parse::<InChIFormula<CountType>>(data.as_ref()) {
+        round_trip(data.as_ref(), &formula);
         fuzz_common_traits(&formula);
         fuzz_molecular_formula(&formula);
     }
 
     // Fuzz ResidualFormula - Has subset of methods
-    if let Some(formula) = parse::<ResidualFormula<CountType, ChargeType>>(&data.as_ref()) {
-        round_trip(&data.as_ref(), &formula);
+    if let Some(formula) = parse::<ResidualFormula<CountType, ChargeType>>(data.as_ref()) {
+        round_trip(data.as_ref(), &formula);
         fuzz_common_traits(&formula);
         // Specific methods
         let _ = formula.contains_residuals();
     }
 });
+
+#[cfg(test)]
+mod tests {
+    use molecular_formulas::errors::CountError;
+
+    use super::*;
+
+    #[test]
+    fn doubling_preserves_counts_within_u64() {
+        let formula = ChemicalFormula::<CountType, ChargeType>::from_str("C6H12O6").unwrap();
+        let doubled = formula.clone() + formula.clone();
+        assert_eq!(doubled.count_of_element::<u64>(Element::C), Ok(12));
+        assert_eq!(doubled.count_of_element::<u64>(Element::H), Ok(24));
+        assert_eq!(doubled.count_of_element::<u64>(Element::O), Ok(12));
+        fuzz_chemical_formula_ops(&formula);
+    }
+
+    #[test]
+    fn doubling_accepts_u64_count_overflow() {
+        let formula =
+            ChemicalFormula::<CountType, ChargeType>::from_str("(((C65535)65535)65535)65535")
+                .unwrap();
+        let doubled = formula.clone() + formula.clone();
+        assert_eq!(formula.count_of_element::<u64>(Element::C), Ok(18_445_618_199_572_250_625));
+        assert_eq!(doubled.count_of_element::<u128>(Element::C), Ok(36_891_236_399_144_501_250),);
+        assert_eq!(
+            doubled.count_of_element::<u64>(Element::C),
+            Err(CountError::Numeric(NumericError::PositiveOverflow)),
+        );
+        fuzz_chemical_formula_ops(&formula);
+    }
+
+    #[test]
+    fn doubling_preserves_existing_u64_count_overflow() {
+        let formula =
+            ChemicalFormula::<CountType, ChargeType>::from_str("((((C65535)65535)65535)65535)2")
+                .unwrap();
+        assert_eq!(
+            formula.count_of_element::<u64>(Element::C),
+            Err(CountError::Numeric(NumericError::PositiveOverflow)),
+        );
+        fuzz_chemical_formula_ops(&formula);
+    }
+}

@@ -22,6 +22,8 @@ cargo install cargo-fuzz
 
 The `from_str` target tests parsing consistency, round-trip serialization, and method safety across millions of generated inputs.
 
+The addition check requires exact doubled element counts when they fit in `u64` and a positive-overflow error otherwise.
+
 ```bash
 cargo +nightly fuzz run from_str
 ```

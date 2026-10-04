@@ -30,6 +30,9 @@ jobs:
       run: cargo test
     - name: Run all-feature tests
       run: cargo test --all-features
+    - name: Run fuzz harness tests
+      if: matrix.os == 'ubuntu-latest'
+      run: cargo test --manifest-path fuzz/Cargo.toml --bin from_str
 
   feature-powerset:
     name: Feature powerset
