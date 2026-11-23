@@ -89,6 +89,11 @@ impl TryFrom<char> for PolymorphPrefix {
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
 #[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
+#[cfg_attr(
+    any(feature = "diesel-sqlite", feature = "diesel-postgres"),
+    derive(diesel::expression::AsExpression, diesel::deserialize::FromSqlRow),
+    diesel(sql_type = diesel::sql_types::Text)
+)]
 /// Struct representing a mineral formula, potentially with a greek letter
 /// prefix.
 ///

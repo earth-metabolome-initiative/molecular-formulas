@@ -1,10 +1,14 @@
 #![doc = include_str!("../README.md")]
-#![cfg_attr(not(any(feature = "fuzzing", feature = "mem_dbg")), no_std)]
+#![cfg_attr(
+    not(any(feature = "fuzzing", feature = "mem_dbg", feature = "diesel-postgres")),
+    no_std
+)]
 
-/// The crate is solely dependent on the alloc crate,
-/// not the standard library.
+/// Heap allocation in `no_std` builds.
 extern crate alloc;
 
+#[cfg(any(feature = "diesel-sqlite", feature = "diesel-postgres"))]
+mod diesel_sql;
 pub mod errors;
 pub mod molecular_formula;
 pub(crate) mod molecular_tree;

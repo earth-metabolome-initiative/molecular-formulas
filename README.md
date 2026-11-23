@@ -12,7 +12,7 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 ## Features
 
-`molecular-formulas` supports nested groups, hydrates, salts, isotope notation, flexible charge notation, and strict InChI-style formula validation. It provides typed formula variants for general chemical formulas, Hill-sorted InChI formula layers, residual groups, and mineral polymorph prefixes. The crate can inspect elements, isotopes, mixtures, Hill ordering, charge, isotopologue mass, molar mass, and m/z values. Element and isotope data come from [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs); optional features include `serde`, `arbitrary`/`fuzzing`, `mem_size`, and `mem_dbg`. The crate is `no_std` with `alloc` unless `fuzzing` or `mem_dbg` is enabled.
+`molecular-formulas` supports nested groups, hydrates, salts, isotope notation, flexible charge notation, and strict InChI-style formula validation. It provides typed formula variants for general chemical formulas, Hill-sorted InChI formula layers, residual groups, and mineral polymorph prefixes. The crate can inspect elements, isotopes, mixtures, Hill ordering, charge, isotopologue mass, molar mass, and m/z values. Element and isotope data come from [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs). Optional features include `serde`, `arbitrary`/`fuzzing`, `mem_size`, and `mem_dbg`. Enable `diesel-sqlite` or `diesel-postgres` to use formula values in Diesel `Text` columns. Writes store the `Display` representation, and reads parse it or return a deserialization error. The SQLite integration uses Diesel's `sqlite-no-std` backend. PostgreSQL, `fuzzing`, and `mem_dbg` require `std`.
 
 ## Installation
 
