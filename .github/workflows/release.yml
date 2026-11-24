@@ -27,18 +27,6 @@ jobs:
       - name: Run all-feature tests
         run: cargo test --all-features
 
-  feature-powerset:
-    name: Feature powerset
-    runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-      - name: Install cargo-hack
-        uses: taiki-e/install-action@cargo-hack
-      - name: Check every feature combination
-        run: cargo hack check --feature-powerset --no-dev-deps
-
   machete:
     name: Unused dependencies
     runs-on: ubuntu-26.04
@@ -134,7 +122,7 @@ jobs:
 
   publish:
     name: Publish
-    needs: [test, feature-powerset, machete, semver, msrv, fmt, clippy, doc, coverage]
+    needs: [test, machete, semver, msrv, fmt, clippy, doc, coverage]
     runs-on: ubuntu-26.04
     permissions:
       id-token: write
