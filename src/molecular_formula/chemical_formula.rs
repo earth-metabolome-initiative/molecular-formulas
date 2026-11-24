@@ -20,6 +20,16 @@ use crate::{
 #[derive(Debug, PartialEq, Clone, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "mem_size", derive(mem_dbg::MemSize))]
 #[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg))]
+#[cfg_attr(
+    any(
+        feature = "diesel-sqlite",
+        feature = "diesel-postgres",
+        feature = "diesel-mariadb",
+        feature = "diesel-mysql"
+    ),
+    derive(diesel::expression::AsExpression, diesel::deserialize::FromSqlRow),
+    diesel(sql_type = diesel::sql_types::Text)
+)]
 /// A chemical formula representing molecular formulas
 ///
 /// # Examples
