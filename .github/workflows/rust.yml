@@ -23,8 +23,13 @@ jobs:
       uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
       with:
         toolchain: stable
+        targets: i686-unknown-linux-gnu
     - name: Run default tests
       run: cargo test
+    - name: Install 32-bit compiler and linker support
+      run: sudo apt-get update && sudo apt-get install -y gcc-multilib
+    - name: Test atom totals on 32-bit Linux
+      run: cargo test --locked --target i686-unknown-linux-gnu --test test_atom_totals
     - name: Run SQLite integration without Diesel std
       run: cargo test --locked --no-default-features --features diesel-sqlite --test test_diesel
     - name: Run all-feature tests

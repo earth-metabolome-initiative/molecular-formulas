@@ -14,10 +14,7 @@ where
     for element in Element::iter() {
         let formula_str = format!("{element}2");
         let formula = M::from_str(&formula_str).expect("Failed to parse formula");
-        assert!(
-            formula.number_of_elements() > 0,
-            "Formula {formula_str} does not contain elements"
-        );
+        assert_eq!(formula.number_of_elements(), Ok(2), "{formula_str}");
         assert_eq!(
             formula.count_of_element::<u32>(element),
             Ok(2),
@@ -35,10 +32,7 @@ where
         let formula_str = format!("[{}{}]2", isotope.mass_number(), isotope.element());
         let formula = M::from_str(&formula_str).expect("Failed to parse formula");
         assert!(formula.contains_isotopes(), "Formula {formula_str} does not contain isotopes");
-        assert!(
-            formula.number_of_elements() > 0,
-            "Formula {formula_str} does not contain elements"
-        );
+        assert_eq!(formula.number_of_elements(), Ok(2), "{formula_str}");
         assert!(
             formula.contains_isotope(isotope.into()),
             "Formula {formula_str} does not contain isotope {isotope:?}"

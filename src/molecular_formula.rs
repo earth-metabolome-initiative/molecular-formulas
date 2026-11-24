@@ -149,6 +149,10 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// Returns the number of elements present in the molecular formula,
     /// counting repeating units according to their counts.
     ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the total exceeds `usize`.
+    ///
     /// # Example
     ///
     /// ```rust
@@ -157,21 +161,19 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// use molecular_formulas::prelude::*;
     ///
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
-    /// assert_eq!(formula.number_of_elements(), 24);
+    /// assert_eq!(formula.number_of_elements(), Ok(24));
     /// ```
-    fn number_of_elements(&self) -> usize {
-        self.counted_mixtures()
-            .map(|(count, tree)| {
-                let count: usize =
-                    count.try_into().ok().expect("Count type cannot be converted to usize - do you have an extremely large mixture count?");
-                count * tree.number_of_elements()
-            })
-            .sum()
+    fn number_of_elements(&self) -> Result<usize, CountError> {
+        count_formula_atoms(self, |_| true)
     }
 
     /// Returns the number of non-hydrogen elements present in the molecular
     /// formula, counting repeating units according to their counts.
     ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the non-hydrogen count exceeds `usize`.
+    ///
     /// # Example
     ///
     /// ```rust
@@ -181,13 +183,10 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     ///
     /// let formula: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
     ///
-    /// assert_eq!(formula.number_of_non_hydrogens(), 12);
+    /// assert_eq!(formula.number_of_non_hydrogens(), Ok(12));
     /// ```
-    fn number_of_non_hydrogens(&self) -> usize
-    where
-        usize: From<Self::Count>,
-    {
-        self.number_of_elements() - self.count_of_element::<usize>(Element::H).unwrap_or(0)
+    fn number_of_non_hydrogens(&self) -> Result<usize, CountError> {
+        count_formula_atoms(self, |element| element != Element::H)
     }
 
     /// Iterates over the elements in the molecular formula.
@@ -694,6 +693,20 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
         }
         formula
     }
+}
+
+/// Sums the matching atoms across all mixture components.
+fn count_formula_atoms(
+    formula: &impl MolecularFormula,
+    include: impl Fn(Element) -> bool + Copy,
+) -> Result<usize, CountError> {
+    formula.counted_mixtures().try_fold(0usize, |total, (coefficient, tree)| {
+        let subtotal = crate::molecular_tree::scaled_atom_count(
+            tree.count_atoms_where(include)?,
+            coefficient,
+        )?;
+        total.checked_add(subtotal).ok_or(NumericError::PositiveOverflow.into())
+    })
 }
 
 pub(crate) struct MergedFormulaCounts<Count> {

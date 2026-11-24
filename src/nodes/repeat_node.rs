@@ -102,9 +102,11 @@ impl<Count: CountLike, T: MolecularTree<Count>> MolecularTree<Count> for RepeatN
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        let count: usize = self.count.try_into().ok().expect("Count too large for usize");
-        count * self.node.number_of_elements()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(elements_rs::Element) -> bool + Copy,
+    ) -> Result<usize, CountError> {
+        crate::molecular_tree::scaled_atom_count(self.node.count_atoms_where(include)?, self.count)
     }
 
     #[inline]

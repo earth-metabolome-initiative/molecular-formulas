@@ -101,11 +101,11 @@ fn contains_specific_element_and_isotope() {
 /// `number_of_elements` repeat multiplication (`*` vs `/`).
 #[test]
 fn number_of_elements_repeat() {
-    assert_eq!(chem("(H2O)2").number_of_elements(), 6);
-    assert_eq!(chem("(H3)2").number_of_elements(), 6);
-    assert_eq!(chem("O10").number_of_elements(), 10);
-    assert_eq!(chem("(CH3)3").number_of_elements(), 12);
-    assert_eq!(chem("Ca(OH)2").number_of_elements(), 5);
+    assert_eq!(chem("(H2O)2").number_of_elements(), Ok(6));
+    assert_eq!(chem("(H3)2").number_of_elements(), Ok(6));
+    assert_eq!(chem("O10").number_of_elements(), Ok(10));
+    assert_eq!(chem("(CH3)3").number_of_elements(), Ok(12));
+    assert_eq!(chem("Ca(OH)2").number_of_elements(), Ok(5));
 }
 
 /// Charge through wrapper nodes: kills the bracket `charge -> -1.0` mutant and

@@ -46,8 +46,11 @@ impl<T: MolecularTree<Count>, Count: CountLike> MolecularTree<Count> for Box<T> 
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        (**self).number_of_elements()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(elements_rs::Element) -> bool + Copy,
+    ) -> Result<usize, crate::errors::CountError> {
+        (**self).count_atoms_where(include)
     }
 
     #[inline]

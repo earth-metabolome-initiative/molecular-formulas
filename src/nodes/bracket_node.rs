@@ -76,8 +76,11 @@ impl<Count, T: crate::MolecularTree<Count>> crate::MolecularTree<Count> for Brac
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        self.tree.number_of_elements()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(elements_rs::Element) -> bool + Copy,
+    ) -> Result<usize, crate::errors::CountError> {
+        self.tree.count_atoms_where(include)
     }
 
     #[inline]

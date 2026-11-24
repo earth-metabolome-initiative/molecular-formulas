@@ -2,7 +2,11 @@
 
 use core::cmp::Ordering;
 
-use crate::{errors::CountError, prelude::Element};
+use crate::{
+    CountLike,
+    errors::{CountError, NumericError},
+    prelude::Element,
+};
 mod blankets;
 mod chemical_tree;
 mod inchi_tree;
@@ -38,6 +42,18 @@ fn compare_element_symbols(left: Element, right: Element) -> Ordering {
     let left: &str = left.as_ref();
     let right: &str = right.as_ref();
     left.cmp(right)
+}
+
+/// Scales an atom subtotal by a stored formula coefficient.
+pub(crate) fn scaled_atom_count(
+    subtotal: usize,
+    coefficient: impl CountLike,
+) -> Result<usize, CountError> {
+    if subtotal == 0 {
+        return Ok(0);
+    }
+    let coefficient = coefficient.try_into().map_err(|_| NumericError::PositiveOverflow)?;
+    subtotal.checked_mul(coefficient).ok_or(NumericError::PositiveOverflow.into())
 }
 
 /// Trait for computing various molecular properties.
@@ -99,8 +115,25 @@ pub trait MolecularTree<Count>: Sized {
     fn count_of_isotope<C>(&self, isotope: elements_rs::Isotope) -> Result<C, CountError>
     where
         C: From<Count> + CheckedAdd + CheckedMul + ConstZero + ConstOne;
-    /// Returns the total number of elements in the molecular tree.
-    fn number_of_elements(&self) -> usize;
+    /// Counts atoms whose element matches `include`, including their
+    /// repetitions.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count exceeds `usize`.
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(Element) -> bool + Copy,
+    ) -> Result<usize, CountError>;
+
+    /// Returns the total number of atoms in the tree.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if the count exceeds `usize`.
+    fn number_of_elements(&self) -> Result<usize, CountError> {
+        self.count_atoms_where(|_| true)
+    }
     /// Returns the isotopologue mass of the molecular tree without considering
     /// any charge.
     fn isotopologue_mass(&self) -> f64;

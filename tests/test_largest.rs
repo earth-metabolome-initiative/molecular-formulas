@@ -7,10 +7,7 @@ use molecular_formulas::{errors::ParserError, prelude::*};
 use num_traits::Zero;
 use strum::IntoEnumIterator;
 
-fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M)
-where
-    usize: From<M::Count>,
-{
+fn test_all_molecular_trait_method1<M: MolecularFormula>(m: &M) {
     assert_eq!(m.number_of_mixtures(), 76);
     for element in m.elements() {
         let count = m.count_of_element::<M::Count>(element).unwrap();
@@ -24,7 +21,7 @@ where
         assert_ne!(non_hydrogen, Element::H);
     }
     assert!(!m.contains_isotopes());
-    assert!(m.number_of_elements() > 0);
+    assert!(m.number_of_elements().unwrap() > 0);
     assert!(
         (m.isotopologue_mass() - 6928.64091608618).abs() < f64::EPSILON,
         "Found mass: {}",
@@ -33,10 +30,10 @@ where
     assert!(!m.is_noble_gas_compound());
     assert!(m.is_hill_sorted());
     assert!(m.contains_non_hydrogens());
-    assert_eq!(m.number_of_elements(), 938);
+    assert_eq!(m.number_of_elements(), Ok(938));
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
-    assert_eq!(m.number_of_non_hydrogens(), m.non_hydrogens().count());
-    assert_eq!(m.number_of_non_hydrogens(), 436);
+    assert_eq!(m.number_of_non_hydrogens(), Ok(m.non_hydrogens().count()));
+    assert_eq!(m.number_of_non_hydrogens(), Ok(436));
 
     for isotope in HydrogenIsotope::iter() {
         assert!(!m.contains_isotope(isotope.into()));
@@ -51,10 +48,7 @@ fn test_all_charged_molecular_trait_method1<M: ChargedMolecularFormula>(m: &M) {
     assert!((m.molar_mass() - 6935.603).abs() < f64::EPSILON, "Found mass: {}", m.molar_mass());
 }
 
-fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M)
-where
-    usize: From<M::Count>,
-{
+fn test_all_molecular_trait_method2<M: MolecularFormula>(m: &M) {
     assert_eq!(m.number_of_mixtures(), 1);
     for element in m.elements() {
         let count = m.count_of_element::<M::Count>(element).unwrap();
@@ -70,11 +64,11 @@ where
     assert!(m.contains_isotopes());
     assert!(!m.contains_isotope(HeliumIsotope::He3.into()));
     assert_eq!(m.count_of_isotope::<M::Count>(HeliumIsotope::He3.into()), Ok(M::Count::zero()));
-    assert!(m.number_of_elements() > 0);
-    assert_eq!(m.number_of_elements(), 950);
+    assert!(m.number_of_elements().unwrap() > 0);
+    assert_eq!(m.number_of_elements(), Ok(950));
     assert_eq!(m.number_of_mixtures(), m.mixtures().count());
-    assert_eq!(m.number_of_non_hydrogens(), m.non_hydrogens().count());
-    assert_eq!(m.number_of_non_hydrogens(), 546);
+    assert_eq!(m.number_of_non_hydrogens(), Ok(m.non_hydrogens().count()));
+    assert_eq!(m.number_of_non_hydrogens(), Ok(546));
 
     assert!(
         (m.isotopologue_mass() - 9492.200799867811).abs() < f64::EPSILON,
