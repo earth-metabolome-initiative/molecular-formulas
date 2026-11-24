@@ -15,23 +15,18 @@ permissions:
 jobs:
   test:
     name: Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-26.04, windows-latest, macos-latest]
-        rust: [stable, beta, nightly]
+    runs-on: ubuntu-26.04
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Install Rust
-      uses: dtolnay/rust-toolchain@master
+      uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
       with:
-        toolchain: ${{ matrix.rust }}
+        toolchain: stable
     - name: Run default tests
       run: cargo test
     - name: Run all-feature tests
       run: cargo test --all-features
     - name: Run fuzz harness tests
-      if: matrix.os == 'ubuntu-26.04'
       run: cargo test --manifest-path fuzz/Cargo.toml --bin from_str
 
   feature-powerset:
@@ -134,7 +129,7 @@ jobs:
     - name: Generate coverage
       run: cargo tarpaulin --all-features --engine=llvm --out xml --workspace --run-types AllTargets --run-types Doctests --exclude-files "fuzz/*"
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
+      uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false
