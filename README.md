@@ -12,7 +12,14 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 ## Features
 
-`molecular-formulas` supports nested groups, hydrates, salts, isotope notation, flexible charge notation, and strict InChI-style formula validation. It provides typed formula variants for general chemical formulas, Hill-sorted InChI formula layers, residual groups, and mineral polymorph prefixes. The crate can inspect elements, isotopes, mixtures, Hill ordering, charge, isotopologue mass, molar mass, and m/z values. Element and isotope data come from [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs). Optional features include `serde`, `arbitrary`/`fuzzing`, `mem_size`, and `mem_dbg`. Enable `diesel-sqlite` or `diesel-postgres` to use formula values in Diesel `Text` columns. Writes store the `Display` representation, and reads parse it or return a deserialization error. The SQLite integration uses Diesel's `sqlite-no-std` backend. PostgreSQL, `fuzzing`, and `mem_dbg` require `std`.
+`molecular-formulas` supports nested groups, hydrates, salts, isotope notation, flexible charge notation, and strict InChI-style formula validation. It provides typed formula variants for general chemical formulas, Hill-sorted InChI formula layers, residual groups, and mineral polymorph prefixes. The crate can inspect elements, isotopes, mixtures, Hill ordering, charge, isotopologue mass, molar mass, and m/z values. Element and isotope data come from [`elements-rs`](https://github.com/earth-metabolome-initiative/elements-rs). Optional features include `serde`, `arbitrary`/`fuzzing`, `mem_size`, and `mem_dbg`.
+
+| Diesel feature | Formula storage |
+| --- | --- |
+| `diesel-sqlite` | SQLite `TEXT` with `no_std` and `alloc` |
+| `diesel-postgres`, `diesel-mariadb`, `diesel-mysql` | PostgreSQL, MariaDB or MySQL `TEXT` with `std`, without a native client dependency |
+
+All four formula types write their `Display` text and parse it on read. For example, `CuSO4.5H2O` is stored as `CuSO₄.5H₂O`. Applications opening a server connection also enable the corresponding Diesel feature (`postgres`, `mariadb` or `mysql`).
 
 ## Installation
 

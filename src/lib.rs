@@ -1,13 +1,24 @@
 #![doc = include_str!("../README.md")]
 #![cfg_attr(
-    not(any(feature = "fuzzing", feature = "mem_dbg", feature = "diesel-postgres")),
+    not(any(
+        feature = "fuzzing",
+        feature = "mem_dbg",
+        feature = "diesel-postgres",
+        feature = "diesel-mariadb",
+        feature = "diesel-mysql"
+    )),
     no_std
 )]
 
 /// Heap allocation in `no_std` builds.
 extern crate alloc;
 
-#[cfg(any(feature = "diesel-sqlite", feature = "diesel-postgres"))]
+#[cfg(any(
+    feature = "diesel-sqlite",
+    feature = "diesel-postgres",
+    feature = "diesel-mariadb",
+    feature = "diesel-mysql"
+))]
 mod diesel_sql;
 pub mod errors;
 pub mod molecular_formula;

@@ -3,11 +3,9 @@
 #[cfg(feature = "diesel-sqlite")]
 use alloc::string::ToString;
 use core::str::FromStr;
-#[cfg(feature = "diesel-postgres")]
+#[cfg(any(feature = "diesel-postgres", feature = "diesel-mariadb", feature = "diesel-mysql"))]
 use std::io::Write;
 
-#[cfg(feature = "diesel-postgres")]
-use diesel::pg::Pg;
 #[cfg(feature = "diesel-sqlite")]
 use diesel::sqlite::Sqlite;
 use diesel::{
@@ -46,20 +44,30 @@ macro_rules! impl_formula_sql {
         }
 
         #[cfg(feature = "diesel-postgres")]
-        impl<$($parameter: $bound),+> FromSql<Text, Pg> for $formula<$($parameter),+>
+        impl_server_text!(diesel::pg::Pg, $formula<$($parameter: $bound),+>);
+        #[cfg(feature = "diesel-mariadb")]
+        impl_server_text!(diesel::mariadb::Mariadb, $formula<$($parameter: $bound),+>);
+        #[cfg(feature = "diesel-mysql")]
+        impl_server_text!(diesel::mysql::Mysql, $formula<$($parameter: $bound),+>);
+    };
+}
+
+#[cfg(any(feature = "diesel-postgres", feature = "diesel-mariadb", feature = "diesel-mysql"))]
+macro_rules! impl_server_text {
+    ($backend:ty, $formula:ident<$($parameter:ident: $bound:ident),+>) => {
+        impl<$($parameter: $bound),+> FromSql<Text, $backend> for $formula<$($parameter),+>
         where
             Self: FromStr<Err = ParserError>,
         {
-            fn from_sql(value: <Pg as Backend>::RawValue<'_>) -> deserialize::Result<Self> {
+            fn from_sql(value: <$backend as Backend>::RawValue<'_>) -> deserialize::Result<Self> {
                 core::str::from_utf8(value.as_bytes())?.parse().map_err(Into::into)
             }
         }
 
-        #[cfg(feature = "diesel-postgres")]
-        impl<$($parameter: $bound),+> ToSql<Text, Pg> for $formula<$($parameter),+> {
+        impl<$($parameter: $bound),+> ToSql<Text, $backend> for $formula<$($parameter),+> {
             fn to_sql<'bind>(
                 &'bind self,
-                output: &mut serialize::Output<'bind, '_, Pg>,
+                output: &mut serialize::Output<'bind, '_, $backend>,
             ) -> serialize::Result {
                 write!(output, "{self}")?;
                 Ok(serialize::IsNull::No)

@@ -33,7 +33,9 @@ serde_json = "1.0.149"
 default = ["serde"]
 serde = ["dep:serde"]
 diesel-sqlite = ["dep:diesel", "diesel/sqlite-no-std"]
-diesel-postgres = ["dep:diesel", "diesel/postgres"]
+diesel-postgres = ["dep:diesel", "diesel/postgres_backend"]
+diesel-mariadb = ["dep:diesel", "diesel/mariadb_backend"]
+diesel-mysql = ["dep:diesel", "diesel/mysql_backend"]
 arbitrary = ["dep:arbitrary", "elements_rs/arbitrary"]
 fuzzing = ["arbitrary"]
 mem_size = ["dep:mem_dbg", "elements_rs/mem_size"]
@@ -80,6 +82,18 @@ opt-level = 3
 lto = true
 debug = true
 codegen-units = 1
+
+[[test]]
+name = "diesel_postgres"
+required-features = ["diesel-postgres", "diesel/postgres"]
+
+[[test]]
+name = "diesel_mariadb"
+required-features = ["diesel-mariadb", "diesel/mariadb"]
+
+[[test]]
+name = "diesel_mysql"
+required-features = ["diesel-mysql", "diesel/mysql"]
 
 [[bench]]
 name = "inchi_benchmark"

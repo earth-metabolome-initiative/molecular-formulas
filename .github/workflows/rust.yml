@@ -70,6 +70,10 @@ jobs:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Install Rust 1.92 (MSRV)
       uses: dtolnay/rust-toolchain@1.92.0
+      with:
+        targets: x86_64-unknown-none
+    - name: Check SQLite without the standard library
+      run: cargo check --locked --lib --target x86_64-unknown-none --no-default-features --features diesel-sqlite
     - name: Check on MSRV
       run: cargo check --all-features
     - name: Check mem_size feature on MSRV
@@ -120,18 +124,59 @@ jobs:
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: formula_test
+          POSTGRES_DB: formulas
+        ports: ['5432/tcp']
+        options: --health-cmd pg_isready --health-interval 2s --health-timeout 3s --health-retries 30
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: formula_test
+          MARIADB_DATABASE: formulas
+          MARIADB_USER: formulas
+          MARIADB_PASSWORD: formula_test
+        ports: ['3306/tcp']
+        options: --health-cmd "healthcheck.sh --connect --innodb_initialized" --health-interval 2s --health-timeout 3s --health-retries 30
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: formula_test
+          MYSQL_DATABASE: formulas
+          MYSQL_USER: formulas
+          MYSQL_PASSWORD: formula_test
+        ports: ['3306/tcp']
+        options: --health-cmd "mysqladmin ping -h 127.0.0.1 -u formulas -pformula_test" --health-interval 2s --health-timeout 3s --health-retries 30
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Install Rust
       uses: dtolnay/rust-toolchain@nightly
       with:
         components: llvm-tools-preview, rustfmt
-    - name: Install tarpaulin
-      uses: taiki-e/install-action@cargo-tarpaulin
-    - name: Generate coverage
-      run: cargo tarpaulin --all-features --engine=llvm --out xml --workspace --run-types AllTargets --run-types Doctests --exclude-files "fuzz/*"
+    - name: Install database client libraries for live tests
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libpq-dev default-libmysqlclient-dev
+    - name: Install cargo-llvm-cov
+      uses: taiki-e/install-action@fe3acb53a98b62c772db35de75ce0e4595e7ca8c
+      with:
+        tool: cargo-llvm-cov
+    - name: Collect coverage
+      run: cargo llvm-cov --all-features --workspace --doctests --no-report
+    - name: Include live formula round trips
+      env:
+        DATABASE_URL: postgresql://postgres:formula_test@127.0.0.1:${{ job.services.postgres.ports['5432'] }}/formulas
+        MARIADB_DATABASE_URL: mariadb://formulas:formula_test@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/formulas
+        MYSQL_DATABASE_URL: mysql://formulas:formula_test@127.0.0.1:${{ job.services.mysql.ports['3306'] }}/formulas
+      run: >-
+        cargo llvm-cov --no-clean --all-features --features diesel/postgres,diesel/mariadb,diesel/mysql
+        --test diesel_postgres --test diesel_mariadb --test diesel_mysql --lcov --output-path lcov.info -- --ignored
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7.0.0
       with:
+        files: lcov.info
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: false
