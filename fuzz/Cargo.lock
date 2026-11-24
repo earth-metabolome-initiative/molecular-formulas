@@ -48,9 +48,9 @@ dependencies = [
 
 [[package]]
 name = "elements_rs"
-version = "0.2.8"
+version = "0.2.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5834efe826a9a66b548e0887d9fc744fc8bb57065dcc6e5495359b25ab98319"
+checksum = "ddb62a170d107cccb89a30670d5304813c76c7c9a6136a3553c89eea7ab02eb1"
 dependencies = [
  "arbitrary",
  "serde",
