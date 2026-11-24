@@ -72,6 +72,10 @@ jobs:
       uses: dtolnay/rust-toolchain@1.92.0
       with:
         targets: x86_64-unknown-none
+    - name: Check library without default features or the standard library
+      run: cargo check --locked --lib --target x86_64-unknown-none --no-default-features
+    - name: Check library with default features and without the standard library
+      run: cargo check --locked --lib --target x86_64-unknown-none
     - name: Check SQLite without the standard library
       run: cargo check --locked --lib --target x86_64-unknown-none --no-default-features --features diesel-sqlite
     - name: Check on MSRV
