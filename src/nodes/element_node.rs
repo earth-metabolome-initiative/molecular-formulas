@@ -51,8 +51,11 @@ impl<Count> MolecularTree<Count> for Element {
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        1
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(Element) -> bool + Copy,
+    ) -> Result<usize, crate::errors::CountError> {
+        Ok(usize::from(include(*self)))
     }
 
     #[inline]

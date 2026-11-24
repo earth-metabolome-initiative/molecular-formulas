@@ -73,8 +73,11 @@ impl<Count: CountLike> MolecularTree<Count> for InChITree<Count> {
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        self.node.number_of_elements()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(Element) -> bool + Copy,
+    ) -> Result<usize, crate::errors::CountError> {
+        self.node.count_atoms_where(include)
     }
 
     #[inline]

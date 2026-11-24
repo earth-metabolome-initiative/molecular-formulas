@@ -296,16 +296,23 @@ impl<Count: CountLike, Charge: ChargeLike, Extension: Clone> MolecularTree<Count
         }
     }
 
-    fn number_of_elements(&self) -> usize {
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(Element) -> bool + Copy,
+    ) -> Result<usize, CountError> {
         match self {
-            Self::Element(e) => <Element as MolecularTree<Count>>::number_of_elements(e),
-            Self::Isotope(i) => <Isotope as MolecularTree<Count>>::number_of_elements(i),
-            Self::Radical(r) => r.number_of_elements(),
-            Self::Charge(c) => c.number_of_elements(),
-            Self::Repeat(r) => r.number_of_elements(),
-            Self::Sequence(s) => s.number_of_elements(),
-            Self::Unit(b) => b.number_of_elements(),
-            Self::Extension(_) => 0, // Empty node has no elements
+            Self::Element(element) => {
+                <Element as MolecularTree<Count>>::count_atoms_where(element, include)
+            }
+            Self::Isotope(isotope) => {
+                <Isotope as MolecularTree<Count>>::count_atoms_where(isotope, include)
+            }
+            Self::Radical(radical) => radical.count_atoms_where(include),
+            Self::Charge(charge) => charge.count_atoms_where(include),
+            Self::Repeat(repeat) => repeat.count_atoms_where(include),
+            Self::Sequence(sequence) => sequence.count_atoms_where(include),
+            Self::Unit(unit) => unit.count_atoms_where(include),
+            Self::Extension(_) => Ok(0),
         }
     }
 

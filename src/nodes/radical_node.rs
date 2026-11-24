@@ -80,8 +80,11 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for RadicalNode<T> {
     }
 
     #[inline]
-    fn number_of_elements(&self) -> usize {
-        self.node.number_of_elements()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(elements_rs::Element) -> bool + Copy,
+    ) -> Result<usize, crate::errors::CountError> {
+        self.node.count_atoms_where(include)
     }
 
     #[inline]

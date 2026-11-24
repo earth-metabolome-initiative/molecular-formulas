@@ -111,8 +111,15 @@ impl<Count, T: MolecularTree<Count>> MolecularTree<Count> for SequenceNode<T> {
         self.nodes.iter().any(|node: &T| node.contains_isotope(isotope))
     }
 
-    fn number_of_elements(&self) -> usize {
-        self.nodes.iter().map(|node: &T| node.number_of_elements()).sum()
+    fn count_atoms_where(
+        &self,
+        include: impl Fn(elements_rs::Element) -> bool + Copy,
+    ) -> Result<usize, CountError> {
+        self.nodes.iter().try_fold(0usize, |total, node| {
+            total
+                .checked_add(node.count_atoms_where(include)?)
+                .ok_or(NumericError::PositiveOverflow.into())
+        })
     }
 
     fn count_of_element<C>(&self, element: elements_rs::Element) -> Result<C, CountError>
