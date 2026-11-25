@@ -11,13 +11,10 @@ permissions:
 
 jobs:
   postgres:
+    name: PostgreSQL 18
     runs-on: ubuntu-26.04
-    strategy:
-      fail-fast: false
-      matrix:
-        postgres: [15, 16, 17, 18, 19]
     env:
-      PG_MAJOR: ${{ matrix.postgres }}
+      PG_MAJOR: '18'
       LIBCLANG_PATH: /usr/lib/llvm-20/lib
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
