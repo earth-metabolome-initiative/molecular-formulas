@@ -130,22 +130,17 @@ assert_eq!(invalid.unwrap_err(), ParserError::NotHillOrdered);
 
 ## Validation against PubChem
 
-This library is tested against the [PubChem](https://pubchem.ncbi.nlm.nih.gov/) database, which contains over 123 million compounds. This ensures correctness when parsing real-world chemical data.
+The default tests compare calculated monoisotopic masses with [four fixed PubChem records](tests/fixtures/pubchem-masses.tsv) within 0.001 Da, without a download. The rows for CIDs 5, 11, 702 and 962 were copied from [`CID-Mass.gz`](https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Mass.gz) on 2026-11-25. In [PubChem's file format](https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/README-Extras), the third column gives the monoisotopic mass in daltons.
 
-We validate both `ChemicalFormula` (mass analysis) and `InChIFormula` (the formula layer of InChI).
-
-Specifically, we download the `CID-Mass.gz` and `CID-InChI-Key.gz` documents, which can be found [in the `Extras` FTP directory of PubChem](https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/).
-
-You can run the validation suites yourself:
+For a full scan, download [`CID-Mass.gz`](https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-Mass.gz) or [`CID-InChI-Key.gz`](https://ftp.ncbi.nlm.nih.gov/pubchem/Compound/Extras/CID-InChI-Key.gz) and decompress it in the repository root. The mass check stops at the first disagreement beyond tolerance. Use the separate report command to collect discrepancies across the entire file. The InChI check requires at least one successfully parsed formula layer.
 
 ```bash
-# Validate Mass Calculation (ChemicalFormula), takes about 55 seconds,
-# most of which is just I/O time
-cargo test --release --test test_pubchem_validation -- --ignored --nocapture
+gzip -dk CID-Mass.gz
+cargo test --locked --release --test test_pubchem_validation -- --ignored
+cargo run --locked --release --example pubchem_mass_report -- CID-Mass target/pubchem-report.md
 
-# Validate InChI Parsing (InChIFormula), takes about 45 seconds,
-# most of which is just I/O time
-cargo test --release --test test_pubchem_inchi_validation -- --ignored --nocapture
+gzip -dk CID-InChI-Key.gz
+cargo test --locked --release --test test_pubchem_inchi_validation -- --ignored
 ```
 
 ### Validation Results (January 2026)
