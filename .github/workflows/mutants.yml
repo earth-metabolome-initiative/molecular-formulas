@@ -22,7 +22,7 @@ jobs:
     - name: Generate PR diff
       run: git diff origin/${{ github.base_ref }} > pr.diff
     - name: Run mutants on changed lines
-      run: cargo mutants --package molecular-formulas --no-shuffle -vV --in-diff pr.diff
+      run: cargo mutants --package molecular-formulas --jobs 1 --jobserver-tasks 2 --no-shuffle -vV --in-diff pr.diff
     - name: Upload mutants report
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

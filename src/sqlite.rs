@@ -50,7 +50,7 @@ impl ToSql<Bool, Sqlite> for FormulaValidation {
 pub fn register(connection: &mut SqliteConnection) -> QueryResult<()> {
     must_be_molecular_formula_utils::register_impl_with_behavior(
         connection,
-        SqliteFunctionBehavior::DETERMINISTIC | SqliteFunctionBehavior::INNOCUOUS,
+        SqliteFunctionBehavior::DETERMINISTIC.union(SqliteFunctionBehavior::INNOCUOUS),
         core::convert::identity::<Option<FormulaValidation>>,
     )
 }

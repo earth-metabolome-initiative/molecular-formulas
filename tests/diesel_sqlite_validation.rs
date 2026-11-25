@@ -80,6 +80,49 @@ fn validates_on_an_embedded_connection() {
 }
 
 #[test]
+fn validates_in_an_untrusted_generated_column() {
+    let connection = &mut SqliteConnection::establish(":memory:").unwrap();
+    connection.set_trusted_schema(false).unwrap();
+    register(connection).unwrap();
+    connection
+        .batch_execute(
+            "CREATE TABLE formulas (
+                 formula TEXT, valid INTEGER GENERATED ALWAYS AS (must_be_molecular_formula(formula))
+             );
+             INSERT INTO formulas (formula) VALUES ('H2O')",
+        )
+        .unwrap();
+    let error = connection.batch_execute("UPDATE formulas SET formula = '·'").unwrap_err();
+    assert_eq!(error.to_string(), "The molecular tree is empty.");
+}
+
+#[test]
+fn preserves_argument_encoding_errors() {
+    #[derive(Debug, diesel::expression::AsExpression)]
+    #[diesel(sql_type = Text)]
+    struct FormulaBytes<'input>(&'input [u8]);
+
+    impl diesel::serialize::ToSql<Text, diesel::sqlite::Sqlite> for FormulaBytes<'_> {
+        fn to_sql<'bind>(
+            &'bind self,
+            output: &mut diesel::serialize::Output<'bind, '_, diesel::sqlite::Sqlite>,
+        ) -> diesel::serialize::Result {
+            output.set_value(std::str::from_utf8(self.0)?);
+            Ok(diesel::serialize::IsNull::No)
+        }
+    }
+
+    let connection = &mut SqliteConnection::establish(":memory:").unwrap();
+    register(connection).unwrap();
+    let error = diesel::select(must_be_molecular_formula(Some(FormulaBytes(b"H\xffO"))))
+        .get_result::<Option<bool>>(connection)
+        .unwrap_err();
+    assert!(
+        matches!(error, diesel::result::Error::SerializationError(source) if source.is::<std::str::Utf8Error>())
+    );
+}
+
+#[test]
 fn rejects_invalid_sqlite_values() {
     let connection = &mut SqliteConnection::establish(":memory:").unwrap();
     register(connection).unwrap();
