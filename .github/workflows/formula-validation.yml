@@ -49,4 +49,4 @@ jobs:
       - name: Install SQLite headers
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
       - name: Test Diesel function registration and constrained writes
-        run: cargo test --manifest-path extensions/sqlite/Cargo.toml --release
+        run: cargo test --locked --no-default-features --features diesel-sqlite --test diesel_sqlite_validation

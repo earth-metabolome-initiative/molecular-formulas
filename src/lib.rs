@@ -26,6 +26,8 @@ pub(crate) mod molecular_tree;
 pub mod nodes;
 pub mod parsable;
 mod serde_impl;
+#[cfg(feature = "diesel-sqlite")]
+pub mod sqlite;
 mod utils;
 pub use molecular_formula::*;
 pub use molecular_tree::*;

@@ -9,7 +9,8 @@ use diesel::{
     sql_types::{Bool, Nullable, Text},
     sqlite::{Sqlite, SqliteConnection, SqliteFunctionBehavior, SqliteType, SqliteValue},
 };
-use molecular_formulas::{ChemicalFormula, errors::ParserError};
+
+use crate::{ChemicalFormula, errors::ParserError};
 
 #[diesel::declare_sql_function]
 extern "SQL" {
@@ -17,8 +18,8 @@ extern "SQL" {
     fn must_be_molecular_formula(formula: Nullable<Text>) -> Nullable<Bool>;
 }
 
-/// Carries the parser diagnostic to the SQL result while the input stays
-/// borrowed.
+/// Reports parser errors when Diesel writes the SQL result so callers see the
+/// cause.
 #[derive(Debug, diesel::deserialize::FromSqlRow)]
 struct FormulaValidation(Result<(), ParserError>);
 

@@ -46,7 +46,7 @@ workspace = true
 
 [workspace]
 members = ["."]
-exclude = ["extensions/postgres", "extensions/sqlite", "fuzz"]
+exclude = ["extensions/postgres", "fuzz"]
 
 [workspace.lints.rust]
 missing_docs = "forbid"
@@ -82,6 +82,10 @@ opt-level = 3
 lto = true
 debug = true
 codegen-units = 1
+
+[[test]]
+name = "diesel_sqlite_validation"
+required-features = ["diesel-sqlite"]
 
 [[test]]
 name = "diesel_postgres"

@@ -6,11 +6,14 @@ use diesel::{
     prelude::*,
     sql_types::{Nullable, Text},
 };
-use molecular_formulas_sqlite::{must_be_molecular_formula, register};
+use molecular_formulas::sqlite::{must_be_molecular_formula, register};
 
 diesel::table! {
+    /// Samples with a formula constraint.
     samples (identifier) {
+        /// Sample identifier.
         identifier -> Integer,
+        /// Submitted molecular formula text.
         formula -> Nullable<Text>,
     }
 }

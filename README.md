@@ -43,7 +43,7 @@ cargo pgrx install --release --pg-config "$(command -v pg_config)"
 psql -d my_database -c 'CREATE EXTENSION molecular_formulas'
 ```
 
-For SQLite, call `molecular_formulas_sqlite::register(&mut connection)?` on each Diesel 2.4 `SqliteConnection` before writing constrained rows. For a connection pool, register the function when each connection is created. Registration is local to that connection. A standalone SQLite shell cannot write these rows without providing the function itself.
+Enable `diesel-sqlite` and call `molecular_formulas::sqlite::register(&mut connection)?` on each Diesel 2.4 `SqliteConnection` before creating a constrained table or writing to it. For a pool, register the function when each connection is created. A standalone SQLite shell cannot write these rows without providing the function itself.
 
 ## Installation
 
