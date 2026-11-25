@@ -46,7 +46,7 @@ workspace = true
 
 [workspace]
 members = ["."]
-exclude = ["fuzz"]
+exclude = ["extensions/postgres", "extensions/sqlite", "fuzz"]
 
 [workspace.lints.rust]
 missing_docs = "forbid"

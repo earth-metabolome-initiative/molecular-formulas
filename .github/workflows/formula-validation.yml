@@ -1,0 +1,58 @@
+name: Database formula validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [15, 16, 17, 18, 19]
+    env:
+      PG_MAJOR: ${{ matrix.postgres }}
+      LIBCLANG_PATH: /usr/lib/llvm-20/lib
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
+        with:
+          toolchain: stable
+      - name: Install server and headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y "postgresql-$PG_MAJOR" "postgresql-server-dev-$PG_MAJOR" libclang-20-dev python3-psycopg
+      - name: Install extension tooling
+        run: cargo install cargo-pgrx --locked --version 0.20.1
+      - name: Install extension and test constrained writes
+        run: |
+          export PGRX_PG_CONFIG_PATH="/usr/lib/postgresql/$PG_MAJOR/bin/pg_config"
+          cargo pgrx install --manifest-path extensions/postgres/Cargo.toml --pg-config "$PGRX_PG_CONFIG_PATH" --sudo
+          pg_virtualenv -v "$PG_MAJOR" /usr/bin/python3 extensions/test_validation.py --postgres 'dbname=postgres'
+
+  sqlite:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
+        with:
+          toolchain: stable
+      - name: Install SQLite headers
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+      - name: Test embedded and loadable functions
+        run: |
+          cargo test --manifest-path extensions/sqlite/Cargo.toml --release
+          cargo build --manifest-path extensions/sqlite/Cargo.toml --release --features loadable-extension --lib
+          /usr/bin/python3 extensions/test_validation.py --sqlite-extension "$PWD/extensions/sqlite/target/release/libmolecular_formulas_sqlite.so"

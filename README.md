@@ -21,6 +21,38 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 All four formula types write their `Display` text and parse it on read. For example, `CuSO4.5H2O` is stored as `CuSO₄.5H₂O`. Applications opening a server connection also enable the corresponding Diesel feature (`postgres`, `mariadb` or `mysql`).
 
+### Database validation
+
+PostgreSQL and SQLite can enforce formula syntax on every write, including writes from clients that do not use Diesel. Install the validator before creating a constrained table.
+
+```sql
+CREATE TABLE samples (
+    formula TEXT NOT NULL CHECK (must_be_molecular_formula(formula))
+);
+INSERT INTO samples VALUES ('CuSO4.5H2O');
+```
+
+The validator parses the default `ChemicalFormula` and preserves the submitted text. Malformed text raises the parser error. The function returns `NULL` for missing input, so omit `NOT NULL` on a column that permits missing formulas.
+
+For PostgreSQL 15–19, install Rust 1.99.1 or later, Clang, and the server headers for the target major. Use that server's `pg_config` and run `CREATE EXTENSION` in each database. Add `--sudo` to the install command if the server's extension directories require administrator access.
+
+```sh
+cargo install --locked cargo-pgrx --version 0.20.1
+cd extensions/postgres
+cargo pgrx install --release --pg-config "$(command -v pg_config)"
+psql -d my_database -c 'CREATE EXTENSION molecular_formulas'
+```
+
+For embedded SQLite, depend on the `extensions/sqlite` crate and call `molecular_formulas_sqlite::register_on_every_new_connection()` before opening connections or creating a connection pool. This registers the function with the linked SQLite library and does not require runtime extension loading.
+
+For the SQLite shell, build the loadable library from the repository root and load it on each connection that writes constrained rows. The example assumes Linux and the system SQLite development headers.
+
+```sh
+cargo build --release --manifest-path extensions/sqlite/Cargo.toml --features loadable-extension
+sqlite3 samples.db '.load ./extensions/sqlite/target/release/libmolecular_formulas_sqlite' \
+    "SELECT must_be_molecular_formula('[13C]H4')"
+```
+
 ## Installation
 
 Add this to your `Cargo.toml`:
