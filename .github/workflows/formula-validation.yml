@@ -51,8 +51,5 @@ jobs:
           toolchain: stable
       - name: Install SQLite headers
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
-      - name: Test embedded and loadable functions
-        run: |
-          cargo test --manifest-path extensions/sqlite/Cargo.toml --release
-          cargo build --manifest-path extensions/sqlite/Cargo.toml --release --features loadable-extension --lib
-          /usr/bin/python3 extensions/test_validation.py --sqlite-extension "$PWD/extensions/sqlite/target/release/libmolecular_formulas_sqlite.so"
+      - name: Test Diesel function registration and constrained writes
+        run: cargo test --manifest-path extensions/sqlite/Cargo.toml --release

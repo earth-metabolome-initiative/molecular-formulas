@@ -23,7 +23,7 @@ All four formula types write their `Display` text and parse it on read. For exam
 
 ### Database validation
 
-PostgreSQL and SQLite can enforce formula syntax on every write, including writes from clients that do not use Diesel. Install the validator before creating a constrained table.
+PostgreSQL and SQLite can enforce formula syntax on writes with the same constraint. Install the PostgreSQL extension or register the SQLite function before creating the table.
 
 ```sql
 CREATE TABLE samples (
@@ -43,15 +43,7 @@ cargo pgrx install --release --pg-config "$(command -v pg_config)"
 psql -d my_database -c 'CREATE EXTENSION molecular_formulas'
 ```
 
-For embedded SQLite, depend on the `extensions/sqlite` crate and call `molecular_formulas_sqlite::register_on_every_new_connection()` before opening connections or creating a connection pool. This registers the function with the linked SQLite library and does not require runtime extension loading.
-
-For the SQLite shell, build the loadable library from the repository root and load it on each connection that writes constrained rows. The example assumes Linux and the system SQLite development headers.
-
-```sh
-cargo build --release --manifest-path extensions/sqlite/Cargo.toml --features loadable-extension
-sqlite3 samples.db '.load ./extensions/sqlite/target/release/libmolecular_formulas_sqlite' \
-    "SELECT must_be_molecular_formula('[13C]H4')"
-```
+For SQLite, call `molecular_formulas_sqlite::register(&mut connection)?` on each Diesel 2.4 `SqliteConnection` before writing constrained rows. For a connection pool, register the function when each connection is created. Registration is local to that connection. A standalone SQLite shell cannot write these rows without providing the function itself.
 
 ## Installation
 

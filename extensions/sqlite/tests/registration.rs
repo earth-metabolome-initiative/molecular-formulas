@@ -1,13 +1,12 @@
 //! Exercises the registered function through SQLite's SQL interface.
-#![cfg(not(feature = "loadable-extension"))]
 
 use diesel::{
     connection::SimpleConnection,
     dsl::sql,
     prelude::*,
-    sql_types::{Bool, Nullable, Text},
+    sql_types::{Nullable, Text},
 };
-use molecular_formulas_sqlite::register_on_every_new_connection;
+use molecular_formulas_sqlite::{must_be_molecular_formula, register};
 
 diesel::table! {
     samples (identifier) {
@@ -16,15 +15,15 @@ diesel::table! {
     }
 }
 
-#[diesel::declare_sql_function]
-extern "SQL" {
-    fn must_be_molecular_formula(formula: Nullable<Text>) -> Nullable<Bool>;
-}
-
 #[test]
 fn validates_on_an_embedded_connection() {
-    register_on_every_new_connection().unwrap();
     let connection = &mut SqliteConnection::establish(":memory:").unwrap();
+    let unregistered = &mut SqliteConnection::establish(":memory:").unwrap();
+    register(connection).unwrap();
+    let error = diesel::select(must_be_molecular_formula(Some("H2O")))
+        .get_result::<Option<bool>>(unregistered)
+        .unwrap_err();
+    assert!(error.to_string().contains("no such function"));
     connection.set_trusted_schema(false).unwrap();
     connection
         .batch_execute(
@@ -33,7 +32,15 @@ fn validates_on_an_embedded_connection() {
              )",
         )
         .unwrap();
-    for formula in [Some("H2O"), None] {
+    let formulas = [
+        Some("CuSO4.5H2O"),
+        Some("SO₄²⁻"),
+        Some("[13C]H4"),
+        Some("[Co(NH3)5Cl]Cl2"),
+        Some("C65535"),
+        None,
+    ];
+    for formula in formulas {
         diesel::insert_into(samples::table)
             .values(samples::formula.eq(formula))
             .execute(connection)
@@ -44,7 +51,23 @@ fn validates_on_an_embedded_connection() {
         .select((samples::formula, must_be_molecular_formula(samples::formula)))
         .load::<(Option<String>, Option<bool>)>(connection)
         .unwrap();
-    assert_eq!(rows, [(Some("H2O".into()), Some(true)), (None, None)]);
+    assert_eq!(rows, formulas.map(|formula| (formula.map(String::from), formula.map(|_| true))));
+
+    let overflow = diesel::update(samples::table)
+        .set(samples::formula.eq("C65536"))
+        .execute(connection)
+        .unwrap_err();
+    assert!(overflow.to_string().to_lowercase().contains("overflow"), "{overflow}");
+    let stored = samples::table
+        .order(samples::identifier)
+        .select(samples::formula)
+        .load::<Option<String>>(connection)
+        .unwrap();
+    assert_eq!(stored, formulas.map(|formula| formula.map(String::from)));
+    connection
+        .batch_execute("CREATE TABLE required (formula TEXT NOT NULL CHECK (must_be_molecular_formula(formula)))")
+        .unwrap();
+    assert!(connection.batch_execute("INSERT INTO required VALUES (NULL)").is_err());
 
     let error = diesel::insert_into(samples::table)
         .values(samples::formula.eq("·"))
@@ -55,8 +78,8 @@ fn validates_on_an_embedded_connection() {
 
 #[test]
 fn rejects_invalid_sqlite_values() {
-    register_on_every_new_connection().unwrap();
     let connection = &mut SqliteConnection::establish(":memory:").unwrap();
+    register(connection).unwrap();
     // SQL literals exercise storage classes that a typed text argument cannot
     // bind.
     for expression in

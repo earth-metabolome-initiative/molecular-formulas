@@ -7,17 +7,8 @@ license = "MIT"
 publish = false
 description = "SQLite validation for molecular formula text"
 
-[lib]
-crate-type = ["rlib", "cdylib"]
-
-[features]
-loadable-extension = ["libsqlite3-sys/loadable_extension"]
-
 [dependencies]
-libsqlite3-sys = "0.38.2"
-molecular-formulas = { path = "../../", default-features = false }
-
-[dev-dependencies]
 diesel = { version = "2.4.0", default-features = false, features = ["sqlite"] }
+molecular-formulas = { path = "../../", default-features = false }
 
 [workspace]
