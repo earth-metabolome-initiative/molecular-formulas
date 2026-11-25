@@ -389,9 +389,15 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// Elements and isotopes are tracked separately: an isotope requirement in
     /// `other` cannot be satisfied by an unlabeled element in `self`.
     ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if a required atom count is unknown or exceeds
+    /// `u128`.
+    ///
     /// # Example
     ///
     /// ```rust
+    /// # fn main() -> Result<(), molecular_formulas::errors::CountError> {
     /// use std::str::FromStr;
     ///
     /// use molecular_formulas::prelude::*;
@@ -399,13 +405,16 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// let glucose: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
     /// let water: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
     ///
-    /// assert!(glucose.contains(&water));
-    /// assert!(!water.contains(&glucose));
+    /// assert!(glucose.contains(&water)?);
+    /// assert!(!water.contains(&glucose)?);
+    /// # Ok(())
+    /// # }
     /// ```
-    fn contains(&self, other: &Self) -> bool {
-        let Ok(self_counts) = merged_formula_counts(self) else { return false };
-        let Ok(other_counts) = merged_formula_counts(other) else { return false };
-        formula_contains(&self_counts, &other_counts)
+    fn contains(&self, other: &Self) -> Result<bool, CountError>
+    where
+        u128: From<Self::Count>,
+    {
+        Ok(containment_ratio(self, other)? != Some(0))
     }
 
     /// Returns how many times another formula is contained in this one.
@@ -414,9 +423,15 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// in `self` to the corresponding counts in `other`. Returns `0` if
     /// `other` is not contained in `self` or if `other` is empty.
     ///
+    /// # Errors
+    ///
+    /// Returns [`CountError`] if a required atom count is unknown or exceeds
+    /// `u128`, or if the number of copies exceeds `usize`.
+    ///
     /// # Example
     ///
     /// ```rust
+    /// # fn main() -> Result<(), molecular_formulas::errors::CountError> {
     /// use std::str::FromStr;
     ///
     /// use molecular_formulas::prelude::*;
@@ -424,15 +439,16 @@ pub trait MolecularFormula: MolecularFormulaMetadata + Display + From<Element> +
     /// let glucose: ChemicalFormula = ChemicalFormula::from_str("C6H12O6").unwrap();
     /// let water: ChemicalFormula = ChemicalFormula::from_str("H2O").unwrap();
     ///
-    /// assert_eq!(glucose.contains_count(&water), 6);
+    /// assert_eq!(glucose.contains_count(&water)?, 6);
+    /// # Ok(())
+    /// # }
     /// ```
-    fn contains_count(&self, other: &Self) -> usize {
-        let Ok(self_counts) = merged_formula_counts(self) else { return 0 };
-        let Ok(other_counts) = merged_formula_counts(other) else { return 0 };
-        if !formula_contains(&self_counts, &other_counts) {
-            return 0;
-        }
-        formula_contains_count::<Self::Count>(&self_counts, &other_counts)
+    fn contains_count(&self, other: &Self) -> Result<usize, CountError>
+    where
+        u128: From<Self::Count>,
+    {
+        usize::try_from(containment_ratio(self, other)?.unwrap_or(0))
+            .map_err(|_| NumericError::PositiveOverflow.into())
     }
 
     /// Returns the number of elements of a specific type in the molecular
@@ -762,49 +778,40 @@ where
     Ok(counts)
 }
 
-fn for_each_other_count<Count: CountLike, F>(
-    self_counts: &MergedFormulaCounts<Count>,
-    other_counts: &MergedFormulaCounts<Count>,
-    mut f: F,
-) where
-    F: FnMut(Count, Count),
+/// Minimum copy count across the required atom species. An empty requirement
+/// has no ratio.
+fn containment_ratio<Formula: MolecularFormula>(
+    available: &Formula,
+    required: &Formula,
+) -> Result<Option<u128>, CountError>
+where
+    u128: From<Formula::Count>,
 {
-    for (key, other_count) in &other_counts.elements {
-        let self_count = self_counts.elements.get(key).copied().unwrap_or(Count::ZERO);
-        f(self_count, *other_count);
-    }
-    for (key, other_count) in &other_counts.isotopes {
-        let self_count = self_counts.isotopes.get(key).copied().unwrap_or(Count::ZERO);
-        f(self_count, *other_count);
-    }
-}
-
-fn formula_contains<Count: CountLike>(
-    self_counts: &MergedFormulaCounts<Count>,
-    other_counts: &MergedFormulaCounts<Count>,
-) -> bool {
-    let mut result = true;
-    for_each_other_count(self_counts, other_counts, |self_count, other_count| {
-        if self_count < other_count {
-            result = false;
+    let mut minimum: Option<u128> = None;
+    let mut include = |supply: u128, demand: u128| {
+        if let Some(ratio) = supply.checked_div(demand) {
+            minimum = Some(minimum.map_or(ratio, |current| current.min(ratio)));
         }
-    });
-    result
-}
-
-fn formula_contains_count<Count: CountLike>(
-    self_counts: &MergedFormulaCounts<Count>,
-    other_counts: &MergedFormulaCounts<Count>,
-) -> usize {
-    let mut min_count = usize::MAX;
-    for_each_other_count(self_counts, other_counts, |self_count, other_count| {
-        let self_usize: usize = self_count.try_into().unwrap_or(0);
-        let other_usize: usize = other_count.try_into().unwrap_or(usize::MAX);
-        if let Some(ratio) = self_usize.checked_div(other_usize) {
-            min_count = min_count.min(ratio);
+    };
+    let has_isotopes = available.contains_isotopes() || required.contains_isotopes();
+    for element in elements_by_atomic_number().filter(|&element| required.contains_element(element))
+    {
+        let mut supply = available.count_of_element::<u128>(element)?;
+        let mut demand = required.count_of_element::<u128>(element)?;
+        if has_isotopes {
+            for &isotope in element.isotopes() {
+                let labeled_supply = available.count_of_isotope::<u128>(isotope)?;
+                let labeled_demand = required.count_of_isotope::<u128>(isotope)?;
+                supply =
+                    supply.checked_sub(labeled_supply).ok_or(NumericError::NegativeOverflow)?;
+                demand =
+                    demand.checked_sub(labeled_demand).ok_or(NumericError::NegativeOverflow)?;
+                include(labeled_supply, labeled_demand);
+            }
         }
-    });
-    if min_count == usize::MAX { 0 } else { min_count }
+        include(supply, demand);
+    }
+    Ok(minimum)
 }
 
 /// A molecular formula that can hold a charge.
