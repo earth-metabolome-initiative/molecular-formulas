@@ -92,6 +92,10 @@ name = "diesel_postgres"
 required-features = ["diesel-postgres", "diesel/postgres"]
 
 [[test]]
+name = "diesel_postgres_validation"
+required-features = ["diesel-postgres", "diesel/postgres"]
+
+[[test]]
 name = "diesel_mariadb"
 required-features = ["diesel-mariadb", "diesel/mariadb"]
 
