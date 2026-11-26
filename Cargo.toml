@@ -32,8 +32,9 @@ serde_json = "1.0.149"
 [features]
 default = ["serde"]
 serde = ["dep:serde"]
-diesel-sqlite = ["dep:diesel", "diesel/sqlite-no-std"]
-diesel-postgres = ["dep:diesel", "diesel/postgres_backend"]
+formula-index = []
+diesel-sqlite = ["dep:diesel", "diesel/sqlite-no-std", "formula-index"]
+diesel-postgres = ["dep:diesel", "diesel/postgres_backend", "formula-index"]
 diesel-mariadb = ["dep:diesel", "diesel/mariadb_backend"]
 diesel-mysql = ["dep:diesel", "diesel/mysql_backend"]
 arbitrary = ["dep:arbitrary", "elements_rs/arbitrary"]
@@ -88,6 +89,18 @@ name = "diesel_sqlite_validation"
 required-features = ["diesel-sqlite"]
 
 [[test]]
+name = "presence_projection"
+required-features = ["formula-index"]
+
+[[test]]
+name = "presence_sqlite"
+required-features = ["diesel-sqlite"]
+
+[[test]]
+name = "presence_postgres"
+required-features = ["diesel-postgres", "diesel/postgres"]
+
+[[test]]
 name = "diesel_postgres"
 required-features = ["diesel-postgres", "diesel/postgres"]
 
@@ -114,3 +127,8 @@ harness = false
 [[bench]]
 name = "contains_benchmark"
 harness = false
+
+[[bench]]
+name = "presence_search"
+harness = false
+required-features = ["diesel-sqlite", "diesel-postgres", "diesel/postgres"]

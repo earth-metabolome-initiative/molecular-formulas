@@ -21,6 +21,10 @@ extern crate alloc;
 ))]
 mod diesel_sql;
 pub mod errors;
+#[cfg(feature = "formula-index")]
+pub mod formula_index;
+#[cfg(any(feature = "diesel-sqlite", feature = "diesel-postgres"))]
+pub mod index_queries;
 pub mod molecular_formula;
 pub(crate) mod molecular_tree;
 pub mod nodes;

@@ -20,6 +20,6 @@ pg18 = ["pgrx/pg18"]
 pg19 = ["pgrx/pg19"]
 
 [dependencies]
-formula-parser = { package = "molecular-formulas", path = "../../", default-features = false }
+formula-parser = { package = "molecular-formulas", path = "../../", default-features = false, features = ["formula-index"] }
 pgrx = "=0.20.1"
 pgrx_validation_derive = { git = "https://github.com/connetto-rs/pgrx-validation", branch = "main", features = ["pgrx"] }

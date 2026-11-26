@@ -1,0 +1,264 @@
+environment	sqlite=3.37.2	postgres=180007	seed=1296453714	documents=6000	warmups=1	runs=8
+bytes_source_postings_lookup_incremental_total	sqlite	98304	167936	163840	331776
+plan	sqlite	raw	all	SCAN mf_documents
+sample_us	sqlite	raw	F	1	2907.069
+sample_us	sqlite	raw	13C	1	2937.960
+sample_us	sqlite	raw	Au	1	2884.588
+sample_us	sqlite	raw	C	1	2893.978
+sample_us	sqlite	raw	13C	2	2941.870
+sample_us	sqlite	raw	Au	2	2881.498
+sample_us	sqlite	raw	C	2	2904.619
+sample_us	sqlite	raw	F	2	2903.838
+sample_us	sqlite	raw	Au	3	2979.901
+sample_us	sqlite	raw	C	3	2916.879
+sample_us	sqlite	raw	F	3	2899.048
+sample_us	sqlite	raw	13C	3	2962.681
+sample_us	sqlite	raw	C	4	2927.799
+sample_us	sqlite	raw	F	4	2938.669
+sample_us	sqlite	raw	13C	4	2972.620
+sample_us	sqlite	raw	Au	4	2890.888
+sample_us	sqlite	raw	F	5	2926.409
+sample_us	sqlite	raw	13C	5	2958.400
+sample_us	sqlite	raw	Au	5	2913.429
+sample_us	sqlite	raw	C	5	2893.288
+sample_us	sqlite	raw	13C	6	2941.479
+sample_us	sqlite	raw	Au	6	2919.039
+sample_us	sqlite	raw	C	6	2882.948
+sample_us	sqlite	raw	F	6	2915.099
+sample_us	sqlite	raw	Au	7	2861.828
+sample_us	sqlite	raw	C	7	2900.398
+sample_us	sqlite	raw	F	7	2905.929
+sample_us	sqlite	raw	13C	7	3008.661
+sample_us	sqlite	raw	C	8	2923.149
+sample_us	sqlite	raw	F	8	3189.996
+sample_us	sqlite	raw	13C	8	3547.474
+sample_us	sqlite	raw	Au	8	3324.048
+summary_hits_mean_us_sample_sd_us	sqlite	raw	C	2983	2905.382	15.836
+summary_hits_mean_us_sample_sd_us	sqlite	raw	F	1473	2948.257	98.553
+summary_hits_mean_us_sample_sd_us	sqlite	raw	13C	1006	3033.893	208.785
+summary_hits_mean_us_sample_sd_us	sqlite	raw	Au	0	2956.902	152.578
+plan	sqlite	indexed	C	SCAN mf_postings
+plan	sqlite	indexed	F	SCAN mf_postings
+plan	sqlite	indexed	Au	SCAN mf_postings
+plan	sqlite	indexed	13C	SEARCH mf_postings USING COVERING INDEX mf_postings_lookup (element=? AND mass=?)
+sample_us	sqlite	indexed	F	1	905.321
+sample_us	sqlite	indexed	13C	1	156.233
+sample_us	sqlite	indexed	Au	1	613.855
+sample_us	sqlite	indexed	C	1	1193.588
+sample_us	sqlite	indexed	13C	2	156.894
+sample_us	sqlite	indexed	Au	2	615.914
+sample_us	sqlite	indexed	C	2	1214.549
+sample_us	sqlite	indexed	F	2	922.142
+sample_us	sqlite	indexed	Au	3	619.435
+sample_us	sqlite	indexed	C	3	1207.988
+sample_us	sqlite	indexed	F	3	897.662
+sample_us	sqlite	indexed	13C	3	143.863
+sample_us	sqlite	indexed	C	4	1226.279
+sample_us	sqlite	indexed	F	4	933.472
+sample_us	sqlite	indexed	13C	4	162.903
+sample_us	sqlite	indexed	Au	4	661.186
+sample_us	sqlite	indexed	F	5	957.903
+sample_us	sqlite	indexed	13C	5	172.504
+sample_us	sqlite	indexed	Au	5	632.895
+sample_us	sqlite	indexed	C	5	1237.529
+sample_us	sqlite	indexed	13C	6	170.714
+sample_us	sqlite	indexed	Au	6	671.486
+sample_us	sqlite	indexed	C	6	1220.489
+sample_us	sqlite	indexed	F	6	910.192
+sample_us	sqlite	indexed	Au	7	616.065
+sample_us	sqlite	indexed	C	7	1180.608
+sample_us	sqlite	indexed	F	7	913.661
+sample_us	sqlite	indexed	13C	7	157.224
+sample_us	sqlite	indexed	C	8	1203.979
+sample_us	sqlite	indexed	F	8	916.531
+sample_us	sqlite	indexed	13C	8	170.824
+sample_us	sqlite	indexed	Au	8	619.934
+summary_hits_mean_us_sample_sd_us	sqlite	indexed	C	2983	1210.626	18.221
+summary_hits_mean_us_sample_sd_us	sqlite	indexed	F	1473	919.611	18.839
+summary_hits_mean_us_sample_sd_us	sqlite	indexed	13C	1006	161.395	9.806
+summary_hits_mean_us_sample_sd_us	sqlite	indexed	Au	0	631.346	22.532
+plan	sqlite	without_lookup	C	SCAN mf_postings
+plan	sqlite	without_lookup	F	SCAN mf_postings
+plan	sqlite	without_lookup	Au	SCAN mf_postings
+plan	sqlite	without_lookup	13C	SEARCH mf_postings USING COVERING INDEX mf_postings_lookup (element=? AND mass=?)
+sample_us	sqlite	without_lookup	F	1	918.962
+sample_us	sqlite	without_lookup	13C	1	839.520
+sample_us	sqlite	without_lookup	Au	1	603.604
+sample_us	sqlite	without_lookup	C	1	1161.617
+sample_us	sqlite	without_lookup	13C	2	850.781
+sample_us	sqlite	without_lookup	Au	2	639.765
+sample_us	sqlite	without_lookup	C	2	1241.119
+sample_us	sqlite	without_lookup	F	2	957.273
+sample_us	sqlite	without_lookup	Au	3	633.755
+sample_us	sqlite	without_lookup	C	3	1245.570
+sample_us	sqlite	without_lookup	F	3	867.930
+sample_us	sqlite	without_lookup	13C	3	855.351
+sample_us	sqlite	without_lookup	C	4	1236.699
+sample_us	sqlite	without_lookup	F	4	973.103
+sample_us	sqlite	without_lookup	13C	4	884.951
+sample_us	sqlite	without_lookup	Au	4	667.906
+sample_us	sqlite	without_lookup	F	5	965.983
+sample_us	sqlite	without_lookup	13C	5	873.511
+sample_us	sqlite	without_lookup	Au	5	645.285
+sample_us	sqlite	without_lookup	C	5	1288.021
+sample_us	sqlite	without_lookup	13C	6	780.908
+sample_us	sqlite	without_lookup	Au	6	565.064
+sample_us	sqlite	without_lookup	C	6	1067.205
+sample_us	sqlite	without_lookup	F	6	827.480
+sample_us	sqlite	without_lookup	Au	7	561.363
+sample_us	sqlite	without_lookup	C	7	1072.745
+sample_us	sqlite	without_lookup	F	7	829.390
+sample_us	sqlite	without_lookup	13C	7	782.058
+sample_us	sqlite	without_lookup	C	8	1075.675
+sample_us	sqlite	without_lookup	F	8	922.932
+sample_us	sqlite	without_lookup	13C	8	753.578
+sample_us	sqlite	without_lookup	Au	8	622.805
+summary_hits_mean_us_sample_sd_us	sqlite	without_lookup	C	2983	1173.581	91.055
+summary_hits_mean_us_sample_sd_us	sqlite	without_lookup	F	1473	907.882	59.329
+summary_hits_mean_us_sample_sd_us	sqlite	without_lookup	13C	1006	827.582	48.668
+summary_hits_mean_us_sample_sd_us	sqlite	without_lookup	Au	0	617.443	38.163
+bytes_source_postings_lookup_incremental_total	postgres	475136	1155072	499712	1654784
+plan	postgres	raw	all	Index Scan using mf_documents_pkey on mf_documents  (cost=0.28..203.28 rows=6000 width=14)
+sample_us	postgres	raw	F	1	5037.889
+sample_us	postgres	raw	13C	1	5281.484
+sample_us	postgres	raw	Au	1	5056.620
+sample_us	postgres	raw	C	1	5231.424
+sample_us	postgres	raw	13C	2	5201.403
+sample_us	postgres	raw	Au	2	5095.551
+sample_us	postgres	raw	C	2	5059.289
+sample_us	postgres	raw	F	2	5008.359
+sample_us	postgres	raw	Au	3	5125.381
+sample_us	postgres	raw	C	3	5265.525
+sample_us	postgres	raw	F	3	5010.917
+sample_us	postgres	raw	13C	3	5245.694
+sample_us	postgres	raw	C	4	5091.440
+sample_us	postgres	raw	F	4	5214.463
+sample_us	postgres	raw	13C	4	5255.144
+sample_us	postgres	raw	Au	4	4654.620
+sample_us	postgres	raw	F	5	4681.720
+sample_us	postgres	raw	13C	5	4586.148
+sample_us	postgres	raw	Au	5	5866.838
+sample_us	postgres	raw	C	5	5887.919
+sample_us	postgres	raw	13C	6	5915.819
+sample_us	postgres	raw	Au	6	5885.279
+sample_us	postgres	raw	C	6	5832.418
+sample_us	postgres	raw	F	6	5854.328
+sample_us	postgres	raw	Au	7	5823.137
+sample_us	postgres	raw	C	7	5803.826
+sample_us	postgres	raw	F	7	5831.558
+sample_us	postgres	raw	13C	7	5884.729
+sample_us	postgres	raw	C	8	5840.458
+sample_us	postgres	raw	F	8	5849.828
+sample_us	postgres	raw	13C	8	5881.099
+sample_us	postgres	raw	Au	8	5812.587
+summary_hits_mean_us_sample_sd_us	postgres	raw	C	2983	5501.537	369.835
+summary_hits_mean_us_sample_sd_us	postgres	raw	F	1473	5311.133	465.689
+summary_hits_mean_us_sample_sd_us	postgres	raw	13C	1006	5406.440	461.796
+summary_hits_mean_us_sample_sd_us	postgres	raw	Au	0	5415.002	484.401
+plan	postgres	indexed	C	Sort  (cost=328.13..335.44 rows=2926 width=8)
+plan	postgres	indexed	C	  Sort Key: document_id
+plan	postgres	indexed	C	  ->  HashAggregate  (cost=130.41..159.66 rows=2926 width=8)
+plan	postgres	indexed	C	        Group Key: document_id
+plan	postgres	indexed	C	        ->  Index Only Scan using mf_postings_lookup on mf_postings  (cost=0.29..121.64 rows=3506 width=8)
+plan	postgres	indexed	C	              Index Cond: (element = 6)
+plan	postgres	indexed	F	Unique  (cost=131.58..138.94 rows=1368 width=8)
+plan	postgres	indexed	F	  ->  Sort  (cost=131.58..135.26 rows=1473 width=8)
+plan	postgres	indexed	F	        Sort Key: document_id
+plan	postgres	indexed	F	        ->  Index Only Scan using mf_postings_lookup on mf_postings  (cost=0.29..54.06 rows=1473 width=8)
+plan	postgres	indexed	F	              Index Cond: (element = 9)
+plan	postgres	indexed	Au	Unique  (cost=4.31..4.32 rows=1 width=8)
+plan	postgres	indexed	Au	  ->  Sort  (cost=4.31..4.32 rows=1 width=8)
+plan	postgres	indexed	Au	        Sort Key: document_id
+plan	postgres	indexed	Au	        ->  Index Only Scan using mf_postings_lookup on mf_postings  (cost=0.29..4.30 rows=1 width=8)
+plan	postgres	indexed	Au	              Index Cond: (element = 79)
+plan	postgres	indexed	13C	Index Only Scan using mf_postings_lookup on mf_postings  (cost=0.29..13.14 rows=243 width=8)
+plan	postgres	indexed	13C	  Index Cond: ((element = 6) AND (mass = 13))
+sample_us	postgres	indexed	F	1	962.103
+sample_us	postgres	indexed	13C	1	470.131
+sample_us	postgres	indexed	Au	1	99.282
+sample_us	postgres	indexed	C	1	2863.098
+sample_us	postgres	indexed	13C	2	459.861
+sample_us	postgres	indexed	Au	2	50.121
+sample_us	postgres	indexed	C	2	2209.962
+sample_us	postgres	indexed	F	2	882.671
+sample_us	postgres	indexed	Au	3	51.942
+sample_us	postgres	indexed	C	3	2177.691
+sample_us	postgres	indexed	F	3	942.853
+sample_us	postgres	indexed	13C	3	495.022
+sample_us	postgres	indexed	C	4	2225.683
+sample_us	postgres	indexed	F	4	925.402
+sample_us	postgres	indexed	13C	4	489.461
+sample_us	postgres	indexed	Au	4	53.741
+sample_us	postgres	indexed	F	5	922.712
+sample_us	postgres	indexed	13C	5	509.632
+sample_us	postgres	indexed	Au	5	53.031
+sample_us	postgres	indexed	C	5	2255.712
+sample_us	postgres	indexed	13C	6	483.801
+sample_us	postgres	indexed	Au	6	55.112
+sample_us	postgres	indexed	C	6	2205.682
+sample_us	postgres	indexed	F	6	921.632
+sample_us	postgres	indexed	Au	7	53.921
+sample_us	postgres	indexed	C	7	2216.272
+sample_us	postgres	indexed	F	7	917.202
+sample_us	postgres	indexed	13C	7	665.286
+sample_us	postgres	indexed	C	8	2229.012
+sample_us	postgres	indexed	F	8	924.201
+sample_us	postgres	indexed	13C	8	489.411
+sample_us	postgres	indexed	Au	8	56.672
+summary_hits_mean_us_sample_sd_us	postgres	indexed	C	2983	2297.889	229.453
+summary_hits_mean_us_sample_sd_us	postgres	indexed	F	1473	924.847	22.568
+summary_hits_mean_us_sample_sd_us	postgres	indexed	13C	1006	507.826	65.395
+summary_hits_mean_us_sample_sd_us	postgres	indexed	Au	0	59.228	16.303
+plan	postgres	without_lookup	C	Unique  (cost=0.29..385.17 rows=2926 width=8)
+plan	postgres	without_lookup	C	  ->  Index Only Scan using mf_postings_pkey on mf_postings  (cost=0.29..376.40 rows=3506 width=8)
+plan	postgres	without_lookup	C	        Index Cond: (element = 6)
+plan	postgres	without_lookup	F	Unique  (cost=338.28..345.64 rows=1368 width=8)
+plan	postgres	without_lookup	F	  ->  Sort  (cost=338.28..341.96 rows=1473 width=8)
+plan	postgres	without_lookup	F	        Sort Key: document_id
+plan	postgres	without_lookup	F	        ->  Seq Scan on mf_postings  (cost=0.00..260.76 rows=1473 width=8)
+plan	postgres	without_lookup	F	              Filter: (element = 9)
+plan	postgres	without_lookup	Au	Unique  (cost=260.77..260.78 rows=1 width=8)
+plan	postgres	without_lookup	Au	  ->  Sort  (cost=260.77..260.78 rows=1 width=8)
+plan	postgres	without_lookup	Au	        Sort Key: document_id
+plan	postgres	without_lookup	Au	        ->  Seq Scan on mf_postings  (cost=0.00..260.76 rows=1 width=8)
+plan	postgres	without_lookup	Au	              Filter: (element = 79)
+plan	postgres	without_lookup	13C	Sort  (cost=306.74..307.35 rows=243 width=8)
+plan	postgres	without_lookup	13C	  Sort Key: document_id
+plan	postgres	without_lookup	13C	  ->  Seq Scan on mf_postings  (cost=0.00..297.12 rows=243 width=8)
+plan	postgres	without_lookup	13C	        Filter: ((element = 6) AND (mass = 13))
+sample_us	postgres	without_lookup	F	1	1642.719
+sample_us	postgres	without_lookup	13C	1	1440.414
+sample_us	postgres	without_lookup	Au	1	1043.955
+sample_us	postgres	without_lookup	C	1	1994.657
+sample_us	postgres	without_lookup	13C	2	1390.563
+sample_us	postgres	without_lookup	Au	2	1035.545
+sample_us	postgres	without_lookup	C	2	1991.997
+sample_us	postgres	without_lookup	F	2	1574.497
+sample_us	postgres	without_lookup	Au	3	978.232
+sample_us	postgres	without_lookup	C	3	1967.717
+sample_us	postgres	without_lookup	F	3	1580.068
+sample_us	postgres	without_lookup	13C	3	1425.343
+sample_us	postgres	without_lookup	C	4	1972.966
+sample_us	postgres	without_lookup	F	4	1607.128
+sample_us	postgres	without_lookup	13C	4	1146.087
+sample_us	postgres	without_lookup	Au	4	803.479
+sample_us	postgres	without_lookup	F	5	1295.550
+sample_us	postgres	without_lookup	13C	5	1123.106
+sample_us	postgres	without_lookup	Au	5	811.660
+sample_us	postgres	without_lookup	C	5	1604.538
+sample_us	postgres	without_lookup	13C	6	1087.936
+sample_us	postgres	without_lookup	Au	6	815.189
+sample_us	postgres	without_lookup	C	6	1606.358
+sample_us	postgres	without_lookup	F	6	1286.990
+sample_us	postgres	without_lookup	Au	7	767.368
+sample_us	postgres	without_lookup	C	7	1620.599
+sample_us	postgres	without_lookup	F	7	1299.611
+sample_us	postgres	without_lookup	13C	7	1130.037
+sample_us	postgres	without_lookup	C	8	1608.398
+sample_us	postgres	without_lookup	F	8	1291.931
+sample_us	postgres	without_lookup	13C	8	1183.308
+sample_us	postgres	without_lookup	Au	8	820.509
+summary_hits_mean_us_sample_sd_us	postgres	without_lookup	C	2983	1795.904	199.021
+summary_hits_mean_us_sample_sd_us	postgres	without_lookup	F	1473	1447.312	165.710
+summary_hits_mean_us_sample_sd_us	postgres	without_lookup	13C	1006	1240.849	150.283
+summary_hits_mean_us_sample_sd_us	postgres	without_lookup	Au	0	884.492	114.340
