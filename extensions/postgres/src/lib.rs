@@ -1,6 +1,5 @@
 //! PostgreSQL validation of molecular formula text.
 
-use formula_parser::ChemicalFormula;
 pub use formula_parser::errors::ParserError as Error;
 use pgrx_validation_derive::validation;
 
@@ -13,5 +12,5 @@ pgrx::pg_module_magic!(name, version);
 ///
 /// Returns the parser error when the input is malformed.
 pub fn must_be_molecular_formula(formula: &str) -> Result<(), crate::Error> {
-    formula.parse::<ChemicalFormula>().map(drop)
+    formula_parser::validate_molecular_formula(formula)
 }

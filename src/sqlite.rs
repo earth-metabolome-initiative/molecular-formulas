@@ -6,17 +6,13 @@ use diesel::{
     deserialize::{self, FromSql},
     result::QueryResult,
     serialize::{self, Output, ToSql},
-    sql_types::{Bool, Nullable, Text},
+    sql_types::{Bool, Text},
     sqlite::{Sqlite, SqliteConnection, SqliteFunctionBehavior, SqliteType, SqliteValue},
 };
 
-use crate::{ChemicalFormula, errors::ParserError};
-
-#[diesel::declare_sql_function]
-extern "SQL" {
-    /// Validates formula text, propagating missing values and parser errors.
-    fn must_be_molecular_formula(formula: Nullable<Text>) -> Nullable<Bool>;
-}
+use crate::{
+    errors::ParserError, sql::must_be_molecular_formula_utils, validate_molecular_formula,
+};
 
 /// Reports parser errors when Diesel writes the SQL result so callers see the
 /// cause.
@@ -28,7 +24,7 @@ impl FromSql<Text, Sqlite> for FormulaValidation {
         if !matches!(value.value_type(), Some(SqliteType::Text)) {
             return Err("expected TEXT".into());
         }
-        Ok(Self(value.read_text().parse::<ChemicalFormula>().map(drop)))
+        Ok(Self(validate_molecular_formula(value.read_text())))
     }
 }
 

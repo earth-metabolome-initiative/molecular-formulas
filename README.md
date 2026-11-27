@@ -45,6 +45,8 @@ psql -d my_database -c 'CREATE EXTENSION molecular_formulas'
 
 Enable `diesel-sqlite` and call `molecular_formulas::sqlite::register(&mut connection)?` on each Diesel 2.4 `SqliteConnection` before creating a constrained table or writing to it. For a pool, register the function when each connection is created. A standalone SQLite shell cannot write these rows without providing the function itself.
 
+With `diesel-postgres` or `diesel-sqlite`, import `molecular_formulas::sql::must_be_molecular_formula` for typed queries. For a nullable text column, `samples::table.select(must_be_molecular_formula(samples::formula))` loads `Option<bool>` per row. For a non-nullable column, pass `samples::formula.nullable()`. A malformed formula aborts the query.
+
 ## Installation
 
 Add this to your `Cargo.toml`:

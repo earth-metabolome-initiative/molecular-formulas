@@ -2,11 +2,10 @@
 
 use diesel::{
     connection::SimpleConnection,
-    dsl::sql,
     prelude::*,
     result::{DatabaseErrorKind, Error},
-    sql_types::{Bool, Nullable},
 };
+use molecular_formulas::sql::must_be_molecular_formula;
 
 diesel::table! {
     /// Samples with a formula constraint.
@@ -61,10 +60,14 @@ fn validates_constrained_writes() {
 
     let rows = samples::table
         .order(samples::identifier)
-        .select((samples::formula, sql::<Nullable<Bool>>("must_be_molecular_formula(formula)")))
+        .select((samples::formula, must_be_molecular_formula(samples::formula)))
         .load::<(Option<String>, Option<bool>)>(connection)
         .unwrap();
     assert_eq!(rows, formulas.map(|formula| (formula.map(String::from), formula.map(|_| true))));
+    let error = diesel::select(must_be_molecular_formula(Some("C65536")))
+        .get_result::<Option<bool>>(connection)
+        .unwrap_err();
+    assert!(error.to_string().to_lowercase().contains("overflow"), "{error}");
 
     connection
         .batch_execute(

@@ -6,7 +6,7 @@ use diesel::{
     prelude::*,
     sql_types::{Nullable, Text},
 };
-use molecular_formulas::sqlite::{must_be_molecular_formula, register};
+use molecular_formulas::{sql::must_be_molecular_formula, sqlite::register};
 
 diesel::table! {
     /// Samples with a formula constraint.
@@ -55,6 +55,10 @@ fn validates_on_an_embedded_connection() {
         .load::<(Option<String>, Option<bool>)>(connection)
         .unwrap();
     assert_eq!(rows, formulas.map(|formula| (formula.map(String::from), formula.map(|_| true))));
+    let error = diesel::select(must_be_molecular_formula(Some("C65536")))
+        .get_result::<Option<bool>>(connection)
+        .unwrap_err();
+    assert!(error.to_string().to_lowercase().contains("overflow"), "{error}");
 
     let overflow = diesel::update(samples::table)
         .set(samples::formula.eq("C65536"))
