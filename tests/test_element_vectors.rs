@@ -58,3 +58,44 @@ fn test_element_count_vector_reports_overflow() {
         Err(CountError::Numeric(NumericError::PositiveOverflow))
     );
 }
+
+#[test]
+fn labeled_groups_in_a_charged_mixture_share_element_totals() {
+    let formula: ChemicalFormula = "2([13C]H3)2O.D2O.Na+".parse().unwrap();
+    let mut expected = vec![0u32; 118];
+    for (element, count) in [(Element::C, 4), (Element::H, 14), (Element::O, 3), (Element::Na, 1)] {
+        expected[element_index(element)] = count;
+    }
+    assert_eq!(formula.element_count_vector(), Ok(expected));
+}
+
+#[test]
+fn count_vector_uses_the_requested_width_for_products_and_sums() {
+    for input in ["2(H65535)65535", "65535H65535.65535H65535"] {
+        let formula: ChemicalFormula = input.parse().unwrap();
+        assert_eq!(
+            formula.element_count_vector::<u32>(),
+            Err(CountError::Numeric(NumericError::PositiveOverflow))
+        );
+        let counts = formula.element_count_vector::<u64>().unwrap();
+        assert_eq!(counts[element_index(Element::H)], 8_589_672_450);
+    }
+}
+
+#[test]
+fn superoxide_counts_both_oxygen_atoms() {
+    let formula: ChemicalFormula = "O2•−".parse().unwrap();
+    let mut expected = vec![0u32; 118];
+    expected[element_index(Element::O)] = 2;
+    assert_eq!(formula.element_count_vector(), Ok(expected));
+}
+
+#[test]
+fn inchi_component_coefficients_contribute_to_element_totals() {
+    let formula: InChIFormula = "2H2O.ClNa".parse().unwrap();
+    let mut expected = vec![0u32; 118];
+    for (element, count) in [(Element::H, 4), (Element::O, 2), (Element::Cl, 1), (Element::Na, 1)] {
+        expected[element_index(element)] = count;
+    }
+    assert_eq!(formula.element_count_vector(), Ok(expected));
+}

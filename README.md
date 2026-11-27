@@ -202,6 +202,8 @@ To run the benchmarks:
 cargo bench
 ```
 
+`cargo bench --bench composition_benchmark` measures extraction of all 118 element counts from already-parsed chemical formulas. It compares a single traversal with querying each element separately.
+
 Current benchmarks cover:
 
 - **InChIFormula**: Parsing a large mixture string with 76 components (**~3.75 µs**).
