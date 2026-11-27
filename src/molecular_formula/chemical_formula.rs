@@ -8,12 +8,15 @@ use core::{
     ops::{Add, AddAssign},
 };
 
-use elements_rs::{Element, Isotope};
+use elements_rs::{Element, ElementVariant, Isotope};
+use num_traits::{CheckedAdd, CheckedMul, ConstOne, ConstZero};
 
 use crate::{
     ChargeLike, ChargedMolecularFormulaMetadata, CountLike, Empty, InChIFormula,
     MergedFormulaCounts, MolecularFormula, MolecularFormulaMetadata, ParsableFormula, RepeatNode,
-    SequenceNode, errors::CountError, hill_ordered_elements, merged_formula_counts,
+    SequenceNode,
+    errors::{CountError, NumericError},
+    hill_ordered_elements, merged_formula_counts,
     prelude::ChemicalTree,
 };
 
@@ -168,12 +171,62 @@ impl<Count: CountLike, Charge: ChargeLike> MolecularFormula for ChemicalFormula<
         self.mixtures.into_iter()
     }
 
+    fn element_count_vector<Total>(&self) -> Result<Vec<Total>, CountError>
+    where
+        Total: From<Count> + CheckedAdd + CheckedMul + ConstOne + ConstZero,
+    {
+        let mut totals: Vec<_> = (0..usize::from(Element::Og)).map(|_| Total::ZERO).collect();
+        for (coefficient, tree) in self.counted_mixtures() {
+            accumulate_element_counts(tree, &Total::from(coefficient), &mut totals)?;
+        }
+        Ok(totals)
+    }
+
     fn merge_mixtures(&self) -> Result<Self, CountError> {
         if self.mixtures.len() == 1 && self.mixtures[0].0.is_one() {
             return Ok(self.clone());
         }
         Ok(chemical_tree_from_atom_counts(merged_formula_counts(self)?).into())
     }
+}
+
+/// Tallies a subtree with its enclosing coefficients multiplied together.
+fn accumulate_element_counts<Count: CountLike, Charge: ChargeLike, Total>(
+    tree: &ChemicalTree<Count, Charge, Empty>,
+    coefficient: &Total,
+    totals: &mut [Total],
+) -> Result<(), CountError>
+where
+    Total: From<Count> + CheckedAdd + CheckedMul,
+{
+    let element = match tree {
+        ChemicalTree::Element(element) => *element,
+        ChemicalTree::Isotope(isotope) => isotope.element(),
+        ChemicalTree::Sequence(sequence) => {
+            return sequence
+                .iter()
+                .try_for_each(|child| accumulate_element_counts(child, coefficient, totals));
+        }
+        ChemicalTree::Repeat(repeat) => {
+            let product = coefficient
+                .checked_mul(&Total::from(*repeat.count()))
+                .ok_or(NumericError::PositiveOverflow)?;
+            return accumulate_element_counts(repeat.node(), &product, totals);
+        }
+        ChemicalTree::Unit(unit) => {
+            return accumulate_element_counts(unit.as_ref(), coefficient, totals);
+        }
+        ChemicalTree::Charge(charge) => {
+            return accumulate_element_counts(charge.as_ref(), coefficient, totals);
+        }
+        ChemicalTree::Radical(radical) => {
+            return accumulate_element_counts(radical.as_ref(), coefficient, totals);
+        }
+        ChemicalTree::Extension(_) => return Err(CountError::UncountableExtension),
+    };
+    let total = &mut totals[usize::from(element) - 1];
+    *total = total.checked_add(coefficient).ok_or(NumericError::PositiveOverflow)?;
+    Ok(())
 }
 
 fn chemical_tree_from_atom_counts<Count: CountLike, Charge: ChargeLike>(
