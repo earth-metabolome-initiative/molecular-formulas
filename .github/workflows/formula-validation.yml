@@ -37,7 +37,7 @@ jobs:
           cargo pgrx install --manifest-path extensions/postgres/Cargo.toml --pg-config "$PGRX_PG_CONFIG_PATH" --sudo
           pg_virtualenv -v "$PG_MAJOR" env DATABASE_URL='dbname=postgres' \
             cargo test --locked --no-default-features --features diesel-postgres,diesel/postgres \
-            --test diesel_postgres_validation -- --ignored
+            --test diesel_postgres_validation --test presence_postgres -- --ignored
 
   sqlite:
     runs-on: ubuntu-26.04
@@ -51,4 +51,4 @@ jobs:
       - name: Install SQLite headers
         run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
       - name: Test Diesel function registration and constrained writes
-        run: cargo test --locked --no-default-features --features diesel-sqlite --test diesel_sqlite_validation
+        run: cargo test --locked --no-default-features --features diesel-sqlite --test diesel_sqlite_validation --test presence_sqlite --test presence_projection

@@ -47,6 +47,12 @@ Enable `diesel-sqlite` and call `molecular_formulas::sqlite::register(&mut conne
 
 With `diesel-postgres` or `diesel-sqlite`, import `molecular_formulas::sql::must_be_molecular_formula` for typed queries. For a nullable text column, `samples::table.select(must_be_molecular_formula(samples::formula))` loads `Option<bool>` per row. For a non-nullable column, pass `samples::formula.nullable()`. A malformed formula aborts the query.
 
+### Find compounds by element or isotope
+
+Create an indexed catalogue by running `formula_index::POSTGRES_SCHEMA` or `formula_index::SQLITE_SCHEMA` once in a migration, after installing the PostgreSQL extension or registering the SQLite functions. SQLite requires JSON support. Insert compound IDs and their formula text into `mf_documents(id, formula)`. Updates and deletes maintain the index in the same transaction. Existing formula columns outside `mf_documents` are unaffected.
+
+Use `index_queries::ElementQuery::new(Element::C).load::<i64>(connection)?` to return IDs containing carbon, including labelled carbon. Use `index_queries::IsotopeQuery::new(isotope).load::<i64>(connection)?` with `Isotope::try_from((Element::C, 13_u16))?` to require an explicit carbon-13 label. Each search returns each matching compound ID once, in ascending order. A catalogue can contain multiple IDs with identical formulas.
+
 ## Installation
 
 Add this to your `Cargo.toml`:
