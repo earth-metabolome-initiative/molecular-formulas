@@ -46,7 +46,7 @@ workspace = true
 
 [workspace]
 members = ["."]
-exclude = ["fuzz"]
+exclude = ["extensions/postgres", "fuzz"]
 
 [workspace.lints.rust]
 missing_docs = "forbid"
@@ -84,7 +84,15 @@ debug = true
 codegen-units = 1
 
 [[test]]
+name = "diesel_sqlite_validation"
+required-features = ["diesel-sqlite"]
+
+[[test]]
 name = "diesel_postgres"
+required-features = ["diesel-postgres", "diesel/postgres"]
+
+[[test]]
+name = "diesel_postgres_validation"
 required-features = ["diesel-postgres", "diesel/postgres"]
 
 [[test]]

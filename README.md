@@ -21,6 +21,32 @@ It validates correctly against 120M compounds from [PubChem](https://pubchem.ncb
 
 All four formula types write their `Display` text and parse it on read. For example, `CuSO4.5H2O` is stored as `CuSO₄.5H₂O`. Applications opening a server connection also enable the corresponding Diesel feature (`postgres`, `mariadb` or `mysql`).
 
+### Database validation
+
+PostgreSQL and SQLite can enforce formula syntax on writes with the same constraint. Install the PostgreSQL extension or register the SQLite function before creating the table.
+
+```sql
+CREATE TABLE samples (
+    formula TEXT NOT NULL CHECK (must_be_molecular_formula(formula))
+);
+INSERT INTO samples VALUES ('CuSO4.5H2O');
+```
+
+The validator parses the default `ChemicalFormula` and preserves the submitted text. Malformed text raises the parser error. The function returns `NULL` for missing input, so omit `NOT NULL` on a column that permits missing formulas.
+
+For PostgreSQL 15–19, install Rust 1.99.1 or later, Clang, and the server headers for the target major. Use that server's `pg_config` and run `CREATE EXTENSION` in each database. Add `--sudo` to the install command if the server's extension directories require administrator access.
+
+```sh
+cargo install --locked cargo-pgrx --version 0.20.1
+cd extensions/postgres
+cargo pgrx install --release --pg-config "$(command -v pg_config)"
+psql -d my_database -c 'CREATE EXTENSION molecular_formulas'
+```
+
+Enable `diesel-sqlite` and call `molecular_formulas::sqlite::register(&mut connection)?` on each Diesel 2.4 `SqliteConnection` before creating a constrained table or writing to it. For a pool, register the function when each connection is created. A standalone SQLite shell cannot write these rows without providing the function itself.
+
+With `diesel-postgres` or `diesel-sqlite`, import `molecular_formulas::sql::must_be_molecular_formula` for typed queries. For a nullable text column, `samples::table.select(must_be_molecular_formula(samples::formula))` loads `Option<bool>` per row. For a non-nullable column, pass `samples::formula.nullable()`. A malformed formula aborts the query.
+
 ## Installation
 
 Add this to your `Cargo.toml`:

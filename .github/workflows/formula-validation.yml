@@ -1,0 +1,54 @@
+name: Database formula validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  postgres:
+    name: PostgreSQL 18
+    runs-on: ubuntu-26.04
+    env:
+      PG_MAJOR: '18'
+      LIBCLANG_PATH: /usr/lib/llvm-20/lib
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
+        with:
+          toolchain: stable
+      - name: Install server and headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y "postgresql-$PG_MAJOR" "postgresql-server-dev-$PG_MAJOR" libclang-20-dev libpq-dev
+      - name: Install extension tooling
+        run: cargo install cargo-pgrx --locked --version 0.20.1
+      - name: Install extension and test constrained writes
+        run: |
+          export PGRX_PG_CONFIG_PATH="/usr/lib/postgresql/$PG_MAJOR/bin/pg_config"
+          cargo pgrx install --manifest-path extensions/postgres/Cargo.toml --pg-config "$PGRX_PG_CONFIG_PATH" --sudo
+          pg_virtualenv -v "$PG_MAJOR" env DATABASE_URL='dbname=postgres' \
+            cargo test --locked --no-default-features --features diesel-postgres,diesel/postgres \
+            --test diesel_postgres_validation -- --ignored
+
+  sqlite:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@f0d5300ba8908d942c808f4d31c08471d7798ba3
+        with:
+          toolchain: stable
+      - name: Install SQLite headers
+        run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
+      - name: Test Diesel function registration and constrained writes
+        run: cargo test --locked --no-default-features --features diesel-sqlite --test diesel_sqlite_validation
