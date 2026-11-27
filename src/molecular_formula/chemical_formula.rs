@@ -317,6 +317,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn an_extension_without_atom_counts_cannot_supply_a_composition() {
+        let formula: ChemicalFormula = ChemicalTree::Extension(Empty).into();
+        assert_eq!(formula.element_count_vector::<u32>(), Err(CountError::UncountableExtension));
+    }
+
+    #[test]
     fn test_add_same_molecules() {
         let f1 = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();
         let f2 = ChemicalFormula::<u32, i32>::from_str("H2O").unwrap();

@@ -81,3 +81,21 @@ fn count_vector_uses_the_requested_width_for_products_and_sums() {
         assert_eq!(counts[element_index(Element::H)], 8_589_672_450);
     }
 }
+
+#[test]
+fn superoxide_counts_both_oxygen_atoms() {
+    let formula: ChemicalFormula = "O2•−".parse().unwrap();
+    let mut expected = vec![0u32; 118];
+    expected[element_index(Element::O)] = 2;
+    assert_eq!(formula.element_count_vector(), Ok(expected));
+}
+
+#[test]
+fn inchi_component_coefficients_contribute_to_element_totals() {
+    let formula: InChIFormula = "2H2O.ClNa".parse().unwrap();
+    let mut expected = vec![0u32; 118];
+    for (element, count) in [(Element::H, 4), (Element::O, 2), (Element::Cl, 1), (Element::Na, 1)] {
+        expected[element_index(element)] = count;
+    }
+    assert_eq!(formula.element_count_vector(), Ok(expected));
+}
